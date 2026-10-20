@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#0b1428">
+<title>WriteQuest</title>
+<style>
+/* WRITEQUEST STYLES: Change the colors below to customize the theme. */
+:root{--bg:#0b1428;--panel:#172741;--panel2:#203653;--gold:#f4c76a;--text:#f7ebd3;--muted:#c2ccdb;--purple:#8550e8}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#152d52,var(--bg) 55%);color:var(--text);font:16px/1.5 system-ui,sans-serif;min-height:100vh}
+button{font:inherit;cursor:pointer}button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
+.app{max-width:480px;margin:auto;min-height:100vh;padding:16px 16px 90px}
+header{display:flex;align-items:center;justify-content:space-between;min-height:56px}
+.brand{font:700 34px Georgia,serif;color:var(--gold);letter-spacing:-1px}
+.back{border:1px solid #516382;background:#182c49;color:var(--text);border-radius:12px;padding:8px 14px}
+.card{background:var(--panel);border:1px solid #344d6c;border-radius:20px;padding:18px;margin:16px 0;box-shadow:0 12px 30px #0002}
+h1,h2{font-family:Georgia,serif;margin:0 0 8px}h1{font-size:28px}h2{font-size:22px}
+.muted{color:var(--muted)}.small{font-size:13px}.center{text-align:center}
+.level{font-size:32px;color:var(--gold);font-weight:700}.rank{color:var(--gold);font-weight:700}
+.skill-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.skill{background:var(--panel);border:1px solid #3c5574;border-radius:18px;color:var(--text);padding:18px 10px;min-height:134px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px}
+.skill:first-child{grid-column:1/-1}.skill .symbol{font-size:36px}.skill strong{font-size:17px}.skill .small{color:var(--muted)}
+.skill:hover{background:#223858}.meter{height:10px;background:#31435d;border-radius:999px;overflow:hidden;margin:9px 0}.fill{height:100%;background:var(--gold);border-radius:999px}
+.row{display:flex;justify-content:space-between;gap:10px;align-items:center}.pill{display:inline-block;background:#2b3f5e;border:1px solid #607293;border-radius:999px;padding:3px 12px;font-size:13px}
+.icon{font-size:44px}.examples{padding-left:22px}.examples li{margin:9px 0}
+.primary{background:linear-gradient(135deg,#9964f3,#6732bf);color:white;border:0;border-radius:12px;padding:13px 18px;width:100%;font-weight:700}
+.nav{position:fixed;bottom:0;left:0;right:0;max-width:480px;margin:auto;background:#0d1b32;border-top:1px solid #375071;display:flex;justify-content:space-around;padding:10px 8px max(10px,env(safe-area-inset-bottom))}
+.nav button{border:0;background:transparent;color:#c8d0dd;padding:7px 12px;border-radius:10px}.nav button[aria-current="page"]{color:var(--gold);background:#233653}
+.rating{display:flex;gap:6px;justify-content:space-between}.rating button{flex:1;background:#223958;border:1px solid #536987;color:var(--text);border-radius:10px;padding:11px 0}
+.rating button[aria-pressed="true"]{background:#277cc3;border-color:#90d8ff;color:white;font-weight:700}
+.check-row{padding:14px 0;border-bottom:1px solid #334761}.check-row:last-child{border:0}
+.notice{padding:12px;background:#213952;border-radius:12px;color:#d4e4f4;font-size:14px}
+</style>
+</head>
+<body>
+<div id="app" class="app"></div>
+<script>
+"use strict";
+/* WRITEQUEST DATA: Edit skill descriptions and examples here. */
+const SKILLS=[
+ {id:"drafting",name:"Drafting",icon:"🪶",color:"#38bdf8",description:"Creating new written content for your stories, books, poems, or other writing projects.",examples:["Write a new chapter or scene","Develop dialogue between characters","Write a first draft","Add new material to a manuscript"]},
+ {id:"editing",name:"Editing",icon:"📜",color:"#c084fc",description:"Improving writing you have already created through revision, proofreading, and restructuring.",examples:["Rewrite a paragraph","Fix grammar and spelling","Improve dialogue or descriptions","Reorganize scenes or chapters"]},
+ {id:"creativity",name:"Creativity",icon:"💡",color:"#f4c430",description:"Exploring ideas and creative possibilities for your writing.",examples:["Brainstorm story ideas","Create characters and settings","Plan plot twists","Experiment with story concepts"]},
+ {id:"learning",name:"Learning",icon:"📖",color:"#34d399",description:"Developing your knowledge of writing techniques and storytelling craft.",examples:["Study narrative structure","Read about writing techniques","Practise a new literary technique","Learn how to write stronger dialogue"]},
+ {id:"research",name:"Research",icon:"🔎",color:"#f472b6",description:"Gathering information to make your writing more informed and convincing.",examples:["Research historical settings","Investigate a topic for a manuscript","Check factual accuracy","Explore real-world locations for a story"]}
+];
+/* PROGRESSION: The curve and milestone bonuses can be tuned later. */
+const XP_TO_NEXT=level=>Math.ceil(5*Math.pow(1.06,level-1));
+const BONUS=level=>level>=40?4:level>=30?3:level>=20?2:level>=10?1:0;
+const RANKS=[["Grandmaster",50],["Master",45],["Diamond",40],["Emerald",35],["Platinum",30],["Gold",20],["Silver",10],["Bronze",1]];
+const rank=level=>RANKS.find(r=>level>=r[1])[0];
+const KEY="writequest-starter-v1";
+const blank=()=>({xp:Object.fromEntries(SKILLS.map(s=>[s.id,0])),checkins:{}});
+let state;
+try{state=Object.assign(blank(),JSON.parse(localStorage.getItem(KEY)||"{}"))}catch{state=blank()}
+state.xp=Object.assign(blank().xp,state.xp||{});
+state.checkins=state.checkins||{};
+let page="home",previous="home",selected="drafting";
+const app=document.getElementById("app");
+const save=()=>localStorage.setItem(KEY,JSON.stringify(state));
+function stats(xp){let level=1,remaining=xp;while(level<50&&remaining>=XP_TO_NEXT(level)){remaining-=XP_TO_NEXT(level);level++}return {level,remaining,need:level===50?0:XP_TO_NEXT(level)}}
+function localDay(){const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,"0"),String(d.getDate()).padStart(2,"0")].join("-")}
+function navigate(next){if(next==="detail"){previous=page}else{previous=page}page=next;render();window.scrollTo(0,0)}
+function openSkill(id){selected=id;navigate("detail")}
+function back(){page=previous==="detail"?"home":previous;render();window.scrollTo(0,0)}
+function header(showBack=false){return '<header>'+(showBack?'<button class="back" id="back">← Back</button>':'<span class="brand">WriteQuest</span>')+(showBack?'<span class="brand" style="font-size:25px">WriteQuest</span>':'<span aria-hidden="true">✦</span>')+'</header>'}
+function progress(xp,color){const p=stats(xp);return '<div class="row small"><span>Level '+p.level+' / 50 · '+rank(p.level)+'</span><span>'+(p.level===50?'MAX':p.remaining+' / '+p.need+' XP')+'</span></div><div class="meter"><div class="fill" style="width:'+(p.level===50?100:Math.floor(100*p.remaining/p.need))+'%;background:'+color+'"></div></div>'}
+function home(){const total=SKILLS.reduce((sum,s)=>sum+stats(state.xp[s.id]).level,0);return header()+'<section class="card center"><div class="muted">Your Writing Adventure</div><div class="level">Total Level '+total+'</div><div class="rank">WriteQuest Adventurer</div><p class="small muted">Choose a skill to learn what counts and see your progress.</p></section><h1>Your Writing Skills</h1><div class="skill-grid">'+SKILLS.map(s=>'<button class="skill" data-skill="'+s.id+'" style="border-color:'+s.color+'"><span class="symbol">'+s.icon+'</span><strong>'+s.name+'</strong><span class="small">Level '+stats(state.xp[s.id]).level+' · '+rank(stats(state.xp[s.id]).level)+'</span></button>').join("")+'</div><section class="card"><h2>Daily Check-In</h2><p class="muted">Rate your writing activities once a day. You can correct today’s ratings.</p><button class="primary" data-page="checkin">Open Daily Check-In →</button></section>'+nav("home")}
+function detail(){const s=SKILLS.find(x=>x.id===selected),p=stats(state.xp[s.id]),next=[10,20,30,40].find(n=>n>p.level);return header(true)+'<section class="card"><div class="center"><div class="icon">'+s.icon+'</div><h1>'+s.name+'</h1><span class="pill">'+rank(p.level)+' · Level '+p.level+'</span></div><div style="margin-top:22px">'+progress(state.xp[s.id],s.color)+'</div><h2 style="margin-top:24px">What is '+s.name+'?</h2><p>'+s.description+'</p><h2>Activities that count</h2><ul class="examples">'+s.examples.map(x=>'<li>'+x+'</li>').join("")+'</ul><div class="notice"><strong>How XP works:</strong> During your daily check-in, rate your effort from 0 to 5. A zero is fine; you do not need to practise every skill each day.</div><p class="small muted">'+(next?'Next skill bonus: Level '+next+' unlocks +'+(next/10)+' XP on positive check-ins.':'All milestone XP bonuses unlocked!')+'</p></section><button class="primary" data-page="checkin">Go to Daily Check-In</button>'+nav("home")}
+function todayRatings(){return state.checkins[localDay()]||{}}
+function checkin(){const today=todayRatings();return header(true)+'<h1>Daily Check-In</h1><p class="muted">How much did you work on each skill today? Select 0–5. Changes to today’s ratings replace the earlier XP rather than adding more.</p><section class="card">'+SKILLS.map(s=>'<div class="check-row"><div class="row"><strong>'+s.icon+' '+s.name+'</strong><span class="small muted" id="value-'+s.id+'">'+(today[s.id]??0)+'/5</span></div><div class="rating">'+[0,1,2,3,4,5].map(n=>'<button data-rate="'+s.id+'" data-value="'+n+'" aria-pressed="'+((today[s.id]??0)===n)+'">'+n+'</button>').join("")+'</div></div>').join("")+'</section><button class="primary" id="save-checkin">Save Today’s Check-In</button><p class="small muted">This starter uses your device’s local storage. Export and account syncing can be added later.</p>'+nav("checkin")}
+function placeholder(){return header(true)+'<section class="card"><h1>Projects & Achievements</h1><p class="muted">Coming in the next development stage. We’ll add custom project images, Level 1–50 progression, rank borders, and achievements here.</p></section>'+nav("projects")}
+function nav(active){return '<nav class="nav" aria-label="Main navigation"><button data-page="home" '+(active==="home"?'aria-current="page"':'')+'>⌂ Home</button><button data-page="checkin" '+(active==="checkin"?'aria-current="page"':'')+'>✓ Check-In</button><button data-page="projects" '+(active==="projects"?'aria-current="page"':'')+'>▣ Projects</button></nav>'}
+function render(){app.innerHTML=page==="home"?home():page==="detail"?detail():page==="checkin"?checkin():placeholder();document.getElementById("back")?.addEventListener("click",back);document.querySelectorAll("[data-skill]").forEach(b=>b.addEventListener("click",()=>openSkill(b.dataset.skill)));document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.page)));document.querySelectorAll("[data-rate]").forEach(b=>b.addEventListener("click",()=>{const id=b.dataset.rate,n=Number(b.dataset.value);const values=Object.assign({},todayRatings(),{[id]:n});state.checkins[localDay()]=values;/* Ratings are stored as drafts until Save; no XP yet. */render()}));document.getElementById("save-checkin")?.addEventListener("click",saveCheckin)}
+/* DAILY SAVE: Recalculate XP from all saved daily ratings to prevent duplicate awards. */
+function saveCheckin(){const day=localDay();const ratings=todayRatings();state.checkins[day]=ratings;state.xp=blank().xp;const dates=Object.keys(state.checkins).sort();for(const date of dates){for(const s of SKILLS){const n=Number(state.checkins[date]?.[s.id]||0);if(n>0){const lvl=stats(state.xp[s.id]).level;state.xp[s.id]+=n+BONUS(lvl)}}}save();render();const msg=document.createElement("p");msg.className="notice";msg.textContent="Saved! Your writing skill XP has been updated.";document.getElementById("save-checkin")?.after(msg)}
+render();
+</script>
+</body>
+</html>
