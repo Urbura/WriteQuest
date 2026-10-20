@@ -59,3 +59,16 @@ h1,h2{font-family:Georgia,serif;margin:0 0 8px}h1{font-size:28px}h2{font-size:22
 .skill-grid .skill-rank-master{border-color:#c89aff;box-shadow:0 0 12px #c89aff55}
 .skill-grid .skill-rank-grandmaster{border-color:#f2d17b;box-shadow:0 0 15px #f2d17b77}
 @media(max-width:350px){.skill-grid{gap:5px}.skill-grid .skill{min-height:90px;padding:7px 2px}}
+
+/* Central check-in call to action, positioned within the five-skill star. */
+.skill-star{position:relative;max-width:440px;margin:0 auto 16px}
+.skill-star .skill-grid{margin-bottom:0;row-gap:28px}
+.star-checkin{position:absolute;left:50%;top:52%;transform:translate(-50%,-50%);z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;width:clamp(78px,24vw,104px);height:clamp(78px,24vw,104px);border-radius:50%;font:700 12px system-ui,sans-serif;cursor:pointer;box-shadow:0 3px 16px #0008}
+.star-checkin-icon{font-size:29px;line-height:1}
+.star-checkin-label{white-space:nowrap}
+.star-checkin-pending{background:linear-gradient(150deg,#e9bd65,#aa702a);border:3px solid #ffe0a0;color:#182640}
+.star-checkin-pending:hover{filter:brightness(1.1)}
+.star-checkin-alert{position:absolute;top:-6px;right:-4px;display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:#d93348;color:#fff;border:2px solid #fff;font-size:15px}
+.star-checkin-done{background:#3d4959;border:2px solid #738094;color:#e2e8f0;box-shadow:none}
+.star-checkin-done .star-checkin-icon{color:#75e2a3}
+@media(max-width:350px){.skill-star .skill-grid{row-gap:22px}.star-checkin{width:76px;height:76px;font-size:11px}.star-checkin-icon{font-size:25px}}
