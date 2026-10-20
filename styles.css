@@ -113,3 +113,19 @@ h1,h2{font-family:Georgia,serif;margin:0 0 8px}h1{font-size:28px}h2{font-size:22
 .header-level.rank-border-diamond{border:2px solid #80baff;box-shadow:0 0 11px #80baff55}
 .header-level.rank-border-master{border:2px solid #c89aff;box-shadow:0 0 11px #c89aff55}
 .header-level.rank-border-grandmaster{border:2px solid #f2d17b;box-shadow:0 0 14px #f2d17b77}
+
+/* Compact header and integrated star heading on phones. */
+.star-checkin-title{font-size:10px;font-weight:700;line-height:1.05;white-space:nowrap}
+@media(max-width:600px){
+ .app:has(.skill-star) header{min-width:0;gap:5px}
+ .app:has(.skill-star) .brand{flex:0 1 auto;min-width:0;font-size:clamp(20px,5.7vw,27px);letter-spacing:-.8px;white-space:nowrap}
+ .app:has(.skill-star) .header-actions{flex:0 0 auto;gap:5px}
+ .app:has(.skill-star) .header-level{font-size:10px;padding:4px 6px;line-height:1.2}
+ .app:has(.skill-star) .header-level strong{font-size:13px}
+ .app:has(.skill-star) .settings-button{width:33px;height:33px}
+ .app:has(.skill-star) .star-checkin{gap:1px}
+ .app:has(.skill-star) .star-checkin-title{font-size:clamp(8px,2.2vw,10px)}
+ .app:has(.skill-star) .star-checkin-icon{font-size:clamp(19px,4vh,26px)}
+ .app:has(.skill-star) .star-checkin-label{font-size:clamp(9px,2.5vw,11px)}
+}
+@media(max-width:350px){.app:has(.skill-star) .brand{font-size:20px}.app:has(.skill-star) .header-level{font-size:9px;padding:3px 4px}.app:has(.skill-star) .header-level strong{font-size:12px}}
