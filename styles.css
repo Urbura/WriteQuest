@@ -35,3 +35,6 @@ h1,h2{font-family:Georgia,serif;margin:0 0 8px}h1{font-size:28px}h2{font-size:22
 
 /* Destructive action: clearly distinct from ordinary settings controls. */
 .reset-button{display:block;width:100%;background:#632b39;color:#fff0ee;border:1px solid #de8294;border-radius:12px;padding:12px 14px;font-weight:700}.reset-button:hover{background:#7e3445}.save-dialog .reset-button{width:auto;max-width:100%;margin:12px auto 8px;padding:8px 14px;font-size:13px}
+
+/* Current total-level rank frame; no redundant next-rank text. */
+.rank-summary-bronze{border:2px solid #bb7a45;box-shadow:inset 0 0 0 1px #6f452f,0 0 12px #bb7a4533;background:linear-gradient(135deg,#342e35,#203653 70%)}
