@@ -38,3 +38,24 @@ h1,h2{font-family:Georgia,serif;margin:0 0 8px}h1{font-size:28px}h2{font-size:22
 
 /* Current total-level rank frame; no redundant next-rank text. */
 .rank-summary-bronze{border:2px solid #bb7a45;box-shadow:inset 0 0 0 1px #6f452f,0 0 12px #bb7a4533;background:linear-gradient(135deg,#342e35,#203653 70%)}
+
+/* Compact five-point star layout for writing skills. */
+.skill-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;align-items:center;max-width:440px;margin:0 auto 16px}
+.skill-grid .skill{grid-column:span 2;min-width:0;min-height:98px;padding:10px 4px;gap:3px;border-width:2px;border-style:solid;border-color:#6a7891;border-radius:16px}
+.skill-grid .skill:first-child{grid-column:3/span 2}
+.skill-grid .skill:nth-child(2){grid-column:1/span 2}
+.skill-grid .skill:nth-child(3){grid-column:5/span 2}
+.skill-grid .skill:nth-child(4){grid-column:2/span 2}
+.skill-grid .skill:nth-child(5){grid-column:4/span 2}
+.skill-grid .skill .symbol{font-size:27px;line-height:1.1}
+.skill-grid .skill strong{font-size:clamp(11px,3vw,15px)}
+.skill-grid .skill .small{font-size:clamp(9px,2.4vw,11px);line-height:1.2;text-align:center}
+.skill-grid .skill-rank-bronze{border-color:#bd7b4b;box-shadow:inset 0 0 0 1px #7b5035}
+.skill-grid .skill-rank-silver{border-color:#b9c8d8;box-shadow:0 0 8px #b9c8d833}
+.skill-grid .skill-rank-gold{border-color:#f0c45d;box-shadow:0 0 10px #f0c45d33}
+.skill-grid .skill-rank-platinum{border-color:#8ed6e3;box-shadow:0 0 10px #8ed6e333}
+.skill-grid .skill-rank-emerald{border-color:#4cdb9a;box-shadow:0 0 10px #4cdb9a33}
+.skill-grid .skill-rank-diamond{border-color:#80baff;box-shadow:0 0 12px #80baff55}
+.skill-grid .skill-rank-master{border-color:#c89aff;box-shadow:0 0 12px #c89aff55}
+.skill-grid .skill-rank-grandmaster{border-color:#f2d17b;box-shadow:0 0 15px #f2d17b77}
+@media(max-width:350px){.skill-grid{gap:5px}.skill-grid .skill{min-height:90px;padding:7px 2px}}
