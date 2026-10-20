@@ -32,3 +32,6 @@ h1,h2{font-family:Georgia,serif;margin:0 0 8px}h1{font-size:28px}h2{font-size:22
 
 /* Gentle level-up fireworks: no external assets, animation only after a new level. */
 .level-up-dialog{position:relative;isolation:isolate}.level-up-dialog h2{font-size:26px}.firework-bursts{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:-1}.firework-spark{position:absolute;top:35%;left:50%;width:7px;height:7px;border-radius:50%;background:var(--spark-color);opacity:0;box-shadow:0 0 8px var(--spark-color);animation:writequest-firework 950ms ease-out both}@keyframes writequest-firework{0%{opacity:0;transform:rotate(var(--angle)) translateX(0) scale(.3)}18%{opacity:1}75%{opacity:1}100%{opacity:0;transform:rotate(var(--angle)) translateX(var(--distance)) scale(.1)}}@media(prefers-reduced-motion:reduce){.firework-spark{animation:none;opacity:0}}
+
+/* Destructive action: clearly distinct from ordinary settings controls. */
+.reset-button{display:block;width:100%;background:#632b39;color:#fff0ee;border:1px solid #de8294;border-radius:12px;padding:12px 14px;font-weight:700}.reset-button:hover{background:#7e3445}.save-dialog .reset-button{margin:12px 0 8px}
