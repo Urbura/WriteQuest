@@ -40,3 +40,6 @@ This is a working **prototype**, not the completed WriteQuest app. The check-in 
 
 ## Keeping the code easy to manage
 Start with the single `index.html` file. Once features grow, split it into `styles.css`, `skills.js`, and `app.js` with clear comments. No build tools or installations are required.
+
+## Icon attribution
+The settings gear is based on the [Lucide settings icon](https://lucide.dev/icons/settings), used under the ISC License. Copyright (c) 2026 Lucide Icons and Contributors. The ISC license notice is available at https://lucide.dev/license.
