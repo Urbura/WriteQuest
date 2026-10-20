@@ -13,14 +13,15 @@ After enabling GitHub Pages, visit the Pages link shown in **Settings → Pages*
 5. Wait a minute or two for GitHub to publish the site.
 
 ## Edit WriteQuest without coding experience
-Everything for this first version is in **index.html**.
+WriteQuest is organized into three simple files. You can edit them directly on GitHub without installing anything.
 
-1. Open `index.html` in GitHub.
-2. Click the pencil icon (**Edit this file**).
-3. Search for **WRITEQUEST DATA** to change skill descriptions or examples.
-4. Search for **WRITEQUEST STYLES** to change colors.
-5. Search for **PROGRESSION** to change the XP curve.
-6. Click **Commit changes** to save. GitHub Pages updates automatically.
+1. Open `styles.css` to adjust colours, spacing, and mobile layout.
+2. Open `app.js` to edit skill descriptions, XP progression, or application behavior.
+3. Open `index.html` only when changing how styles and scripts load.
+4. Click the pencil icon (**Edit this file**) and make a small change.
+5. Click **Commit changes**. GitHub Pages updates automatically.
+
+**Tip:** Search `app.js` for `WRITEQUEST DATA` to find the five skills. Keep existing localStorage keys unchanged so previous check-ins remain readable.
 
 ### What works now
 - Home page with five writing skills
@@ -39,7 +40,7 @@ Everything for this first version is in **index.html**.
 This is a working **prototype**, not the completed WriteQuest app. The check-in date currently changes at local midnight rather than 3:30 a.m. Data is saved only in the current browser/device; clearing browser data can erase progress. Project and achievement screens are placeholders. The XP curve has not yet been fully calibrated to the six-month target.
 
 ## Keeping the code easy to manage
-Start with the single `index.html` file. Once features grow, split it into `styles.css`, `skills.js`, and `app.js` with clear comments. No build tools or installations are required.
+The files are now separated: `index.html` loads `styles.css` and `app.js`. No build tools or installations are required. As new features are added, they can be moved into small, clearly named JavaScript modules without changing saved-data keys.
 
 ## Icon attribution
 The settings gear is based on the [Lucide settings icon](https://lucide.dev/icons/settings), used under the ISC License. Copyright (c) 2026 Lucide Icons and Contributors. The ISC license notice is available at https://lucide.dev/license.
