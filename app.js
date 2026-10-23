@@ -111,28 +111,21 @@ function checkin(){const today=editingRatings();return header(true)+'<h1>Daily C
 const TOTAL_RANKS=[["Beginner",5],["Bronze",10],["Silver",25],["Gold",50],["Platinum",75],["Emerald",100],["Diamond",150],["Master",200],["Grandmaster",250]];
 /* Background rewards follow existing Total Level ranks; no new save fields. */
 const BACKGROUND_REWARDS={
- Beginner:{key:"beginner",crop:[24,57,315,422],name:"Quiet Desk"},
- Bronze:{key:"bronze",crop:[366,57,293,422],name:"Candlelit Study"},
- Silver:{key:"silver",crop:[686,57,314,422],name:"Moonlit Reading Room"},
- Gold:{key:"gold",crop:[24,544,315,426],name:"Golden Library"},
- Platinum:{key:"platinum",crop:[366,544,293,426],name:"Skyward Archive"},
- Emerald:{key:"emerald",crop:[686,544,314,426],name:"Garden Library"},
- Diamond:{key:"diamond",crop:[24,1035,315,454],name:"Starlit Athenaeum"},
- Master:{key:"master",crop:[366,1035,293,454],name:"Author’s Observatory"},
- Grandmaster:{key:"grandmaster",crop:[686,1035,314,454],name:"Grand Author’s Hall"}
+ Beginner:{key:"beginner",name:"Quiet Desk"},
+ Bronze:{key:"bronze",name:"Candlelit Study"},
+ Silver:{key:"silver",name:"Moonlit Reading Room"},
+ Gold:{key:"gold",name:"Golden Library"},
+ Platinum:{key:"platinum",name:"Skyward Archive"},
+ Emerald:{key:"emerald",name:"Garden Library"},
+ Diamond:{key:"diamond",name:"Starlit Athenaeum"},
+ Master:{key:"master",name:"Author’s Observatory"},
+ Grandmaster:{key:"grandmaster",name:"Grand Author’s Hall"}
 };
 function backgroundForTotal(total){return BACKGROUND_REWARDS[totalRank(total)];}
 function applyRankBackground(){
  const total=SKILLS.reduce((sum,s)=>sum+stats(state.xp[s.id]).level,0),reward=backgroundForTotal(total);
  document.body.dataset.rankBackground=reward.key;
- // Display a single approved art sheet through rank-specific crop windows.
- const [x,y,width,height]=reward.crop;
- document.body.style.setProperty("--rank-art",'url("./assets/backgrounds/writing-nooks.webp?v=20261023-nooks")');
- document.body.style.setProperty("--scene-w",width);
- document.body.style.setProperty("--scene-h",height);
- document.body.style.setProperty("--scene-x",x);
- document.body.style.setProperty("--scene-cy",y+height/2);
- document.body.style.setProperty("--scene-cx",x+width/2);
+ document.body.style.setProperty("--rank-art",'url("./assets/backgrounds/'+reward.key+'-portrait-v2.webp?v=20261023-sharp-backgrounds")');
 }
 
 function totalRank(total){return [...TOTAL_RANKS].reverse().find(([name,min])=>total>=min)[0]}

@@ -1,7 +1,7 @@
 # Writing nook backgrounds
 
-The approved minimalist concept art is stored as `assets/backgrounds/writing-nooks.webp` (1024 × 1536, approximately 52 KB). The original rank labels and gutters are excluded by crop windows in `BACKGROUND_REWARDS` in `app.js`. The CSS calculates a cover scale for each crop so only that rank's room is visible in portrait and landscape.
+Each rank now uses a separate 887 × 1774 portrait WebP in `assets/backgrounds/*-portrait-v2.webp`. The approved minimalist writing-room artwork was recreated at full portrait resolution with the built-in image generation tool, then encoded at quality 95 without resizing. File sizes range from approximately 14–32 KB; only the current rank's image loads.
 
-The existing Total Level thresholds remain 5, 10, 25, 50, 75, 100, 150, 200 and 250. Backgrounds derive from saved XP and do not add or migrate save fields. Rank unlock messages remain enabled.
+The app uses normal centred `background-size: cover`. It no longer magnifies a small panel of a nine-room contact sheet. `portrait-manifest.json` records the dimensions of each shipped image.
 
-The older SVG backgrounds, generator and preview in this repository are retained as archived alternatives; the running app uses the approved writing nook artwork.
+Total Level thresholds, rank names, unlock messages and saved progress are unchanged. Older contact sheets and SVG alternatives remain archived; they are not used at runtime.

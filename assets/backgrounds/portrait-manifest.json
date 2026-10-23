@@ -1,0 +1,47 @@
+{
+  "beginner": {
+    "file": "beginner-portrait-v2.webp",
+    "width": 887,
+    "height": 1774
+  },
+  "bronze": {
+    "file": "bronze-portrait-v2.webp",
+    "width": 887,
+    "height": 1774
+  },
+  "silver": {
+    "file": "silver-portrait-v2.webp",
+    "width": 887,
+    "height": 1774
+  },
+  "gold": {
+    "file": "gold-portrait-v2.webp",
+    "width": 887,
+    "height": 1774
+  },
+  "platinum": {
+    "file": "platinum-portrait-v2.webp",
+    "width": 887,
+    "height": 1774
+  },
+  "emerald": {
+    "file": "emerald-portrait-v2.webp",
+    "width": 887,
+    "height": 1774
+  },
+  "diamond": {
+    "file": "diamond-portrait-v2.webp",
+    "width": 887,
+    "height": 1774
+  },
+  "master": {
+    "file": "master-portrait-v2.webp",
+    "width": 887,
+    "height": 1774
+  },
+  "grandmaster": {
+    "file": "grandmaster-portrait-v2.webp",
+    "width": 887,
+    "height": 1774
+  }
+}
