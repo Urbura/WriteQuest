@@ -7,6 +7,7 @@ function app(){
  const values=new Map(),styles=new Map(),body={dataset:{},style:{setProperty:(key,value)=>styles.set(key,value)}};
  const context=vm.createContext({localStorage:{getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value)},document:{body,getElementById:()=>({}),addEventListener(){}},window:{addEventListener(){}},setInterval(){},Date,Intl,alert(){}});
  const source=fs.readFileSync(path.join(root,'app.js'),'utf8').replace(/render\(\);\s*$/,'');
+ vm.runInContext(fs.readFileSync(path.join(root,"js/achievements.js"),"utf8"),context);
  vm.runInContext(source,context);
  vm.runInContext('render=()=>{};var unlockedBackground=null;showSaveDialog=(levels,rank)=>{unlockedBackground=rank;};',context);
  return {run:code=>vm.runInContext(code,context),body,styles};
@@ -49,4 +50,17 @@ test('every intermediate level queues in skill order and failed saves show no ce
  assert.equal(levels.length,10);
  a.run('captured=[];save=()=>{throw Error("Storage unavailable")};draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5]));saveCheckin();');
  assert.equal(a.run('captured.length'),0);
+});
+
+test('new achievement notifications persist until viewed, survive validation and do not replay on correction',()=>{
+ const a=app();
+ a.run('var newItems=[];showSaveDialog=(levels,rank,items)=>{newItems=items;};draftDay=localDay();draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5]));saveCheckin();');
+ assert(a.run('newItems.some(a=>a.id==="first")'));
+ assert(a.run('unseenAchievements().some(a=>a.id==="first")'));
+ assert.match(a.run('nav("home")'),/achievement-dot/);
+ a.run('showNextCelebration=()=>{};viewAchievement("first");');
+ assert.equal(a.run('unseenAchievements().some(a=>a.id==="first")'),false);
+ assert.equal(a.run('validateSave(state).achievementsSeen.includes("first")'),true);
+ a.run('newItems=[];draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5]));saveCheckin();');
+ assert.equal(a.run('newItems.length'),0);
 });

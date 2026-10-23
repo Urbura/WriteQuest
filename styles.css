@@ -220,3 +220,10 @@ button:disabled,input:disabled{opacity:.5;cursor:default}
 .achievement-row>div{flex:1;min-width:0}.achievement-row p{margin:5px 0 8px}
 .achievement-mark{width:24px;color:#94a3b8;font-size:22px}.achievement-earned .achievement-mark{color:#86efac}
 .achievement-row progress{display:block;width:100%;height:7px;accent-color:#60a5fa;margin:0 0 6px}
+
+.achievement-new,.achievement-dot{display:inline-block;background:#be2442;color:#fff;font-size:11px;font-weight:700;padding:2px 6px;border-radius:12px;vertical-align:middle}
+.achievement-group summary .achievement-new{float:none;color:#fff}
+.achievement-view{border:0;background:none;color:var(--gold);font:inherit;font-weight:700;text-align:left;padding:5px 0;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.achievement-medal{flex:0 0 38px;height:38px;display:grid;place-items:center;border:1px solid #64748b;border-radius:50%;font-size:24px}
+.achievement-earned .achievement-medal{color:#f4c76a;border:2px solid #f4c76a;background:#634716;box-shadow:0 2px 0 #b17e2e}
+.collection-progress{width:100%;height:8px;accent-color:#f4c76a}
