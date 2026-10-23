@@ -190,5 +190,18 @@ header .brand.brand-logo{display:block;position:relative;flex:0 1 190px;width:19
 }
 
 /* Rank scenery stays behind opaque skill cards and dialogs for text contrast. */
-body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:var(--rank-art);background-position:center;background-size:cover;background-repeat:no-repeat}
+body::before{
+ content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+ --scene-scale:max(calc(100vw / var(--scene-w,315)),calc(100vh / var(--scene-h,422)));
+ background-image:var(--rank-art);
+ background-size:calc(var(--scene-scale) * 1024) calc(var(--scene-scale) * 1536);
+ background-position:calc(50vw - var(--scene-scale) * var(--scene-cx,181.5)) calc(50vh - var(--scene-scale) * var(--scene-cy,268));
+ background-repeat:no-repeat;
+}
+@supports(height:100dvh){
+ body::before{
+  --scene-scale:max(calc(100vw / var(--scene-w,315)),calc(100dvh / var(--scene-h,422)));
+  background-position:calc(50vw - var(--scene-scale) * var(--scene-cx,181.5)) calc(50dvh - var(--scene-scale) * var(--scene-cy,268));
+ }
+}
 .rank-background-name{display:block;color:var(--muted);font-size:12px;font-weight:400}

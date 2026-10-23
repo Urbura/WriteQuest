@@ -20,6 +20,15 @@ test('all rank thresholds choose existing named scenery, including just before e
   assert.equal(a.run('totalRank('+thresholds[i]+')'),rank);
   assert(fs.existsSync(path.join(root,'assets/backgrounds',reward.key+'.svg')));
   assert(reward.name.length>0);
+  assert.equal(reward.crop.length,4);
+  const [x,y,w,h]=reward.crop;
+  assert(x>=0&&y>=0&&w>0&&h>0&&x+w<=1024&&y+h<=1536);
+  for(const [vw,vh] of [[390,844],[320,568],[844,390]]){
+   const scale=Math.max(vw/w,vh/h),cx=x+w/2,cy=y+h/2;
+   const left=cx-vw/(2*scale),top=cy-vh/(2*scale);
+   assert(left>=x-.001&&top>=y-.001);
+   assert(left+vw/scale<=x+w+.001&&top+vh/scale<=y+h+.001);
+  }
   if(i>0)assert.equal(a.run('totalRank('+(thresholds[i]-1)+')'),a.run('TOTAL_RANKS['+(i-1)+'][0]'));
  }
  assert.match(a.run('rankProgression()'),/Quiet Desk/);
@@ -32,6 +41,7 @@ test('background derives from saved XP, and a check-in announces the newly earne
  a.run('applyRankBackground()');assert.equal(a.run('JSON.stringify(state)'),before);
  a.run('draftDay=localDay();draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5]));saveCheckin();applyRankBackground();');
  assert.equal(a.run('unlockedBackground'),'Bronze');assert.equal(a.body.dataset.rankBackground,'bronze');
- assert.match(a.styles.get('--rank-art'),/bronze.svg/);
+ assert.match(a.styles.get('--rank-art'),/writing-nooks.webp/);
+ assert.equal(a.styles.get('--scene-w'),293);
  a.run('state=blank();applyRankBackground()');assert.equal(a.body.dataset.rankBackground,'beginner');
 });
