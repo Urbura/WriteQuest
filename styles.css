@@ -209,3 +209,12 @@ body.developer-background-only #developer-launcher{bottom:calc(14px + env(safe-a
 .developer-ranks small{display:block;font-size:10px;color:var(--muted);margin-top:3px}
 .developer-dialog .primary,.developer-dialog .secondary{margin-top:8px}
 button:disabled,input:disabled{opacity:.5;cursor:default}
+
+
+.achievement-group{border-top:1px solid #ffffff26;margin-top:14px;padding-top:12px}
+.achievement-group summary{cursor:pointer;font-weight:700;padding:8px 0}
+.achievement-group summary span{float:right}
+.achievement-row{display:flex;gap:12px;padding:14px 0;border-top:1px solid #ffffff14}
+.achievement-row>div{flex:1;min-width:0}.achievement-row p{margin:5px 0 8px}
+.achievement-mark{width:24px;color:#94a3b8;font-size:22px}.achievement-earned .achievement-mark{color:#86efac}
+.achievement-row progress{display:block;width:100%;height:7px;accent-color:#60a5fa;margin:0 0 6px}
