@@ -45,10 +45,16 @@ function loadProgress(){
  }catch(error){storageBlocked=true;saveNotice="Browser storage is unavailable. Saving is paused; export any progress before closing this page.";return blank();}
 }
 let state=loadProgress();
+const developer=globalThis.WriteQuestDeveloper?.create({
+ skills:SKILLS,blank,validate:validateSave,getState:()=>state,setState:next=>{state=next;},
+ loadNormal:loadProgress,xpToNext:XP_TO_NEXT
+});
+let developerBackgroundOnly=false;
 let page="home",previous="home",selected="drafting",draftRatings=null,draftDay=null;
 const app=document.getElementById("app");
 function save(next,{recover=false}={}){
  const clean=validateSave(next);
+ if(developer?.active){state=clean;return;}
  if(storageBlocked&&!recover)throw Error("Saving is paused to protect existing data. Open Settings to export and restore a backup.");
  const current=localStorage.getItem(KEY);
  if(current!==expectedRaw)throw Error("Another tab changed your progress. Export this tab’s progress, then reload before saving.");
@@ -65,11 +71,13 @@ function localDay(now=new Date()){
  return [date.getFullYear(),String(date.getMonth()+1).padStart(2,"0"),String(date.getDate()).padStart(2,"0")].join("-");
 }
 function exportBackup(){
+ if(developer?.active){alert("Exit Test Mode to export your normal progress.");return;}
  const payload={app:"WriteQuest",version:1,exportedAt:new Date().toISOString(),data:state};
  const url=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:"application/json"}));
  const link=document.createElement("a");link.href=url;link.download="writequest-backup-"+localDay()+".json";document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 async function importBackup(event){
+ if(developer?.active){event.target.value="";alert("Exit Test Mode before importing a backup.");return;}
  const file=event.target.files?.[0];if(!file)return;
  try{
   if(file.size>5*1024*1024)throw Error("Choose a WriteQuest backup smaller than 5 MB.");
@@ -81,6 +89,7 @@ async function importBackup(event){
  }catch(error){alert("Backup was not restored. "+error.message);}finally{event.target.value="";}
 }
 function restorePrevious(){
+ if(developer?.active){alert("Exit Test Mode before restoring a backup.");return;}
  try{
   const raw=localStorage.getItem(BACKUP_KEY);if(!raw)throw Error("No previous save is available yet.");
   const next=validateSave(JSON.parse(raw));
@@ -133,26 +142,78 @@ function rankProgression(){
  const total=SKILLS.reduce((sum,s)=>sum+stats(state.xp[s.id]).level,0),current=totalRank(total);
  return header(true)+'<section class="card"><h1>Total Level Ranks</h1><p class="muted">Your Total Level is the sum of your five writing skills. Each rank unlocks a new writing background.</p><div class="rank-summary rank-summary-'+current.toLowerCase()+'"><strong>'+current+'</strong><span>Total Level '+total+' / 250</span></div><h2>Rank Progression</h2><div class="rank-list">'+TOTAL_RANKS.map(([name,min])=>'<div class="rank-row '+(name===current?'rank-current':'')+'"><span class="rank-symbol">'+(total>=min?'✦':'◇')+'</span><span class="rank-name">'+name+(name===current?' <span class="small muted">(Current)</span>':'')+'<small class="rank-background-name">'+BACKGROUND_REWARDS[name].name+'</small></span><span class="small">'+min+'</span></div>').join('')+'</div></section>'+nav("home");
 }
-function settings(){return header(true)+'<section class="card"><h1>⚙ Settings</h1><h2>About WriteQuest</h2><p class="muted">Track writing effort across Drafting, Editing, Creativity, Learning, and Research.</p><h2>Your progress</h2><p class="notice">Progress is saved on this device, with a previous-save recovery copy. Download a backup before clearing browser data or changing devices. Backups are not cloud synced.</p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Back up and restore</h2><button class="primary" id="export-backup">Export Backup</button><label class="secondary" for="import-backup">Import Backup</label><input id="import-backup" type="file" accept="application/json,.json"><button class="secondary" id="restore-previous">Restore Previous Save</button><h2>Reset progress</h2><p class="small muted">Erase all saved skill XP and daily check-ins on this device. This cannot be undone.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'+nav("home")}
+function settings(){return header(true)+'<section class="card"><h1>⚙ Settings</h1><h2>About WriteQuest</h2><p class="muted">Track writing effort across Drafting, Editing, Creativity, Learning, and Research.</p><h2>Your progress</h2><p class="notice">Progress is saved on this device, with a previous-save recovery copy. Download a backup before clearing browser data or changing devices. Backups are not cloud synced.</p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Back up and restore</h2><button class="primary" id="export-backup">Export Backup</button><label class="secondary" for="import-backup">Import Backup</label><input id="import-backup" type="file" accept="application/json,.json"><button class="secondary" id="restore-previous">Restore Previous Save</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Erase all saved skill XP and daily check-ins on this device. This cannot be undone.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'+nav("home")}
 function placeholder(){return header(true)+'<section class="card"><h1>Projects & Achievements</h1><p class="muted">Coming in the next development stage. We’ll add custom project images, Level 1–50 progression, rank borders, and achievements here.</p></section>'+nav("projects")}
 function nav(active){return '<nav class="nav" aria-label="Main navigation"><button data-page="home" '+(active==="home"?'aria-current="page"':'')+'>⌂ Home</button><button data-page="checkin" '+(active==="checkin"?'aria-current="page"':'')+'>✓ Check-In</button><button data-page="projects" '+(active==="projects"?'aria-current="page"':'')+'>▣ Projects</button></nav>'}
-function render(){applyRankBackground();app.innerHTML=page==="home"?home():page==="detail"?detail():page==="checkin"?checkin():page==="settings"?settings():page==="ranks"?rankProgression():placeholder();globalThis.QuestXPAnimation?.animate(app);if(saveNotice){const notice=document.createElement("p");notice.className="notice";notice.setAttribute("role","alert");notice.textContent=saveNotice;app.prepend(notice);}document.getElementById("export-backup")?.addEventListener("click",exportBackup);document.getElementById("import-backup")?.addEventListener("change",importBackup);document.getElementById("restore-previous")?.addEventListener("click",restorePrevious);document.getElementById("back")?.addEventListener("click",back);document.getElementById("open-settings")?.addEventListener("click",()=>navigate("settings"));document.getElementById("open-ranks")?.addEventListener("click",()=>navigate("ranks"));document.querySelectorAll("[data-skill]").forEach(b=>b.addEventListener("click",()=>openSkill(b.dataset.skill)));document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.page)));document.querySelectorAll("[data-rate]").forEach(b=>b.addEventListener("click",()=>{draftRatings=Object.assign({},editingRatings(),{[b.dataset.rate]:Number(b.dataset.value)});render()}));document.getElementById("save-checkin")?.addEventListener("click",saveCheckin);document.getElementById("reset-progress")?.addEventListener("click",confirmResetProgress)}
+function render(){applyRankBackground();app.innerHTML=page==="home"?home():page==="detail"?detail():page==="checkin"?checkin():page==="settings"?settings():page==="ranks"?rankProgression():placeholder();globalThis.QuestXPAnimation?.animate(app);if(saveNotice){const notice=document.createElement("p");notice.className="notice";notice.setAttribute("role","alert");notice.textContent=saveNotice;app.prepend(notice);}document.getElementById("export-backup")?.addEventListener("click",exportBackup);document.getElementById("import-backup")?.addEventListener("change",importBackup);document.getElementById("restore-previous")?.addEventListener("click",restorePrevious);document.getElementById("back")?.addEventListener("click",back);document.getElementById("open-settings")?.addEventListener("click",()=>navigate("settings"));document.getElementById("open-ranks")?.addEventListener("click",()=>navigate("ranks"));document.querySelectorAll("[data-skill]").forEach(b=>b.addEventListener("click",()=>openSkill(b.dataset.skill)));document.querySelectorAll("[data-page]").forEach(b=>b.addEventListener("click",()=>navigate(b.dataset.page)));document.querySelectorAll("[data-rate]").forEach(b=>b.addEventListener("click",()=>{draftRatings=Object.assign({},editingRatings(),{[b.dataset.rate]:Number(b.dataset.value)});render()}));document.getElementById("save-checkin")?.addEventListener("click",saveCheckin);document.getElementById("reset-progress")?.addEventListener("click",confirmResetProgress);document.getElementById("open-developer")?.addEventListener("click",enterDeveloperMode);syncDeveloperUI()}
 /* DAILY SAVE: Recalculate XP from all saved daily ratings to prevent duplicate awards. */
 function saveCheckin(){
  const day=localDay();
  if(draftDay&&draftDay!==day){alert("A new writing day started at 3:30 a.m. Please review your ratings for the new day.");draftRatings=null;draftDay=day;render();return;}
  const levelsBefore=Object.fromEntries(SKILLS.map(s=>[s.id,stats(state.xp[s.id]).level]));
- const next=validateSave(state);next.checkins[day]=Object.assign({},editingRatings());next.xp=blank().xp;
+ const next=validateSave(state);next.checkins[day]=Object.assign({},editingRatings());next.xp=developer?.active?developer.baseXP():blank().xp;
  for(const date of Object.keys(next.checkins).sort())for(const s of SKILLS){const n=Number(next.checkins[date]?.[s.id]||0);if(n>0)next.xp[s.id]+=n+BONUS(stats(next.xp[s.id]).level);}
  try{save(next);}catch(error){alert("Progress was not saved. Your ratings are still available to retry. "+error.message);return;}
  const leveled=SKILLS.filter(s=>stats(state.xp[s.id]).level>levelsBefore[s.id]).map(s=>({name:s.name,level:stats(state.xp[s.id]).level}));
  draftRatings=null;draftDay=day;render();const beforeTotal=Object.values(levelsBefore).reduce((sum,n)=>sum+n,0),afterTotal=SKILLS.reduce((sum,s)=>sum+stats(state.xp[s.id]).level,0);showSaveDialog(leveled,afterTotal>beforeTotal&&totalRank(afterTotal)!==totalRank(beforeTotal)?totalRank(afterTotal):null);
 }
-function confirmResetProgress(){const overlay=document.createElement("div");overlay.className="save-overlay";overlay.innerHTML='<div class="save-dialog" role="dialog" aria-modal="true" aria-labelledby="reset-heading" aria-describedby="reset-description"><h2 id="reset-heading">Reset all progress?</h2><p id="reset-description">This will permanently erase your skill XP, levels, and daily check-in history on this device. You cannot undo this action.</p><button class="reset-button" id="confirm-reset">Yes, Reset Everything</button><button class="secondary" id="cancel-reset">Cancel</button></div>';document.body.appendChild(overlay);const cancel=()=>{overlay.remove();document.removeEventListener("keydown",onKey)};const onKey=e=>{if(e.key==="Escape")cancel()};overlay.addEventListener("click",e=>{if(e.target===overlay)cancel()});overlay.querySelector("#cancel-reset").addEventListener("click",cancel);overlay.querySelector("#confirm-reset").addEventListener("click",()=>{try{save(blank())}catch(e){alert("Could not reset progress. "+e.message);return}draftRatings=null;draftDay=null;cancel();page="home";previous="home";render();window.scrollTo(0,0)});document.addEventListener("keydown",onKey);overlay.querySelector("#cancel-reset").focus()}
+function confirmResetProgress(){if(developer?.active){alert("Exit Test Mode to reset normal progress.");return;}const overlay=document.createElement("div");overlay.className="save-overlay";overlay.innerHTML='<div class="save-dialog" role="dialog" aria-modal="true" aria-labelledby="reset-heading" aria-describedby="reset-description"><h2 id="reset-heading">Reset all progress?</h2><p id="reset-description">This will permanently erase your skill XP, levels, and daily check-in history on this device. You cannot undo this action.</p><button class="reset-button" id="confirm-reset">Yes, Reset Everything</button><button class="secondary" id="cancel-reset">Cancel</button></div>';document.body.appendChild(overlay);const cancel=()=>{overlay.remove();document.removeEventListener("keydown",onKey)};const onKey=e=>{if(e.key==="Escape")cancel()};overlay.addEventListener("click",e=>{if(e.target===overlay)cancel()});overlay.querySelector("#cancel-reset").addEventListener("click",cancel);overlay.querySelector("#confirm-reset").addEventListener("click",()=>{try{save(blank())}catch(e){alert("Could not reset progress. "+e.message);return}draftRatings=null;draftDay=null;cancel();page="home";previous="home";render();window.scrollTo(0,0)});document.addEventListener("keydown",onKey);overlay.querySelector("#cancel-reset").focus()}
 /* Each newly earned level gets its own celebration, in skill order. */
 function showSaveDialog(leveled=[],backgroundRank=null){const queue=[...leveled];if(backgroundRank)queue.push({backgroundRank});showNextCelebration(queue)}
 function showNextCelebration(queue){const skill=queue.shift();const overlay=document.createElement("div");overlay.className="save-overlay";overlay.innerHTML='<div class="save-dialog" role="dialog" aria-modal="true" aria-labelledby="saved-heading"><div style="font-size:34px" aria-hidden="true">✦</div><h2 id="saved-heading">Saved! Your skill(s) have been updated.</h2><p>Your writing progress is saved on this device.</p><button class="primary" id="saved-done">Done</button><p class="small">Tap outside this box to close.</p></div>';if(skill?.backgroundRank){overlay.querySelector("#saved-heading").textContent=skill.backgroundRank+" Unlocked!";overlay.querySelector("p").textContent="New background: "+BACKGROUND_REWARDS[skill.backgroundRank].name+"."; }else if(skill){const dialog=overlay.querySelector(".save-dialog");dialog.classList.add("level-up-dialog");dialog.querySelector("#saved-heading").textContent="Level Up!";dialog.querySelector("p").textContent=skill.name+" reached Level "+skill.level+"!";dialog.querySelector("#saved-done").textContent=queue.length?"Next Level Up →":"Done";const bursts=document.createElement("div");bursts.className="firework-bursts";bursts.setAttribute("aria-hidden","true");const colors=["#f4c76a","#38bdf8","#c084fc","#f472b6","#86efac"];for(let i=0;i<24;i++){const spark=document.createElement("span");spark.className="firework-spark";spark.style.setProperty("--angle",(i*137.5%360)+"deg");spark.style.setProperty("--distance",(65+(i%4)*16)+"px");spark.style.setProperty("--spark-color",colors[i%colors.length]);spark.style.animationDelay=((i%3)*0.1)+"s";bursts.appendChild(spark)}dialog.prepend(bursts)}document.body.appendChild(overlay);const advance=()=>{overlay.remove();document.removeEventListener("keydown",onKey);if(queue.length)showNextCelebration(queue)};const onKey=e=>{if(e.key==="Escape")advance()};overlay.addEventListener("click",e=>{if(e.target===overlay)advance()});overlay.querySelector("#saved-done").addEventListener("click",advance);document.addEventListener("keydown",onKey);overlay.querySelector("#saved-done").focus()}
 
+/* Test controls live outside the dashboard, so artwork can be viewed on its own. */
+function enterDeveloperMode(){
+ if(!developer){alert("Test tools have not loaded. Refresh WriteQuest and try again.");return;}
+ developer.enter();draftRatings=null;draftDay=null;page="home";previous="home";render();openDeveloperPanel();
+}
+function exitDeveloperMode(){
+ developer?.exit();developerBackgroundOnly=false;draftRatings=null;draftDay=null;page="home";previous="home";
+ if(typeof location!=="undefined"&&window.history?.replaceState){
+  const url=new URL(location.href);url.searchParams.delete("dev");url.searchParams.delete("test");
+  window.history.replaceState(null,"",url);
+ }
+ render();
+}
+function syncDeveloperUI(){
+ const active=Boolean(developer?.active);
+ document.body.classList?.toggle("developer-background-only",active&&developerBackgroundOnly);
+ let launcher=document.getElementById("developer-launcher");
+ if(!active){launcher?.remove?.();return;}
+ if(!launcher){
+  launcher=document.createElement("button");launcher.id="developer-launcher";launcher.type="button";
+  launcher.addEventListener("click",openDeveloperPanel);document.body.appendChild(launcher);
+ }
+ launcher.textContent="Test Mode · "+totalRank(SKILLS.reduce((sum,s)=>sum+stats(state.xp[s.id]).level,0));
+ launcher.setAttribute("aria-label","Open WriteQuest test tools. Preview progress is not saved.");
+ for(const id of ["export-backup","import-backup","restore-previous","reset-progress"]){
+  const button=document.getElementById(id);if(button)button.disabled=true;
+ }
+}
+function openDeveloperPanel(){
+ if(!developer?.active||document.getElementById("developer-panel"))return;
+ const overlay=document.createElement("div");overlay.id="developer-panel";overlay.className="save-overlay";
+ overlay.innerHTML='<section class="save-dialog developer-dialog" role="dialog" aria-modal="true" aria-labelledby="developer-heading"><h2 id="developer-heading">WriteQuest Test Mode</h2><p class="small">Temporary preview. Your normal progress is protected.</p><div class="developer-ranks">'+TOTAL_RANKS.map(([name,total])=>'<button type="button" data-preview-total="'+total+'">'+name+'<small>Total Level '+total+'</small></button>').join('')+'</div><button type="button" class="secondary" id="developer-background">'+(developerBackgroundOnly?'Show skill cards':'Background only')+'</button><button type="button" class="secondary" id="developer-restore">Restore original preview</button><button type="button" class="primary" id="developer-close">View app</button><button type="button" class="secondary" id="developer-exit">Exit Test Mode</button></section>';
+ const close=()=>{overlay.remove();document.removeEventListener("keydown",onKey);document.getElementById("developer-launcher")?.focus();};
+ const onKey=event=>{if(event.key==="Escape")close();};
+ overlay.addEventListener("click",event=>{
+  if(event.target===overlay){close();return;}
+  const button=event.target.closest("button");if(!button)return;
+  if(button.dataset.previewTotal!==undefined){
+   if(developer.setTotal(Number(button.dataset.previewTotal))){draftRatings=null;draftDay=null;page="home";render();close();}
+  }else if(button.id==="developer-background"){developerBackgroundOnly=!developerBackgroundOnly;render();close();}
+  else if(button.id==="developer-restore"){developer.restore();draftRatings=null;draftDay=null;page="home";render();close();}
+  else if(button.id==="developer-exit"){close();exitDeveloperMode();}
+  else if(button.id==="developer-close")close();
+ });
+ document.body.appendChild(overlay);document.addEventListener("keydown",onKey);
+ overlay.querySelector("#developer-close").focus();
+}
+
+if(typeof location!=="undefined"){
+ const query=new URLSearchParams(location.search);
+ if(query.has("dev")||query.get("test")==="1")developer?.enter();
+}
 let renderedDay=localDay();
 function refreshDay(){const day=localDay();if(day!==renderedDay){renderedDay=day;if(!draftRatings){draftDay=day;render();}}}
 window.addEventListener("focus",refreshDay);

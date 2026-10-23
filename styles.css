@@ -198,3 +198,14 @@ body::before{
  background-repeat:no-repeat;
 }
 .rank-background-name{display:block;color:var(--muted);font-size:12px;font-weight:400}
+
+/* Test UI is visible only in the temporary developer session. */
+#developer-launcher{position:fixed;right:12px;bottom:calc(66px + env(safe-area-inset-bottom));z-index:40;background:#6d3cc4;color:white;border:2px solid #cdb5ff;border-radius:999px;padding:9px 13px;font:700 12px system-ui,sans-serif;box-shadow:0 3px 10px #0005}
+body.developer-background-only #app{visibility:hidden}
+body.developer-background-only #developer-launcher{bottom:calc(14px + env(safe-area-inset-bottom))}
+.developer-dialog{max-width:400px;max-height:90dvh;overflow:auto}
+.developer-ranks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:14px 0}
+.developer-ranks button{background:#223958;color:var(--text);border:1px solid #607293;border-radius:10px;padding:10px 3px;min-height:52px;font-size:12px}
+.developer-ranks small{display:block;font-size:10px;color:var(--muted);margin-top:3px}
+.developer-dialog .primary,.developer-dialog .secondary{margin-top:8px}
+button:disabled,input:disabled{opacity:.5;cursor:default}
