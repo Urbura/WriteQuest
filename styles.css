@@ -1,6 +1,6 @@
 /* WRITEQUEST STYLES: Change the colors below to customize the theme. */
 :root{--bg:#0b1428;--panel:#172741;--panel2:#203653;--gold:#f4c76a;--text:#f7ebd3;--muted:#c2ccdb;--purple:#8550e8}
-*{box-sizing:border-box}body{margin:0;background:linear-gradient(160deg,#152d52,var(--bg) 55%);color:var(--text);font:16px/1.5 system-ui,sans-serif;min-height:100vh}
+*{box-sizing:border-box}body{margin:0;isolation:isolate;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,sans-serif;min-height:100vh}
 button{font:inherit;cursor:pointer}button:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .app{max-width:480px;margin:auto;min-height:100vh;padding:16px 16px 90px}
 header{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:56px}.header-actions{display:flex;align-items:center;gap:8px}.settings-button{display:grid;place-items:center;width:42px;height:42px;flex-shrink:0;background:#182c49;border:1px solid #516382;border-radius:12px;color:var(--gold)}.settings-button svg{width:23px;height:23px}.brand{min-width:0}.header-level{font-size:13px;white-space:nowrap;color:var(--muted);border:1px solid #516382;background:#182c49;padding:7px 10px;border-radius:12px}.header-level strong{color:var(--gold);font-size:17px}
@@ -188,3 +188,7 @@ header .brand.brand-logo{display:block;position:relative;flex:0 1 190px;width:19
  .app:has(.skill-star) .skill-grid .symbol{font-size:22px}
  .skill-grid .home-progress{flex-basis:5px;height:5px;margin:2px 0 0}
 }
+
+/* Rank scenery stays behind opaque skill cards and dialogs for text contrast. */
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background-image:var(--rank-art);background-position:center;background-size:cover;background-repeat:no-repeat}
+.rank-background-name{display:block;color:var(--muted);font-size:12px;font-weight:400}
