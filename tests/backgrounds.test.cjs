@@ -40,3 +40,13 @@ test('background derives from saved XP, and a check-in announces the newly earne
 
  a.run('state=blank();applyRankBackground()');assert.equal(a.body.dataset.rankBackground,'beginner');
 });
+
+test('every intermediate level queues in skill order and failed saves show no celebrations',()=>{
+ const a=app();
+ a.run('var captured=[];showSaveDialog=(levels)=>{captured=levels;};state=blank();state.checkins={"2020-01-01":Object.fromEntries(SKILLS.map(s=>[s.id,5])),"2020-01-02":Object.fromEntries(SKILLS.map(s=>[s.id,5]))};draftDay=localDay();draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5]));saveCheckin();');
+ const levels=JSON.parse(a.run('JSON.stringify(captured)'));
+ assert.deepEqual(levels.slice(0,2),[{name:'Drafting',level:2},{name:'Drafting',level:3}]);
+ assert.equal(levels.length,10);
+ a.run('captured=[];save=()=>{throw Error("Storage unavailable")};draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5]));saveCheckin();');
+ assert.equal(a.run('captured.length'),0);
+});
