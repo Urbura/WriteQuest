@@ -229,3 +229,24 @@ button:disabled,input:disabled{opacity:.5;cursor:default}
 .collection-progress{width:100%;height:8px;accent-color:#f4c76a}
 
 .nav button{padding:7px 5px;font-size:12px}.journey-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:16px 0}.journey-day{display:flex;flex-direction:column;text-align:center;padding:10px 0;border:1px solid #516382;border-radius:10px;color:var(--muted)}.journey-checked{background:#244c48;border-color:#86efac;color:#b9f6d5}.journey-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:22px 0}.journey-stats div{display:flex;flex-direction:column;text-align:center}.journey-stats strong{font-size:26px;color:var(--gold)}.journey-stats span{font-size:12px;color:var(--muted)}#toggle-sounds,#preview-sound,#open-tutorial{margin-bottom:8px}
+
+/* Keep daily ratings compact while retaining usable touch targets. */
+.app:has(.checkin-card){min-height:100dvh;padding:calc(env(safe-area-inset-top) + 8px) 12px calc(env(safe-area-inset-bottom) + 66px);display:flex;flex-direction:column}
+.app:has(.checkin-card) header{min-height:44px;flex-shrink:0}
+.app:has(.checkin-card) h1{font-size:24px;margin:6px 0 2px}
+.checkin-intro{font-size:13px;margin:0 0 6px}
+.checkin-card{padding:4px 12px;margin:4px 0 8px;flex:1;display:flex;flex-direction:column;justify-content:space-evenly}
+.checkin-card .check-row{padding:3px 0}
+.checkin-card .row{margin-bottom:3px}
+.checkin-card .row strong{display:flex;align-items:center;gap:7px;font-size:14px}
+.checkin-card .skill-asset{width:22px;height:22px;object-fit:contain}
+.checkin-card .rating{gap:5px}
+.checkin-card .rating button{min-height:44px;padding:5px 0}
+.checkin-footer{text-align:center;font-size:11px;margin:6px 0 0}
+.app:has(.checkin-card) #save-checkin{flex-shrink:0;min-height:44px;padding:10px}
+@media(min-width:420px) and (max-height:550px){
+ .checkin-card .check-row{display:flex;align-items:center;gap:8px;padding:3px 0}
+ .checkin-card .row{width:110px;flex-shrink:0;margin:0}.checkin-card .row>.small{display:none}
+ .checkin-card .rating{flex:1}.checkin-card .skill-asset{width:20px;height:20px}
+ .app:has(.checkin-card) h1{font-size:20px;margin:0}.checkin-intro{margin:0}
+}
