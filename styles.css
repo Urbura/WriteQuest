@@ -189,14 +189,14 @@ header .brand.brand-logo{display:block;position:relative;flex:0 1 190px;width:19
  .skill-grid .home-progress{flex-basis:5px;height:5px;margin:2px 0 0}
 }
 
-/* Fill the visible browser viewport, including Safari toolbar changes.
-   Contain shows the full illustration on phones, desktop and rotation. */
+/* Keep artwork inside the same centered frame as the app and bottom nav. */
 body::before{
- content:"";position:fixed;top:0;left:0;width:100%;height:100vh;
+ content:"";position:fixed;top:0;left:0;right:0;margin-inline:auto;
+ width:100%;max-width:480px;height:100vh;
  height:100dvh;z-index:-1;pointer-events:none;
  background-image:var(--rank-art);
  background-position:center;
- background-size:contain;
+ background-size:100% 100%;
  background-repeat:no-repeat;
 }
 .rank-background-name{display:block;color:var(--muted);font-size:12px;font-weight:400}
