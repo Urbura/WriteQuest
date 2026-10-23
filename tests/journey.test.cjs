@@ -1,0 +1,5 @@
+const {test}=require('node:test');const assert=require('node:assert/strict');
+const {summary}=require('../js/journey.js');
+test('empty journey has seven Monday-first days and no streak',()=>{const s=summary({},'2026-10-23');assert.equal(s.week[0].day,'2026-10-19');assert.equal(s.week[6].day,'2026-10-25');assert.equal(s.current,0);assert.equal(s.activeDays,0);});
+test('streak bridges yesterday and month boundary, ignores future days, and counts zero ratings',()=>{const s=summary({'2026-01-30':{},'2026-01-31':{},'2026-02-01':{drafting:0},'2026-02-03':{}},'2026-02-02');assert.equal(s.current,3);assert.equal(s.longest,3);assert.equal(s.activeDays,3);assert.equal(s.weekly,0);assert.equal(s.started,'2026-01-30');});
+test('corrections on one date count once and missed days end current streak',()=>{const c={'2026-10-19':{drafting:5},'2026-10-21':{drafting:2}};let s=summary(c,'2026-10-23');assert.equal(s.current,0);assert.equal(s.weekly,2);c['2026-10-21'].drafting=0;s=summary(c,'2026-10-23');assert.equal(s.weekly,2);assert.equal(s.longest,1);});

@@ -227,3 +227,5 @@ button:disabled,input:disabled{opacity:.5;cursor:default}
 .achievement-medal{flex:0 0 38px;height:38px;display:grid;place-items:center;border:1px solid #64748b;border-radius:50%;font-size:24px}
 .achievement-earned .achievement-medal{color:#f4c76a;border:2px solid #f4c76a;background:#634716;box-shadow:0 2px 0 #b17e2e}
 .collection-progress{width:100%;height:8px;accent-color:#f4c76a}
+
+.nav button{padding:7px 5px;font-size:12px}.journey-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:16px 0}.journey-day{display:flex;flex-direction:column;text-align:center;padding:10px 0;border:1px solid #516382;border-radius:10px;color:var(--muted)}.journey-checked{background:#244c48;border-color:#86efac;color:#b9f6d5}.journey-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:22px 0}.journey-stats div{display:flex;flex-direction:column;text-align:center}.journey-stats strong{font-size:26px;color:var(--gold)}.journey-stats span{font-size:12px;color:var(--muted)}#toggle-sounds,#preview-sound,#open-tutorial{margin-bottom:8px}
