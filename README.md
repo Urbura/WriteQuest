@@ -30,17 +30,30 @@ WriteQuest is organized into three simple files. You can edit them directly on G
 - Daily 0–5 ratings saved locally on the device
 - Skill XP and levels, capped at 50
 - Correcting today's check-in recalculates XP rather than awarding it twice
+- Daily reset at 3:30 a.m. device local time
+- Validated JSON backup export/import in Settings
+- Previous valid save retained for recovery, failed-write protection, and stale-tab conflict detection
 
 ### Planned next
 - Projects with custom uploaded images, rank borders, and their own XP
 - Daily quests, achievements, sounds, and polished fantasy artwork
-- Data export/import, better backup options, and 3:30 a.m. configurable reset
+- Cloud synchronization and configurable reset options
 
 ## Important limitations of this starter
-This is a working **prototype**, not the completed WriteQuest app. The check-in date currently changes at local midnight rather than 3:30 a.m. Data is saved only in the current browser/device; clearing browser data can erase progress. Project and achievement screens are placeholders. The XP curve has not yet been fully calibrated to the six-month target.
+This is a working **prototype**, not the completed WriteQuest app. The check-in day changes at 3:30 a.m. in the device’s local time zone, including daylight saving changes. Data is saved only in the current browser/device; clearing browser data can erase progress. Project and achievement screens are placeholders. The XP curve has not yet been fully calibrated to the six-month target.
 
 ## Keeping the code easy to manage
 The files are now separated: `index.html` loads `styles.css` and `app.js`. No build tools or installations are required. As new features are added, they can be moved into small, clearly named JavaScript modules without changing saved-data keys.
 
 ## Icon attribution
 The settings gear is based on the [Lucide settings icon](https://lucide.dev/icons/settings), used under the ISC License. Copyright (c) 2026 Lucide Icons and Contributors. The ISC license notice is available at https://lucide.dev/license.
+
+
+## Save protection
+The existing `writequest-starter-v1` key is preserved. Validated saves retain the previous valid version under `writequest-starter-v1-backup`. Damaged saves are preserved and automatic writes pause until recovery. A failed write leaves the current state and draft ratings available to retry. Another tab changing the save blocks stale writes; reload after exporting anything needed.
+
+Use Settings → Export Backup to download a JSON copy, and Import Backup to restore it on another device. Import requires confirmation and validation before replacing progress. Restore Previous Save rolls back one saved version. Local copies cannot survive clearing all site data; retain downloaded backups. There is no cloud sync.
+
+A new writing day opens at 3:30 a.m. according to the device clock and time zone. Existing dated history is preserved. Travelling follows the new device time zone; the app uses one record per calendar date. Unsaved ratings spanning a reset require review before saving.
+
+Run regression checks with `node --test save.test.cjs` and syntax checks with `node --check app.js`.
