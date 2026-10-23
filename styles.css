@@ -196,9 +196,10 @@ body::before{
  height:100dvh;z-index:-1;pointer-events:none;
  background-image:var(--rank-art);
  background-position:center;
- background-size:cover;
+ background-size:auto 112%;
  background-repeat:no-repeat;
 }
+@media(min-aspect-ratio:1/2){body::before{background-size:112% auto}}
 .rank-background-name{display:block;color:var(--muted);font-size:12px;font-weight:400}
 
 /* Test UI is visible only in the temporary developer session. */
