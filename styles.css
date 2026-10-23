@@ -190,16 +190,15 @@ header .brand.brand-logo{display:block;position:relative;flex:0 1 190px;width:19
 }
 
 /* Fill the visible browser viewport, including Safari toolbar changes.
-   Cover preserves artwork proportions on phones, desktop and rotation. */
+   Contain shows the full illustration on phones, desktop and rotation. */
 body::before{
  content:"";position:fixed;top:0;left:0;width:100%;height:100vh;
  height:100dvh;z-index:-1;pointer-events:none;
  background-image:var(--rank-art);
  background-position:center;
- background-size:auto 112%;
+ background-size:contain;
  background-repeat:no-repeat;
 }
-@media(min-aspect-ratio:1/2){body::before{background-size:112% auto}}
 .rank-background-name{display:block;color:var(--muted);font-size:12px;font-weight:400}
 
 /* Test UI is visible only in the temporary developer session. */
