@@ -157,3 +157,15 @@ h1,h2{font-family:Georgia,serif;margin:0 0 8px}h1{font-size:28px}h2{font-size:22
 /* Keep vector icons and text within their skill tiles. */
 .skill-grid .skill{overflow:hidden}
 .skill-grid .skill .symbol,.skill-grid .skill strong,.skill-grid .skill .small{flex:0 0 auto}
+
+/* Approved icon artwork shares a fixed box across all screens. */
+.skill-asset{display:inline-block;width:1em;height:1em;object-fit:contain;vertical-align:middle}
+.skill-grid .symbol{display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+.skill-grid .skill .symbol{font-size:54px}
+.skill-grid .skill strong{font-family:Calibri,Carlito,Arial,sans-serif}
+@media(max-width:600px){
+ .app:has(.skill-star) .skill-grid .symbol{font-size:clamp(36px,8vh,64px)}
+}
+@media(max-width:600px) and (max-height:590px){
+ .app:has(.skill-star) .skill-grid .symbol{font-size:28px}
+}

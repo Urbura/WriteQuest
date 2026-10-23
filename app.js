@@ -8,15 +8,8 @@ const SKILLS=[
  {id:"research",name:"Research",icon:"🔎",color:"#f472b6",description:"Gathering information to make your writing more informed and convincing.",examples:["Research historical settings","Investigate a topic for a manuscript","Check factual accuracy","Explore real-world locations for a story"]}
 ];
 
-/* Simple vector skill icons share one stroke weight and use each skill's accent. */
-const SKILL_PATHS={
- drafting:'<path d="m8 16-2 5 5-2 9-9-3-3-9 9Z"/><path d="m14 10 3 3M6 21l3-3M17 3l4 4-1 3-3-3-3-1 3-3Z"/>',
- editing:'<path d="m4 16 12-12a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/><path d="m14 6 3 3M13 21h8"/>',
- creativity:'<path d="M9 18h6M10 21h4M9 15c0-2-3-3-3-7a6 6 0 0 1 12 0c0 4-3 5-3 7H9ZM12 1v1M3 4l1 1M20 4l1-1M1 10h2M21 10h2"/>',
- learning:'<path d="M12 5v16M12 5C9 3 5 3 2 4v15c3-1 7-1 10 2 3-3 7-3 10-2V4c-3-1-7-1-10 1Z"/>',
- research:'<circle cx="10" cy="10" r="7"/><path d="m15 15 6 6"/>'
-};
-function skillIcon(skill){return '<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" stroke="'+skill.color+'" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" style="display:inline-block;vertical-align:middle">'+SKILL_PATHS[skill.id]+'</svg>';}
+/* Approved transparent skill assets; labels remain accessible text. */
+function skillIcon(skill){return '<img class="skill-asset" src="./assets/skills/'+skill.id+'.png?v=20261023-approved" alt="" aria-hidden="true" width="64" height="64" decoding="async">';}
 
 /* PROGRESSION: The curve and milestone bonuses can be tuned later. */
 const XP_TO_NEXT=level=>Math.ceil(5*Math.pow(1.06,level-1));
