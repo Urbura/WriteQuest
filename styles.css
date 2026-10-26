@@ -358,4 +358,4 @@ header.quest-header .header-actions .settings-button:hover{background:#233653}
 .backup-options-actions input[hidden]{display:none}
 
 /* The wider Silver composition fills the screen at a stable scale. */
-body[data-rank-background="bronze"]::before,body[data-rank-background="silver"]::before,body[data-rank-background="gold"]::before,body[data-rank-background="platinum"]::before,body[data-rank-background="emerald"]::before,body[data-rank-background="diamond"]::before,body[data-rank-background="master"]::before{background-size:cover;background-position:center bottom}
+body[data-rank-background="bronze"]::before,body[data-rank-background="silver"]::before,body[data-rank-background="gold"]::before,body[data-rank-background="platinum"]::before,body[data-rank-background="emerald"]::before,body[data-rank-background="diamond"]::before,body[data-rank-background="master"]::before,body[data-rank-background="grandmaster"]::before{background-size:cover;background-position:center bottom}
