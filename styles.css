@@ -347,3 +347,10 @@ header.quest-header .header-actions .settings-button:hover{background:#233653}
 .rank-row .rank-symbol{display:grid;place-items:center;width:40px;height:40px;flex:0 0 40px}
 .rank-list-icon{display:block;width:40px;height:40px;object-fit:contain}
 .rank-list-icon-locked{filter:grayscale(1);opacity:.5}
+
+.backup-options>summary{display:block;text-align:center;cursor:pointer;list-style:none}
+.backup-options>summary::-webkit-details-marker{display:none}
+.backup-options>summary::after{content:" ▾"}
+.backup-options[open]>summary::after{content:" ▴"}
+.backup-options-actions{display:grid;gap:10px;margin-top:10px;padding:12px;border:1px solid #516382;border-radius:12px}
+.backup-options-actions input[hidden]{display:none}
