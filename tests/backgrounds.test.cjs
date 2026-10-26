@@ -38,7 +38,7 @@ test('background derives from saved XP, and a check-in announces the newly earne
  a.run('applyRankBackground()');assert.equal(a.run('JSON.stringify(state)'),before);
  a.run('draftDay=localDay();draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5]));saveCheckin();applyRankBackground();');
  assert.equal(a.run('unlockedBackground'),'Bronze');assert.equal(a.body.dataset.rankBackground,'bronze');
- assert.match(a.styles.get('--rank-art'),/bronze-portrait-v2.webp/);
+ assert.match(a.styles.get('--rank-art'),/bronze-portrait-v3.webp/);
 
  a.run('state=blank();applyRankBackground()');assert.equal(a.body.dataset.rankBackground,'beginner');
 });
