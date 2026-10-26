@@ -173,9 +173,6 @@ h1,h2{font-family:Georgia,serif;margin:0 0 8px}h1{font-size:28px}h2{font-size:22
 /* Approved wordmark replaces the text brand without crowding header controls. */
 header .brand.brand-logo{display:block;position:relative;flex:0 1 190px;width:190px;min-width:0;height:44px;overflow:hidden}
 .brand-logo img{display:block;position:absolute;left:0;top:50%;transform:translateY(-50%);width:100%;height:auto;max-width:100%}
-@media(max-width:600px){
- .app:has(.skill-star) header .brand.brand-logo{flex:0 1 190px;width:clamp(136px,43vw,190px);height:40px}
-}
 
 /* Thin XP bars add visible progress without increasing dashboard height. */
 .skill-grid .home-progress{display:block;flex:0 0 6px;width:82%;height:6px;margin:5px 0 1px;background:#31435d;border-radius:999px;overflow:hidden}
@@ -253,7 +250,7 @@ button:disabled,input:disabled{opacity:.5;cursor:default}
 
 /* Keep the rank and total level centred between the Journey logo and settings. */
 header.quest-header{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center}
-header.quest-header .brand.brand-logo{justify-self:start;width:100%;max-width:170px;min-width:0;height:40px;padding:0;border:0;background:transparent;cursor:pointer}
+header.quest-header .brand.brand-logo{justify-self:start;width:100%;max-width:min(100%,170px);min-width:0;height:40px;padding:0;border:0;background:transparent;cursor:pointer}
 header.quest-header>.settings-button,header.quest-header>.back{justify-self:end}
 header.quest-header .header-level{display:flex;align-items:center;justify-content:center;gap:6px;padding:5px 8px}
 .header-level-label{display:flex;flex-direction:column;align-items:center;line-height:1.15}
