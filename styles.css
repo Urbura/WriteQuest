@@ -268,3 +268,13 @@ header.quest-header .header-level{display:flex;align-items:center;justify-conten
 .achievement-badge-locked{filter:grayscale(1);opacity:.5}
 .achievement-badge-tier{position:absolute;bottom:-3px;left:50%;transform:translateX(-50%);padding:2px 5px;border-radius:6px;border:1px solid #b8a26e;background:#14243d;color:#f4d48a;font-size:10px;font-weight:700;line-height:1.2;white-space:nowrap}
 @media(max-width:350px){.achievement-badge{flex-basis:56px;width:56px;height:56px}.achievement-row{gap:9px}}
+
+/* Settings controls occupy separate rows, including the file-import label. */
+.settings-card{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+.settings-card> *{min-width:0;margin:0}
+.settings-card>h2:not(:first-child){margin-top:8px}
+.settings-card>.primary,.settings-card>.secondary,.settings-card>.reset-button{display:block;min-height:44px;width:100%;text-align:center;white-space:normal;overflow-wrap:anywhere}
+.settings-card>label.secondary{cursor:pointer}
+.settings-card>input[type=file]{display:block;max-width:100%;width:100%;font:inherit;font-size:13px}
+.settings-card #toggle-sounds,.settings-card #preview-sound,.settings-card #open-tutorial{margin-bottom:0}
+header.quest-header>.back{min-width:0;white-space:nowrap;padding:8px;font-size:14px}
