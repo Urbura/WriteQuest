@@ -142,8 +142,8 @@ function backgroundForTotal(total){return BACKGROUND_REWARDS[totalRank(total)];}
 function applyRankBackground(){
  const total=SKILLS.reduce((sum,s)=>sum+stats(state.xp[s.id]).level,0),reward=backgroundForTotal(total);
  document.body.dataset.rankBackground=reward.key;
- const file=reward.key+(["bronze","silver","gold","platinum"].includes(reward.key)?"-portrait-v3.webp":"-portrait-v2.webp");
- document.body.style.setProperty("--rank-art",'url("./assets/backgrounds/'+file+'?v=20261026-platinum-room")');
+ const file=reward.key+(["bronze","silver","gold","platinum","emerald"].includes(reward.key)?"-portrait-v3.webp":"-portrait-v2.webp");
+ document.body.style.setProperty("--rank-art",'url("./assets/backgrounds/'+file+'?v=20261026-emerald-room")');
 }
 
 function totalRank(total){return [...TOTAL_RANKS].reverse().find(([name,min])=>total>=min)[0]}
