@@ -291,3 +291,7 @@ header.quest-header>.back{min-width:0;white-space:nowrap;padding:8px;font-size:1
 .skill-grid .skill{background:rgba(23,39,65,.7)}
 .skill-grid .skill:hover{background:rgba(34,56,88,.82)}
 header.quest-header{background:rgba(11,20,40,.94);border:1px solid #51638280;border-radius:14px;box-shadow:0 4px 16px #0005;padding:4px 0}
+
+.settings-icon{display:block;width:26px;height:26px;object-fit:contain;flex-shrink:0}
+.settings-heading{display:flex;align-items:center;gap:10px}
+.settings-heading .settings-icon{width:30px;height:30px}
