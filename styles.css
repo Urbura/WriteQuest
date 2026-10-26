@@ -193,7 +193,8 @@ body::before{
  height:100dvh;z-index:-1;pointer-events:none;
  background-image:var(--rank-art);
  background-position:center;
- background-size:100% 100%;
+ background-size:contain;
+ background-color:#0b1428;
  background-repeat:no-repeat;
 }
 .rank-background-name{display:block;color:var(--muted);font-size:12px;font-weight:400}
@@ -285,3 +286,8 @@ header.quest-header>.back{min-width:0;white-space:nowrap;padding:8px;font-size:1
 
 /* Skill achievements reuse the same artwork as Home and skill details. */
 .achievement-skill-badge>.skill-asset{width:100%;height:100%;object-fit:contain;padding:3px}
+
+/* Let the writing scenery show through while keeping labels fully opaque. */
+.skill-grid .skill{background:rgba(23,39,65,.7)}
+.skill-grid .skill:hover{background:rgba(34,56,88,.82)}
+header.quest-header{background:rgba(11,20,40,.94);border:1px solid #51638280;border-radius:14px;box-shadow:0 4px 16px #0005;padding:4px 0}
