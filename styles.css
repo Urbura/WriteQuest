@@ -186,17 +186,16 @@ header .brand.brand-logo{display:block;position:relative;flex:0 1 190px;width:19
  .skill-grid .home-progress{flex-basis:5px;height:5px;margin:2px 0 0}
 }
 
-/* Fill the viewport edge to edge while preserving the scenery proportions. */
+/* Show the complete scenery without cropping or distorting the artwork. */
 body::before{
- content:"";position:fixed;top:0;left:0;right:0;margin-inline:auto;
- width:100%;max-width:none;height:calc(100vh + 20px);
- height:calc(100dvh + 20px);z-index:-1;pointer-events:none;
+ content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
  background-image:var(--rank-art);
- background-position:center top;
- background-size:cover;
+ background-position:center;
+ background-size:contain;
  background-color:#0b1428;
  background-repeat:no-repeat;
 }
+
 .rank-background-name{display:block;color:var(--muted);font-size:12px;font-weight:400}
 
 /* Test UI is visible only in the temporary developer session. */
