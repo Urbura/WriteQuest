@@ -282,3 +282,6 @@ header.quest-header>.back{min-width:0;white-space:nowrap;padding:8px;font-size:1
 .settings-card>input[type=file]::-webkit-file-upload-button{color:#fff;background:#223958;border:1px solid #607293;border-radius:8px;padding:8px 12px;margin-right:10px;font:inherit;cursor:pointer}
 
 .achievement-badge>img{display:block;width:100%;height:100%;object-fit:contain}
+
+/* Skill achievements reuse the same artwork as Home and skill details. */
+.achievement-skill-badge>.skill-asset{width:100%;height:100%;object-fit:contain;padding:3px}
