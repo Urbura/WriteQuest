@@ -186,13 +186,13 @@ header .brand.brand-logo{display:block;position:relative;flex:0 1 190px;width:19
  .skill-grid .home-progress{flex-basis:5px;height:5px;margin:2px 0 0}
 }
 
-/* Enlarge the centred scenery frame by 15px without changing the app layout. */
+/* Extend scenery 20px on each side and below, keeping its top aligned. */
 body::before{
- content:"";position:fixed;top:-7.5px;left:-7.5px;right:-7.5px;margin-inline:auto;
- width:calc(100% + 15px);max-width:495px;height:calc(100vh + 15px);
- height:calc(100dvh + 15px);z-index:-1;pointer-events:none;
+ content:"";position:fixed;top:0;left:-20px;right:-20px;margin-inline:auto;
+ width:calc(100% + 40px);max-width:520px;height:calc(100vh + 20px);
+ height:calc(100dvh + 20px);z-index:-1;pointer-events:none;
  background-image:var(--rank-art);
- background-position:center;
+ background-position:center top;
  background-size:contain;
  background-color:#0b1428;
  background-repeat:no-repeat;
