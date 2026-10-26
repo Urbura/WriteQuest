@@ -225,7 +225,7 @@ button:disabled,input:disabled{opacity:.5;cursor:default}
 .achievement-earned .achievement-medal{color:#f4c76a;border:2px solid #f4c76a;background:#634716;box-shadow:0 2px 0 #b17e2e}
 .collection-progress{width:100%;height:8px;accent-color:#f4c76a}
 
-.nav button{padding:7px 5px;font-size:12px}.journey-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:16px 0}.journey-day{display:flex;flex-direction:column;text-align:center;padding:10px 0;border:1px solid #516382;border-radius:10px;color:var(--muted)}.journey-checked{background:#244c48;border-color:#86efac;color:#b9f6d5}.journey-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:22px 0}.journey-stats div{display:flex;flex-direction:column;text-align:center}.journey-stats strong{font-size:26px;color:var(--gold)}.journey-stats span{font-size:12px;color:var(--muted)}#toggle-sounds,#preview-sound,#open-tutorial{margin-bottom:8px}
+.nav button{padding:7px 5px;font-size:12px}.journey-week{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:16px 0}.journey-day{display:flex;flex-direction:column;text-align:center;padding:10px 0;border:1px solid #516382;border-radius:10px;color:var(--muted)}.journey-checked{background:#244c48;border-color:#86efac;color:#b9f6d5}.journey-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:22px 0}.journey-stats div{display:flex;flex-direction:column;text-align:center}.journey-stats strong{font-size:26px;color:var(--gold)}.journey-stats span{font-size:12px;color:var(--muted)}#toggle-sounds,#open-tutorial{margin-bottom:8px}
 
 /* Keep daily ratings compact while retaining usable touch targets. */
 .app:has(.checkin-card){min-height:100dvh;padding:calc(env(safe-area-inset-top) + 8px) 12px calc(env(safe-area-inset-bottom) + 66px);display:flex;flex-direction:column}
@@ -273,5 +273,10 @@ header.quest-header .header-level{display:flex;align-items:center;justify-conten
 .settings-card>.primary,.settings-card>.secondary,.settings-card>.reset-button{display:block;min-height:44px;width:100%;text-align:center;white-space:normal;overflow-wrap:anywhere}
 .settings-card>label.secondary{cursor:pointer}
 .settings-card>input[type=file]{display:block;max-width:100%;width:100%;font:inherit;font-size:13px}
-.settings-card #toggle-sounds,.settings-card #preview-sound,.settings-card #open-tutorial{margin-bottom:0}
+.settings-card #toggle-sounds,.settings-card #open-tutorial{margin-bottom:0}
 header.quest-header>.back{min-width:0;white-space:nowrap;padding:8px;font-size:14px}
+
+/* High-contrast native backup file chooser. */
+.settings-card>input[type=file]{color:#fff}
+.settings-card>input[type=file]::file-selector-button{color:#fff;background:#223958;border:1px solid #607293;border-radius:8px;padding:8px 12px;margin-right:10px;font:inherit;cursor:pointer}
+.settings-card>input[type=file]::-webkit-file-upload-button{color:#fff;background:#223958;border:1px solid #607293;border-radius:8px;padding:8px 12px;margin-right:10px;font:inherit;cursor:pointer}
