@@ -76,7 +76,7 @@ test('header navigation keeps Journey and Achievements accessible and Go Back re
   a.run('page='+JSON.stringify(page)+';');
   const markup=a.run(page==='home'?'home()':page==='settings'?'settings()':page==='journey'?'journey()':page==='checkin'?'checkin()':page==='ranks'?'rankProgression()':'achievements()');
   assert.doesNotMatch(markup,/<nav/);
-  if(page!=="home")assert.match(markup,/<(?:section|div) class="(?:card[^"\n]*|checkin-heading)"><button class="back content-back"/);
+  if(page!=="home")assert.match(markup,/<(?:section|div) class="(?:card[^"\n]*|checkin-heading)">(?:<div class="page-title-row">)?<button class="back content-back"/);
   assert.match(markup,/data-page="journey"/);
  }
  a.run('window.scrollTo=()=>{};page="settings";previous="journey";back();');

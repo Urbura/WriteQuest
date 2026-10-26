@@ -332,3 +332,10 @@ header.quest-header .header-actions .settings-button:hover{background:#233653}
 .detail-standing{align-items:center}
 .checkin-heading .content-back{margin-bottom:4px}
 .checkin-heading .checkin-intro{text-align:center}
+
+/* Compact page headings keep navigation and titles on one centred row. */
+.page-title-row{display:grid;grid-template-columns:64px minmax(0,1fr) 64px;align-items:center;gap:4px;margin-bottom:12px}
+.page-title-row .content-back{margin:0;width:64px;min-height:36px;padding:6px 2px;font-size:11px;white-space:nowrap}
+.page-title-row h1{display:flex;justify-content:center;align-items:center;gap:5px;margin:0;font-size:clamp(13px,3.6vw,18px);line-height:1.2;text-align:center;white-space:nowrap}
+.page-title-row .settings-icon{width:18px;height:18px}
+.settings-card>.page-title-row{margin-bottom:0}
