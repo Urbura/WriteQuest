@@ -59,8 +59,12 @@ test('new achievement notifications persist until viewed, survive validation and
  assert(a.run('newItems.some(a=>a.id==="first")'));
  assert(a.run('unseenAchievements().some(a=>a.id==="first")'));
  assert.match(a.run('header()'),/header-new-dot/);
- a.run('var replayed=false;showNextCelebration=()=>{replayed=true};viewAchievement("first");');
+ a.run('var groups=[{open:false},{open:true},{open:true},{open:false}];app.querySelectorAll=()=>groups;render=()=>{groups=[{open:true},{open:false},{open:false},{open:false}]};var replayed=false;var fireworks=0;showNextCelebration=()=>{replayed=true};celebrateAchievement=()=>{fireworks++};viewAchievement("first");');
  assert.equal(a.run("replayed"),false);
+ assert.equal(a.run("groups.map(g=>g.open).join()"),"false,true,true,false");
+ assert.equal(a.run("fireworks"),1);
+ a.run('viewAchievement("first");');
+ assert.equal(a.run("fireworks"),1);
  assert.equal(a.run('unseenAchievements().some(a=>a.id==="first")'),false);
  assert.equal(a.run('validateSave(state).achievementsSeen.includes("first")'),true);
  a.run('newItems=[];draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5]));saveCheckin();');

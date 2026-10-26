@@ -167,10 +167,20 @@ function toggleSounds(){const audio=globalThis.WriteQuestSounds;if(!audio)return
 function achievementList(){return globalThis.WriteQuestAchievements?.list({skills:SKILLS,xp:state.xp,checkins:state.checkins,level:xp=>stats(xp).level,ranks:TOTAL_RANKS})||[]}
 function unseenAchievements(){return achievementList().filter(a=>a.earned&&!(state.achievementsSeen||[]).includes(a.id))}
 function viewAchievement(id){
- const item=achievementList().find(a=>a.id===id&&a.earned);if(!item)return;
+ const item=achievementList().find(a=>a.id===id&&a.earned);if(!item||(state.achievementsSeen||[]).includes(id))return;
+ const expanded=Array.from(app.querySelectorAll?.('.achievement-group')||[],group=>group.open);
  const next=validateSave(state);next.achievementsSeen=[...new Set([...(next.achievementsSeen||[]),id])];
  try{save(next);}catch(error){alert("Could not mark achievement viewed. "+error.message);return;}
  render();
+ Array.from(app.querySelectorAll?.('.achievement-group')||[]).forEach((group,i)=>{group.open=expanded[i]??group.open;});
+ celebrateAchievement();
+}
+function celebrateAchievement(){
+ if(globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches)return;
+ const effect=document.createElement('div');effect.className='firework-bursts achievement-fireworks';effect.setAttribute('aria-hidden','true');
+ const colors=['#f4c76a','#38bdf8','#c084fc','#86efac'];
+ for(let i=0;i<24;i++){const spark=document.createElement('span');spark.className='firework-spark';spark.style.setProperty('--angle',(i*15)+'deg');spark.style.setProperty('--distance',(70+(i%4)*20)+'px');spark.style.setProperty('--spark-color',colors[i%colors.length]);effect.appendChild(spark);}
+ document.body.appendChild(effect);setTimeout(()=>effect.remove(),1100);
 }
 // All achievement icons share one image download and a fixed square viewport.
 function achievementBadge(a){

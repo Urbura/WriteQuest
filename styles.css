@@ -340,3 +340,5 @@ header.quest-header .header-actions .settings-button:hover{background:#233653}
 .settings-card>.page-title-row{margin-bottom:0}
 
 @media(max-width:350px){.page-title-row{grid-template-columns:58px minmax(0,1fr) 58px;gap:2px}.page-title-row .content-back{width:58px;font-size:10px}}
+
+.achievement-fireworks{position:fixed;inset:0;z-index:60;pointer-events:none;overflow:hidden}
