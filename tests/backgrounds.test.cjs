@@ -8,6 +8,7 @@ function app(){
  const context=vm.createContext({localStorage:{getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value)},document:{body,getElementById:()=>({}),addEventListener(){}},window:{addEventListener(){}},setInterval(){},Date,Intl,alert(){}});
  const source=fs.readFileSync(path.join(root,'app.js'),'utf8').replace(/render\(\);\s*$/,'');
  vm.runInContext(fs.readFileSync(path.join(root,"js/achievements.js"),"utf8"),context);
+ vm.runInContext(fs.readFileSync(path.join(root,'js/journey.js'),'utf8'),context);
  vm.runInContext(source,context);
  vm.runInContext('render=()=>{};var unlockedBackground=null;showSaveDialog=(levels,rank)=>{unlockedBackground=rank;};',context);
  return {run:code=>vm.runInContext(code,context),body,styles};
@@ -57,10 +58,25 @@ test('new achievement notifications persist until viewed, survive validation and
  a.run('var newItems=[];showSaveDialog=(levels,rank,items)=>{newItems=items;};draftDay=localDay();draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5]));saveCheckin();');
  assert(a.run('newItems.some(a=>a.id==="first")'));
  assert(a.run('unseenAchievements().some(a=>a.id==="first")'));
- assert.match(a.run('nav("home")'),/achievement-dot/);
+ assert.match(a.run('header()'),/header-new-dot/);
  a.run('showNextCelebration=()=>{};viewAchievement("first");');
  assert.equal(a.run('unseenAchievements().some(a=>a.id==="first")'),false);
  assert.equal(a.run('validateSave(state).achievementsSeen.includes("first")'),true);
  a.run('newItems=[];draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5]));saveCheckin();');
  assert.equal(a.run('newItems.length'),0);
+});
+
+test('header navigation keeps Journey and Achievements accessible and Go Back returns Home',()=>{
+ const a=app();
+ assert.match(a.run('header()'),/data-page="journey"/);
+ assert.match(a.run('header()'),/class="settings-button achievements-button" data-page="projects"/);
+ assert.match(a.run('header(true)'),/Go Back to Home/);
+ for(const page of ['home','settings','journey','checkin','ranks','projects']){
+  a.run('page='+JSON.stringify(page)+';');
+  const markup=a.run(page==='home'?'home()':page==='settings'?'settings()':page==='journey'?'journey()':page==='checkin'?'checkin()':page==='ranks'?'rankProgression()':'achievements()');
+  assert.doesNotMatch(markup,/<nav/);
+  assert.match(markup,/data-page="journey"/);
+ }
+ a.run('window.scrollTo=()=>{};page="settings";previous="journey";back();');
+ assert.equal(a.run('page'),'home');
 });

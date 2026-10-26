@@ -295,3 +295,12 @@ header.quest-header{background:rgba(11,20,40,.94);border:1px solid #51638280;bor
 .settings-icon{display:block;width:26px;height:26px;object-fit:contain;flex-shrink:0}
 .settings-heading{display:flex;align-items:center;gap:10px}
 .settings-heading .settings-icon{width:30px;height:30px}
+
+/* Header navigation replaces the bottom tabs without reducing usable content space. */
+.app{padding-bottom:calc(env(safe-area-inset-bottom) + 16px)}
+.app:has(.skill-star),.app:has(.checkin-card){padding-bottom:calc(env(safe-area-inset-bottom) + 12px)}
+header.quest-header>.header-actions{justify-self:end;gap:4px;min-width:0}
+header.quest-header .header-actions .settings-button{position:relative;width:30px;height:36px;border-radius:9px}
+header.quest-header .header-actions .settings-icon,header.quest-header .header-actions svg{width:22px;height:22px}
+.header-new-dot{position:absolute;right:1px;top:1px;width:7px;height:7px;border-radius:50%;background:#ef476f;border:1px solid #fff}
+.page-back{flex-shrink:0}
