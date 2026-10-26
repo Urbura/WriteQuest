@@ -315,3 +315,9 @@ header.quest-header .header-actions .settings-button:hover{background:#233653}
  header.quest-header .header-actions .settings-button{width:30px}
  header.quest-header .header-level{gap:4px;padding:4px 5px}
 }
+
+/* A dark backing protects check-in text from bright scenery such as Silver's moon. */
+.checkin-heading{background:rgba(11,20,40,.94);border:1px solid #51638280;border-radius:12px;padding:6px 10px;margin:6px 0 2px;flex-shrink:0}
+.app:has(.checkin-card) .checkin-heading h1{margin:0 0 2px;color:#fff6e8}
+.checkin-heading .checkin-intro{margin:0;color:#e2e8f0}
+.checkin-footer{background:rgba(11,20,40,.94);border-radius:8px;padding:4px 6px;color:#e2e8f0}
