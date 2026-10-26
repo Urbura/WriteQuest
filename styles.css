@@ -189,8 +189,8 @@ header .brand.brand-logo{display:block;position:relative;flex:0 1 190px;width:19
 /* Fill the viewport edge to edge while preserving the scenery proportions. */
 body::before{
  content:"";position:fixed;top:0;left:0;right:0;margin-inline:auto;
- width:100%;max-width:none;height:calc(100vh + 20px);
- height:calc(100dvh + 20px);z-index:-1;pointer-events:none;
+ width:100%;max-width:none;height:calc(100vh + 40px);
+ height:calc(100lvh + env(safe-area-inset-bottom, 0px) + 40px);z-index:-1;pointer-events:none;
  background-image:var(--rank-art);
  background-position:center top;
  background-size:cover;
