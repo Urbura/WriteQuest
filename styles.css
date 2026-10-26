@@ -250,3 +250,14 @@ button:disabled,input:disabled{opacity:.5;cursor:default}
  .checkin-card .rating{flex:1}.checkin-card .skill-asset{width:20px;height:20px}
  .app:has(.checkin-card) h1{font-size:20px;margin:0}.checkin-intro{margin:0}
 }
+
+/* Keep the rank and total level centred between the Journey logo and settings. */
+header.quest-header{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:8px;align-items:center}
+header.quest-header .brand.brand-logo{justify-self:start;width:100%;max-width:170px;min-width:0;height:40px;padding:0;border:0;background:transparent;cursor:pointer}
+header.quest-header>.settings-button,header.quest-header>.back{justify-self:end}
+header.quest-header .header-level{display:flex;align-items:center;justify-content:center;gap:6px;padding:5px 8px}
+.header-level-label{display:flex;flex-direction:column;align-items:center;line-height:1.15}
+.header-rank-icon{width:25px;height:29px;flex-shrink:0;color:var(--gold)}
+.rank-border-beginner .header-rank-icon{color:#9baac1}.rank-border-bronze .header-rank-icon{color:#bd7b4b}.rank-border-silver .header-rank-icon{color:#b9c8d8}.rank-border-gold .header-rank-icon{color:#f0c45d}.rank-border-platinum .header-rank-icon{color:#8ed6e3}.rank-border-emerald .header-rank-icon{color:#4cdb9a}.rank-border-diamond .header-rank-icon{color:#80baff}.rank-border-master .header-rank-icon{color:#c89aff}.rank-border-grandmaster .header-rank-icon{color:#f2d17b}
+.page-back{align-self:flex-start;margin-top:8px}
+@media(max-width:350px){header.quest-header{gap:5px}header.quest-header .header-level{gap:4px;padding:4px 5px}.header-rank-icon{width:21px;height:25px}}
