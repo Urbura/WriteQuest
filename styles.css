@@ -342,3 +342,7 @@ header.quest-header .header-actions .settings-button:hover{background:#233653}
 @media(max-width:350px){.page-title-row{grid-template-columns:58px minmax(0,1fr) 58px;gap:2px}.page-title-row .content-back{width:58px;font-size:10px}}
 
 .achievement-fireworks{position:fixed;inset:0;z-index:60;pointer-events:none;overflow:hidden}
+
+.rank-row .rank-symbol{display:grid;place-items:center;width:40px;height:40px;flex:0 0 40px}
+.rank-list-icon{display:block;width:40px;height:40px;object-fit:contain}
+.rank-list-icon-locked{filter:grayscale(1);opacity:.5}
