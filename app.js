@@ -142,7 +142,8 @@ function backgroundForTotal(total){return BACKGROUND_REWARDS[totalRank(total)];}
 function applyRankBackground(){
  const total=SKILLS.reduce((sum,s)=>sum+stats(state.xp[s.id]).level,0),reward=backgroundForTotal(total);
  document.body.dataset.rankBackground=reward.key;
- document.body.style.setProperty("--rank-art",'url("./assets/backgrounds/'+reward.key+'-portrait-v2.webp?v=20261023-sharp-backgrounds")');
+ const file=reward.key==="silver"?"silver-portrait-v3.webp":reward.key+"-portrait-v2.webp";
+ document.body.style.setProperty("--rank-art",'url("./assets/backgrounds/'+file+'?v=20261026-silver-room")');
 }
 
 function totalRank(total){return [...TOTAL_RANKS].reverse().find(([name,min])=>total>=min)[0]}

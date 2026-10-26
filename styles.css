@@ -356,3 +356,6 @@ header.quest-header .header-actions .settings-button:hover{background:#233653}
 .backup-options[open]>summary::after{content:" ▴"}
 .backup-options-actions{display:grid;gap:10px;margin-top:10px;padding:12px;border:1px solid #516382;border-radius:12px}
 .backup-options-actions input[hidden]{display:none}
+
+/* The wider Silver composition fills the screen at a stable scale. */
+body[data-rank-background="silver"]::before{background-size:cover;background-position:center bottom}
