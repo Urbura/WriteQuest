@@ -172,13 +172,13 @@ function viewAchievement(id){
 }
 // All achievement icons share one image download and a fixed square viewport.
 function achievementBadge(a){
+ if(a.category==='Levels'){const key=a.name.toLowerCase();return '<span class="achievement-badge '+(a.earned?'':'achievement-badge-locked')+'" aria-hidden="true"><img src="./assets/achievements/ranks/'+key+'.svg" alt="" width="64" height="64" decoding="async"></span>';}
  let cell=19,tier='';
  if(a.id==='first')cell=0;
  else if(a.id.startsWith('days-'))cell=({3:1,7:2,14:3,30:4,100:5})[a.goal];
  else if(a.id.startsWith('streak-'))cell=({3:6,7:7,14:8,30:9})[a.goal];
  else if(a.id.startsWith('five-for-five'))cell=({1:15,5:16,25:17})[a.goal];
  else if(a.id.startsWith('all-')){cell=18;tier=String(a.goal);}
- else if(a.id.startsWith('total-')){cell=19;tier=a.name;}
  else if(a.id.startsWith('any-')){cell=10;tier=String(a.goal);}
  else {const skill=SKILLS.findIndex(s=>a.id.startsWith(s.id+'-'));if(skill>=0){cell=10+skill;tier=String(a.goal);}}
  const x=30+(cell%5)*270,y=48+Math.floor(cell/5)*253;
