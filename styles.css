@@ -321,3 +321,14 @@ header.quest-header .header-actions .settings-button:hover{background:#233653}
 .app:has(.checkin-card) .checkin-heading h1{margin:0 0 2px;color:#fff6e8}
 .checkin-heading .checkin-intro{margin:0;color:#e2e8f0}
 .checkin-footer{background:rgba(11,20,40,.94);border-radius:8px;padding:4px 6px;color:#e2e8f0}
+
+/* Put Home navigation inside the content panel and centre each page title. */
+.content-back{display:block;justify-self:start;align-self:flex-start;width:auto;min-height:40px;margin:0 0 10px;font-size:13px;padding:7px 10px}
+.card>h1,.checkin-heading>h1{text-align:center}
+.settings-heading{justify-content:center}
+.detail-top{flex-direction:column;gap:6px}
+.detail-identity{justify-content:center;width:100%}
+.detail-identity h1{text-align:center}
+.detail-standing{align-items:center}
+.checkin-heading .content-back{margin-bottom:4px}
+.checkin-heading .checkin-intro{text-align:center}
