@@ -59,7 +59,8 @@ test('new achievement notifications persist until viewed, survive validation and
  assert(a.run('newItems.some(a=>a.id==="first")'));
  assert(a.run('unseenAchievements().some(a=>a.id==="first")'));
  assert.match(a.run('header()'),/header-new-dot/);
- a.run('showNextCelebration=()=>{};viewAchievement("first");');
+ a.run('var replayed=false;showNextCelebration=()=>{replayed=true};viewAchievement("first");');
+ assert.equal(a.run("replayed"),false);
  assert.equal(a.run('unseenAchievements().some(a=>a.id==="first")'),false);
  assert.equal(a.run('validateSave(state).achievementsSeen.includes("first")'),true);
  a.run('newItems=[];draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5]));saveCheckin();');
