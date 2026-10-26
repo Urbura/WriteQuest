@@ -192,9 +192,9 @@ body::before{
  height:100lvh;z-index:-1;pointer-events:none;
  background-image:var(--rank-art);
  background-position:center bottom;
- /* Portrait artwork is 1:2; use 94% of cover scale without scroll resizing. */
- background-size:max(94%, 47vh) auto;
- background-size:max(94%, 47lvh) auto;
+ /* Portrait artwork is 1:2; use 88% of cover scale without scroll resizing. */
+ background-size:max(88%, 44vh) auto;
+ background-size:max(88%, 44lvh) auto;
  background-color:#0b1428;
  background-repeat:no-repeat;
 }
