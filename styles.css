@@ -2460,3 +2460,42 @@ header.quest-header .header-rank-beginner {
 .background-select:focus-visible{outline:3px solid var(--gold);outline-offset:3px}
 .background-select option{background:#223958;color:#f7ebd3}
 .background-select option:disabled{color:#94a3b8}
+
+/* Keep all three Achievements heading controls inside the card on phones. */
+.achievements-card>.page-title-row{
+ grid-template-columns:62px minmax(0,1fr) auto;
+ gap:5px;
+ width:100%;
+ min-width:0;
+ align-items:center;
+}
+.achievements-card>.page-title-row .content-back{
+ grid-column:1;
+ grid-row:1;
+ justify-self:stretch;
+ align-self:center;
+ width:100%;
+ min-width:0;
+ max-width:100%;
+ min-height:44px;
+ margin:0;
+ padding:6px 2px;
+ font-size:10px;
+ line-height:1.2;
+ white-space:nowrap;
+}
+.achievements-card>.page-title-row h1{
+ grid-column:2;
+ grid-row:1;
+ min-width:0;
+ font-size:clamp(16px,4.4vw,21px);
+}
+.achievements-card>.page-title-row .achievement-clear-button{
+ max-width:100%;
+ padding:8px 7px;
+ font-size:11px;
+}
+@media(max-width:350px){
+ .achievements-card{padding:14px}
+ .achievements-card>.page-title-row{gap:4px}
+}
