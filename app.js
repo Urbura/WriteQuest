@@ -143,7 +143,7 @@ function applyRankBackground(){
  const total=SKILLS.reduce((sum,s)=>sum+stats(state.xp[s.id]).level,0),reward=backgroundForTotal(total);
  document.body.dataset.rankBackground=reward.key;
  const file=reward.key+"-portrait-v"+(reward.key==="emerald"?4:["bronze","silver","gold","platinum","diamond","master","grandmaster"].includes(reward.key)?3:2)+".webp";
- document.body.style.setProperty("--rank-art",'url("./assets/backgrounds/'+file+'?v=20261026-grandmaster-room")');
+ document.body.style.setProperty("--rank-art",'url("./assets/backgrounds/'+file+'?v=20261027-verified-backgrounds")');
 }
 
 function totalRank(total){return [...TOTAL_RANKS].reverse().find(([name,min])=>total>=min)[0]}

@@ -20,11 +20,12 @@ test('all rank thresholds choose existing named scenery, including just before e
   const rank=a.run('TOTAL_RANKS['+i+'][0]');
   const reward=JSON.parse(a.run('JSON.stringify(backgroundForTotal('+thresholds[i]+'))'));
   assert.equal(a.run('totalRank('+thresholds[i]+')'),rank);
-  assert(fs.existsSync(path.join(root,'assets/backgrounds',reward.key+'-portrait-v2.webp')));
+
   assert(reward.name.length>0);
   const manifest=JSON.parse(fs.readFileSync(path.join(root,'assets/backgrounds/portrait-manifest.json'),'utf8'));
   assert(manifest[reward.key].width>=800&&manifest[reward.key].height>=1600);
-  const bytes=fs.readFileSync(path.join(root,'assets/backgrounds',reward.key+'-portrait-v2.webp'));
+  const bytes=fs.readFileSync(path.join(root,'assets/backgrounds',manifest[reward.key].file));
+  assert.equal(bytes.readUInt32LE(4)+8,bytes.length,'WebP file must be complete');
   assert.equal(bytes.toString('ascii',0,4),'RIFF');assert.equal(bytes.toString('ascii',8,12),'WEBP');
   if(i>0)assert.equal(a.run('totalRank('+(thresholds[i]-1)+')'),a.run('TOTAL_RANKS['+(i-1)+'][0]'));
  }
