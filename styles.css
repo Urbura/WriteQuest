@@ -407,3 +407,7 @@ header.quest-header .header-level,header.quest-header .header-actions{filter:non
 header.quest-header .header-rank-icon{display:block;object-fit:contain;flex-shrink:0}
 header.quest-header .header-rank-beginner{display:grid;place-items:center;font-size:26px}
 @media(prefers-reduced-motion:reduce){.skill-grid .skill.skill-mastery{animation:none}}
+
+/* Milestone crests share a readable footprint; higher tiers add wreaths and wings. */
+.achievement-badge.milestone-crest{overflow:visible;background:transparent}
+.achievement-badge.milestone-crest svg{display:block;width:100%;height:100%;overflow:visible}
