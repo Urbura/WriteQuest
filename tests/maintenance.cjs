@@ -201,3 +201,20 @@ test('XP replay sorts historical days and applies a milestone bonus only after r
   assert.equal(run('starting.drafting'), run('levelTenXP - 5'));
 });
 
+test('daily 3/5 reaches Mastery on day 150; daily 5/5 reaches it on day 108', () => {
+  const { run } = appContext();
+  run(`function simulateDailyRating(rating, days) {
+    const history = {};
+    for(let day=0;day<days;day++) {
+      const date = new Date(Date.UTC(2026,0,1+day)).toISOString().slice(0,10);
+      history[date] = Object.fromEntries(SKILLS.map(skill=>[skill.id,rating]));
+    }
+    return calculateCheckinXP(history, blank().xp);
+  }`);
+  assert.equal(run('stats(simulateDailyRating(3,149).drafting).level'), 49);
+  assert.equal(run('stats(simulateDailyRating(3,150).drafting).level'), 50);
+  assert.equal(run('stats(simulateDailyRating(5,107).drafting).level'), 49);
+  assert.equal(run('stats(simulateDailyRating(5,108).drafting).level'), 50);
+  assert.equal(run('SKILLS.reduce((total,skill)=>total+stats(simulateDailyRating(3,150)[skill.id]).level,0)'), 250);
+});
+

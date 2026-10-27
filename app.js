@@ -39,7 +39,8 @@ function skillIcon(skill) {
 
 /* PROGRESSION: The curve and milestone bonuses can be tuned later. */
 function xpToNextLevel(level) {
-  return Math.ceil(5 * Math.pow(1.06, level - 1));
+  // Balanced for Level 50 after about 150 daily 3/5 check-ins.
+  return Math.ceil(5 * Math.pow(1.0425, level - 1));
 }
 // A positive check-in earns a larger bonus after these skill milestones.
 function checkinBonus(level) {

@@ -65,6 +65,15 @@ for behaviour; avoid mixing the two.
 functions read app data when called, after initialization. Keep their global
 function names unique. This preserves static hosting without a bundler.
 
+## XP balance
+
+Level 2 requires 5 XP. Requirements then grow by 4.25% per level, rounded up.
+The existing +1/+2/+3/+4 check-in bonuses begin at skill levels 10/20/30/40.
+From a new profile, daily 3/5 ratings reach Level 50 on day 150; daily 5/5
+ratings reach it on day 108. These are active check-in days, not calendar days.
+Changing the curve keeps stored XP and history, but changes the levels derived
+from that XP. The next check-in also replays history using the current bonuses.
+
 ## Progress and Test Mode
 
 The saved profile contains XP, daily ratings, viewed achievement IDs and the
