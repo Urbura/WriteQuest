@@ -213,7 +213,7 @@ function skillMilestoneBadge(a){
 function achievementBadge(a){
  if(/^any-(10|25|50)$/.test(a.id))return skillMilestoneBadge(a);
  const skill=SKILLS.find(s=>a.id===s.id+'-25'||a.id===s.id+'-50');
- if(skill)return '<span class="achievement-badge achievement-skill-badge '+(a.earned?'':'achievement-badge-locked')+'" aria-hidden="true">'+skillIcon(skill)+'<span class="achievement-badge-tier">'+a.goal+'</span></span>';
+ if(skill)return '<span class="achievement-badge achievement-specialism achievement-specialism-'+a.goal+'" style="--specialism-color:'+skill.color+'" aria-hidden="true">'+skillMilestoneBadge(a)+'<span class="specialism-art '+(a.earned?'':'achievement-badge-locked')+'">'+skillIcon(skill)+'</span></span>';
  if(a.category==='Levels'){const key=a.name.toLowerCase();return '<span class="achievement-badge '+(a.earned?'':'achievement-badge-locked')+'" aria-hidden="true"><img src="./assets/achievements/ranks/'+key+'.svg?v=20261026-progression" alt="" width="64" height="64" decoding="async"></span>';}
  let cell=19,tier='';
  if(a.id==='first')cell=0;
