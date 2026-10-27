@@ -439,3 +439,9 @@ header.quest-header .header-rank-beginner{display:grid;place-items:center;font-s
 .legend-firework-origin{position:absolute;width:0;height:0}
 .legend-firework-origin .firework-spark{top:0;left:0;animation-duration:1400ms}
 @media(prefers-reduced-motion:reduce){.legend-fireworks{display:none}}
+
+/* Compact action stays beside the Achievements heading on narrow phones. */
+.page-title-row .achievement-clear-button{margin:0 0 0 auto;flex:0 0 auto;width:auto;min-height:44px;padding:8px 10px;font-size:12px;line-height:1.2;white-space:nowrap}
+.page-title-row:has(.achievement-clear-button){grid-template-columns:58px minmax(0,1fr) auto;gap:6px}
+.page-title-row:has(.achievement-clear-button) .content-back{width:58px}
+.page-title-row:has(.achievement-clear-button) h1{min-width:0;font-size:clamp(16px,4.5vw,24px)}
