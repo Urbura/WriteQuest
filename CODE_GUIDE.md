@@ -2,6 +2,46 @@
 
 WriteQuest uses plain JavaScript, HTML and CSS. There is no build step.
 
+## Start here
+
+You do not need to understand every file to make a small change. Start with
+`app.js`, which reads from top to bottom as skill settings, progress and saves,
+page layouts, button actions, daily saving, and Test Mode.
+
+| If you want to change… | Look for… |
+| --- | --- |
+| A skill's description or activity examples | `SKILLS` at the top of `app.js` |
+| XP needed for the next level | `xpToNextLevel(level)` |
+| The extra XP earned at skill milestones | `checkinBonus(level)` |
+| One skill card on Home | `homeSkillCard(skill, index)` |
+| The centre check-in button | `homeCheckinButton(day)` |
+| One row of daily rating buttons | `checkinSkillRow(skill, ratings)` |
+| Rank unlock levels | `TOTAL_RANKS` |
+| Background names | `BACKGROUND_REWARDS` |
+| What a button does | `connectPageControls()` |
+
+For example, change a sentence in a skill's `description` to change its detail
+page. Keep its `id` unchanged: existing saves use that ID to find its progress.
+
+## How a check-in works
+
+1. `navigate("checkin")` opens the check-in page.
+2. `render()` chooses the page with `currentPageHTML()` and connects its buttons.
+3. Tapping a rating calls `updateDraftRating()`. This changes a temporary copy.
+4. Save calls `saveCheckin()`, which uses `calculateCheckinXP()` to replay history
+   in date order, then calls `save()` to write the validated profile.
+5. Celebration dialogs finish by returning to Home.
+
+The names `state`, `draftRatings`, and `page` mean saved progress in memory,
+unsaved rating changes, and the screen currently being displayed. `getTotalLevel()`
+adds the five skill levels together.
+
+Small HTML pieces use template strings: `${skill.name}` inserts a value into
+text. An array of HTML pieces ends with `.join("")` to combine them into one
+page. Attributes such as `data-skill="drafting"` tell the button handler which
+skill it belongs to. Read layout functions for appearance and control functions
+for behaviour; avoid mixing the two.
+
 ## Where to make changes
 
 | File | Responsibility |
@@ -27,7 +67,8 @@ function names unique. This preserves static hosting without a bundler.
 
 ## Progress and Test Mode
 
-The saved profile contains XP, daily ratings and viewed achievement IDs.
+The saved profile contains XP, daily ratings, viewed achievement IDs and the
+background preference. Older profiles default to following the current rank.
 Achievements are calculated from that profile. Keep existing skill and
 achievement IDs stable when changing their visible names or artwork.
 
@@ -54,6 +95,7 @@ These dependency-free checks cover script initialization, save validation,
 same-day XP replacement, multi-tab protection, Test Mode restoration and
 isolation, achievement previews, activity consistency, badge states and keyboard
 focus. They use a small DOM substitute; they do not replace visual browser tests.
+They also check background selection, unsaved rating changes and milestone XP.
 
 For layout changes, check a narrow phone, a larger phone and landscape. Preview
 all achievements and Grandmaster in Test Mode, then confirm reduced-motion

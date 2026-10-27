@@ -38,8 +38,17 @@ function skillIcon(skill) {
 }
 
 /* PROGRESSION: The curve and milestone bonuses can be tuned later. */
-const XP_TO_NEXT = level => Math.ceil(5 * Math.pow(1.06, level - 1));
-const BONUS = level => level >= 40 ? 4 : level >= 30 ? 3 : level >= 20 ? 2 : level >= 10 ? 1 : 0;
+function xpToNextLevel(level) {
+  return Math.ceil(5 * Math.pow(1.06, level - 1));
+}
+// A positive check-in earns a larger bonus after these skill milestones.
+function checkinBonus(level) {
+  if (level >= 40) return 4;
+  if (level >= 30) return 3;
+  if (level >= 20) return 2;
+  if (level >= 10) return 1;
+  return 0;
+}
 const RANKS = [
   ["Grandmaster", 50],
   ["Master", 45],
@@ -124,7 +133,7 @@ const developer = globalThis.WriteQuestDeveloper?.create({
     state = next;
   },
   loadNormal: loadProgress,
-  xpToNext: XP_TO_NEXT
+  xpToNext: xpToNextLevel
 });
 let developerBackgroundOnly = false;
 let page = "home",
@@ -160,19 +169,30 @@ function save(next, {
   saveNotice = "";
 }
 
+// Convert lifetime XP into a level and progress toward the next level.
 function stats(xp) {
-  let level = 1,
-    remaining = xp;
-  while (level < 50 && remaining >= XP_TO_NEXT(level)) {
-    remaining -= XP_TO_NEXT(level);
-    level++
+  let level = 1;
+  let remaining = xp;
+  while (level < 50 && remaining >= xpToNextLevel(level)) {
+    remaining -= xpToNextLevel(level);
+    level += 1;
   }
+  const need = level === 50 ? 0 : xpToNextLevel(level);
   return {
     level,
     remaining,
-    need: level === 50 ? 0 : XP_TO_NEXT(level)
-  }
+    need
+  };
 }
+
+function getTotalLevel() {
+  let total = 0;
+  for (const skill of SKILLS) {
+    total += stats(state.xp[skill.id]).level;
+  }
+  return total;
+}
+
 /* Use local calendar arithmetic so daylight saving days retain a 3:30 a.m. reset. */
 function localDay(now = new Date()) {
   const date = new Date(now);
@@ -273,7 +293,7 @@ function back() {
 const GEAR_ICON = '<img class="settings-icon" src="./assets/ui/settings.svg" alt="" aria-hidden="true" width="26" height="26">';
 
 function header() {
-  const total = SKILLS.reduce((sum, s) => sum + stats(state.xp[s.id]).level, 0),
+  const total = getTotalLevel(),
     current = totalRank(total),
     rankClass = current.toLowerCase();
   const brand = '<button type="button" class="brand brand-logo" data-page="journey" aria-label="WriteQuest — open Journey" title="Journey"><img src="./assets/branding/writequest-logo-white-gold.png?v=20261026-logo-02" alt="WriteQuest" width="2172" height="724" decoding="async"></button>';
@@ -312,10 +332,47 @@ function writingDay(ratings = todayRatings()) {
   };
 }
 
+// Each helper builds one small piece of Home. join("") combines the pieces.
+function homeSkillCard(skill, index) {
+  const level = stats(state.xp[skill.id]).level;
+  const rankName = rank(level);
+  const rankClass = rankName.toLowerCase().replace(/[^a-z]/g, "");
+  const masteryClass = level === 50 ? " skill-mastery" : "";
+  const animationDelay = -index * 1.7;
+  return [
+    `<button class="skill skill-rank-${rankClass}${masteryClass}" style="--mastery-color:${skill.color};--mastery-delay:${animationDelay}s" data-skill="${skill.id}">`,
+    `<span class="symbol" aria-hidden="true">${skillIcon(skill)}</span>`,
+    `<strong>${skill.name}</strong>`,
+    `<span class="small">Level ${level} · ${rankName}</span>`,
+    homeProgress(skill),
+    '</button>'
+  ].join("");
+}
+
+function homeCheckinButton(day) {
+  const statusClass = day.complete ? "star-checkin-done" : "star-checkin-pending";
+  const accessibleLabel = day.complete ?
+    `Writing day complete. You made time for your writing. ${day.count} of 5 skills checked in. Tap to edit.` :
+    'Tap to record today’s writing. One skill is enough.';
+  return [
+    `<button class="star-checkin ${statusClass}" data-page="checkin" aria-label="${accessibleLabel}">`,
+    `<span class="star-checkin-title">${day.complete ? 'Writing day' : 'Skills'}</span>`,
+    `<span class="star-checkin-icon" aria-hidden="true">${day.complete ? '✓' : '✎'}</span>`,
+    `<span class="star-checkin-label">${day.complete ? 'Complete' : 'Check In'}</span>`,
+    day.complete ? `<span class="star-checkin-count">${day.count} of 5 skills</span>` : '',
+    '</button>'
+  ].join("");
+}
+
 function home() {
-  const day = writingDay(),
-    checkedIn = day.complete;
-  return header() + '<div class="skill-star"><div class="skill-grid">' + SKILLS.map(s => '<button class="skill skill-rank-' + rank(stats(state.xp[s.id]).level).toLowerCase().replace(/[^a-z]/g, "") + (stats(state.xp[s.id]).level === 50 ? ' skill-mastery' : '') + '" style="--mastery-color:' + s.color + ';--mastery-delay:' + (-SKILLS.indexOf(s) * 1.7) + 's" data-skill="' + s.id + '"><span class="symbol" aria-hidden="true">' + skillIcon(s) + '</span><strong>' + s.name + '</strong><span class="small">Level ' + stats(state.xp[s.id]).level + ' · ' + rank(stats(state.xp[s.id]).level) + '</span>' + homeProgress(s) + '</button>').join("") + '</div><button class="star-checkin ' + (checkedIn ? 'star-checkin-done' : 'star-checkin-pending') + '" data-page="checkin" aria-label="' + (checkedIn ? 'Writing day complete. You made time for your writing. ' + day.count + ' of 5 skills checked in. Tap to edit.' : 'Tap to record today’s writing. One skill is enough.') + '"><span class="star-checkin-title">' + (checkedIn ? 'Writing day' : 'Skills') + '</span><span class="star-checkin-icon" aria-hidden="true">' + (checkedIn ? '✓' : '✎') + '</span><span class="star-checkin-label">' + (checkedIn ? 'Complete' : 'Check In') + '</span>' + (checkedIn ? '<span class="star-checkin-count">' + day.count + ' of 5 skills</span>' : '') + '</button></div>'
+  return [
+    header(),
+    '<div class="skill-star"><div class="skill-grid">',
+    SKILLS.map(homeSkillCard).join(""),
+    '</div>',
+    homeCheckinButton(writingDay()),
+    '</div>'
+  ].join("");
 }
 
 function detail() {
@@ -333,10 +390,38 @@ function editingRatings() {
   return draftRatings || todayRatings()
 }
 
-function checkin() {
-  const today = editingRatings();
-  return header() + '<div class="checkin-heading">' + contentBack() + '<h1>Daily Check-In</h1><p class="muted checkin-intro">Rate progress toward your own goal: 0–5. One skill is enough; leave the others at zero.</p></div><section class="card checkin-card">' + SKILLS.map(s => '<div class="check-row"><div class="row"><strong>' + skillIcon(s) + ' ' + s.name + '</strong><span class="small muted" id="value-' + s.id + '">' + (today[s.id] ?? 0) + '/5</span></div><div class="rating">' + [0, 1, 2, 3, 4, 5].map(n => '<button data-rate="' + s.id + '" data-value="' + n + '" aria-pressed="' + ((today[s.id] ?? 0) === n) + '">' + n + '</button>').join("") + '</div></div>').join("") + '</section><button class="primary" id="save-checkin">Save Today’s Check-In</button><p class="small muted checkin-footer">Resets at 3:30 a.m. local time · Backups in Settings</p>'
+function checkinSkillRow(skill, ratings) {
+  const rating = ratings[skill.id] ?? 0;
+  const buttons = [];
+  for (let score = 0; score <= 5; score += 1) {
+    buttons.push(`<button data-rate="${skill.id}" data-value="${score}" aria-pressed="${rating === score}">${score}</button>`);
+  }
+  return [
+    '<div class="check-row"><div class="row">',
+    `<strong>${skillIcon(skill)} ${skill.name}</strong>`,
+    `<span class="small muted" id="value-${skill.id}">${rating}/5</span>`,
+    '</div><div class="rating">',
+    buttons.join(""),
+    '</div></div>'
+  ].join("");
 }
+
+function checkin() {
+  const ratings = editingRatings();
+  return [
+    header(),
+    '<div class="checkin-heading">',
+    contentBack(),
+    '<h1>Daily Check-In</h1>',
+    '<p class="muted checkin-intro">Rate progress toward your own goal: 0–5. One skill is enough; leave the others at zero.</p>',
+    '</div><section class="card checkin-card">',
+    SKILLS.map(skill => checkinSkillRow(skill, ratings)).join(""),
+    '</section>',
+    '<button class="primary" id="save-checkin">Save Today’s Check-In</button>',
+    '<p class="small muted checkin-footer">Resets at 3:30 a.m. local time · Backups in Settings</p>'
+  ].join("");
+}
+
 /* Total Level ranks use the sum of all five skill levels (5–250). */
 const TOTAL_RANKS = [
   ["Beginner", 5],
@@ -396,7 +481,7 @@ function backgroundForTotal(total) {
 }
 
 function chooseBackground(key) {
-  const total = SKILLS.reduce((sum, skill) => sum + stats(state.xp[skill.id]).level, 0);
+  const total = getTotalLevel();
   const unlocked = key === "auto" || TOTAL_RANKS.some(([name, min]) =>
     BACKGROUND_REWARDS[name].key === key && total >= min);
   if (!unlocked || !BACKGROUND_KEYS.includes(key)) return;
@@ -415,7 +500,7 @@ function chooseBackground(key) {
 }
 
 function applyRankBackground() {
-  const total = SKILLS.reduce((sum, s) => sum + stats(state.xp[s.id]).level, 0),
+  const total = getTotalLevel(),
     reward = backgroundForTotal(total);
   document.body.dataset.rankBackground = reward.key;
   const file = reward.key + "-portrait-v" + (["beginner", "emerald"].includes(reward.key) ? 4 : 3) + ".webp";
@@ -427,7 +512,7 @@ function totalRank(total) {
 }
 
 function rankProgression() {
-  const total = SKILLS.reduce((sum, s) => sum + stats(state.xp[s.id]).level, 0);
+  const total = getTotalLevel();
   const current = totalRank(total),
     reward = backgroundForTotal(total);
   const auto = !state.background || state.background === "auto";
@@ -597,9 +682,29 @@ function achievements() {
   }).join('') + '</section>';
 }
 
+// Choose a page, draw it, then connect its controls.
+function currentPageHTML() {
+  switch (page) {
+    case "home":
+      return home();
+    case "detail":
+      return detail();
+    case "checkin":
+      return checkin();
+    case "settings":
+      return settings();
+    case "ranks":
+      return rankProgression();
+    case "journey":
+      return journey();
+    default:
+      return achievements();
+  }
+}
+
 function render() {
   applyRankBackground();
-  app.innerHTML = page === "home" ? home() : page === "detail" ? detail() : page === "checkin" ? checkin() : page === "settings" ? settings() : page === "ranks" ? rankProgression() : page === "journey" ? journey() : achievements();
+  app.innerHTML = currentPageHTML();
   globalThis.QuestXPAnimation?.animate(app);
   if (saveNotice) {
     const notice = document.createElement("p");
@@ -608,31 +713,77 @@ function render() {
     notice.textContent = saveNotice;
     app.prepend(notice);
   }
-  document.getElementById("export-backup")?.addEventListener("click", exportBackup);
-  document.getElementById("import-backup")?.addEventListener("change", importBackup);
-  document.getElementById("choose-backup")?.addEventListener("click", () => document.getElementById("import-backup").click());
-  document.getElementById("restore-previous")?.addEventListener("click", restorePrevious);
-  document.getElementById("back")?.addEventListener("click", back);
-  document.getElementById("open-settings")?.addEventListener("click", () => navigate("settings"));
-  document.getElementById("open-ranks")?.addEventListener("click", () => navigate("ranks"));
-  document.querySelectorAll("[data-skill]").forEach(b => b.addEventListener("click", () => openSkill(b.dataset.skill)));
-  document.querySelectorAll("[data-page]").forEach(b => b.addEventListener("click", () => navigate(b.dataset.page)));
-  document.querySelectorAll("[data-rate]").forEach(b => b.addEventListener("click", () => {
-    draftRatings = Object.assign({}, editingRatings(), {
-      [b.dataset.rate]: Number(b.dataset.value)
-    });
-    render()
-  }));
-  document.getElementById("save-checkin")?.addEventListener("click", saveCheckin);
-  document.getElementById("reset-progress")?.addEventListener("click", confirmResetProgress);
-  document.getElementById("open-developer")?.addEventListener("click", enterDeveloperMode);
-  document.querySelectorAll("[data-view-achievement]").forEach(b => b.addEventListener("click", () => viewAchievement(b.dataset.viewAchievement)));
-  document.getElementById("clear-achievement-notifications")?.addEventListener("click", clearAchievementNotifications);
-  document.getElementById("toggle-sounds")?.addEventListener("click", toggleSounds);
-  document.getElementById("open-tutorial")?.addEventListener("click", openTutorial);
-  document.querySelectorAll("[data-background]").forEach(button => button.addEventListener("click", () => chooseBackground(button.dataset.background)));
-  syncDeveloperUI()
+  connectPageControls();
+  syncDeveloperUI();
 }
+
+// A page only contains some of these buttons. Skip buttons that are absent.
+function connectButton(id, action) {
+  const button = document.getElementById(id);
+  if (button) button.addEventListener("click", action);
+}
+
+function updateDraftRating(skillId, rating) {
+  // Copy the ratings first: tapping a score must not change the saved profile.
+  draftRatings = {
+    ...editingRatings()
+  };
+  draftRatings[skillId] = rating;
+  render();
+}
+
+function connectPageControls() {
+  connectButton("export-backup", exportBackup);
+  const importInput = document.getElementById("import-backup");
+  if (importInput) importInput.addEventListener("change", importBackup);
+  connectButton("choose-backup", () => document.getElementById("import-backup").click());
+  connectButton("restore-previous", restorePrevious);
+  connectButton("back", back);
+  connectButton("open-settings", () => navigate("settings"));
+  connectButton("open-ranks", () => navigate("ranks"));
+  connectButton("save-checkin", saveCheckin);
+  connectButton("reset-progress", confirmResetProgress);
+  connectButton("open-developer", enterDeveloperMode);
+  connectButton("clear-achievement-notifications", clearAchievementNotifications);
+  connectButton("toggle-sounds", toggleSounds);
+  connectButton("open-tutorial", openTutorial);
+
+  // data-* attributes identify which skill, page or reward a button represents.
+  for (const button of document.querySelectorAll("[data-skill]")) {
+    button.addEventListener("click", () => openSkill(button.dataset.skill));
+  }
+  for (const button of document.querySelectorAll("[data-page]")) {
+    button.addEventListener("click", () => navigate(button.dataset.page));
+  }
+  for (const button of document.querySelectorAll("[data-rate]")) {
+    button.addEventListener("click", () => updateDraftRating(button.dataset.rate, Number(button.dataset.value)));
+  }
+  for (const button of document.querySelectorAll("[data-view-achievement]")) {
+    button.addEventListener("click", () => viewAchievement(button.dataset.viewAchievement));
+  }
+  for (const button of document.querySelectorAll("[data-background]")) {
+    button.addEventListener("click", () => chooseBackground(button.dataset.background));
+  }
+}
+
+// Replay days in date order so each rating receives the bonus for that day's level.
+function calculateCheckinXP(checkins, startingXP) {
+  const xp = {
+    ...startingXP
+  };
+  const days = Object.keys(checkins).sort();
+  for (const day of days) {
+    for (const skill of SKILLS) {
+      const rating = Number(checkins[day][skill.id] || 0);
+      if (rating > 0) {
+        const level = stats(xp[skill.id]).level;
+        xp[skill.id] += rating + checkinBonus(level);
+      }
+    }
+  }
+  return xp;
+}
+
 /* DAILY SAVE: Recalculate XP from all saved daily ratings to prevent duplicate awards. */
 function saveCheckin() {
   globalThis.WriteQuestSounds?.unlock();
@@ -648,12 +799,8 @@ function saveCheckin() {
   const levelsBefore = Object.fromEntries(SKILLS.map(s => [s.id, stats(state.xp[s.id]).level]));
   const next = validateSave(state);
   next.checkins[day] = Object.assign({}, editingRatings());
-  next.xp = developer?.active ? developer.baseXP() : blank().xp;
-  for (const date of Object.keys(next.checkins).sort())
-    for (const s of SKILLS) {
-      const n = Number(next.checkins[date]?.[s.id] || 0);
-      if (n > 0) next.xp[s.id] += n + BONUS(stats(next.xp[s.id]).level);
-    }
+  const startingXP = developer?.active ? developer.baseXP() : blank().xp;
+  next.xp = calculateCheckinXP(next.checkins, startingXP);
   try {
     save(next);
   } catch (error) {
@@ -661,17 +808,29 @@ function saveCheckin() {
     return;
   }
   const leveled = [];
-  for (const s of SKILLS)
-    for (let level = levelsBefore[s.id] + 1; level <= stats(state.xp[s.id]).level; level++) leveled.push({
-      name: s.name,
-      level
-    });
+  for (const skill of SKILLS) {
+    const oldLevel = levelsBefore[skill.id];
+    const newLevel = stats(state.xp[skill.id]).level;
+    for (let level = oldLevel + 1; level <= newLevel; level += 1) {
+      leveled.push({
+        name: skill.name,
+        level
+      });
+    }
+  }
   draftRatings = null;
   draftDay = day;
   render();
-  const beforeTotal = Object.values(levelsBefore).reduce((sum, n) => sum + n, 0),
-    afterTotal = SKILLS.reduce((sum, s) => sum + stats(state.xp[s.id]).level, 0);
-  showSaveDialog(leveled, afterTotal > beforeTotal && totalRank(afterTotal) !== totalRank(beforeTotal) ? totalRank(afterTotal) : null, achievementList().filter(a => a.earned && !earnedBefore.has(a.id)));
+
+  const beforeTotal = Object.values(levelsBefore).reduce((sum, level) => sum + level, 0);
+  const afterTotal = getTotalLevel();
+  const oldRank = totalRank(beforeTotal);
+  const newRank = totalRank(afterTotal);
+  let unlockedRank = null;
+  if (afterTotal > beforeTotal && newRank !== oldRank) unlockedRank = newRank;
+  const newAchievements = achievementList().filter(achievement =>
+    achievement.earned && !earnedBefore.has(achievement.id));
+  showSaveDialog(leveled, unlockedRank, newAchievements);
 }
 
 function confirmResetProgress() {
@@ -760,7 +919,7 @@ function syncDeveloperUI() {
     launcher.addEventListener("click", openDeveloperPanel);
     document.body.appendChild(launcher);
   }
-  launcher.textContent = "Test Mode · " + totalRank(SKILLS.reduce((sum, s) => sum + stats(state.xp[s.id]).level, 0));
+  launcher.textContent = "Test Mode · " + totalRank(getTotalLevel());
   launcher.setAttribute("aria-label", "Open WriteQuest test tools. Preview progress is not saved.");
   for (const id of ["export-backup", "choose-backup", "import-backup", "restore-previous", "reset-progress"]) {
     const button = document.getElementById(id);

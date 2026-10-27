@@ -179,3 +179,25 @@ test('Test Mode background choices cannot overwrite the normal preference', () =
   assert.equal(run('state.background'), 'beginner');
 });
 
+test('changing a draft rating does not change saved ratings or XP until Save', () => {
+  const { run, storage } = appContext();
+  run('const saved = blank(); saved.checkins[localDay()] = {drafting:2}; saved.xp.drafting=2; save(saved);');
+  const before = new Map(storage);
+  run('updateDraftRating("drafting",5);');
+  assert.equal(run('editingRatings().drafting'), 5);
+  assert.equal(run('todayRatings().drafting'), 2);
+  assert.equal(run('state.xp.drafting'), 2);
+  assert.deepEqual(storage, before);
+});
+
+test('XP replay sorts historical days and applies a milestone bonus only after reaching it', () => {
+  const { run } = appContext();
+  run('let levelTenXP = 0; for(let level=1;level<10;level++) levelTenXP += xpToNextLevel(level);');
+  run('const starting = blank().xp; starting.drafting = levelTenXP - 5;');
+  const result = run('calculateCheckinXP({"2026-10-27":{drafting:3},"2026-10-26":{drafting:5}},starting)');
+  assert.equal(result.drafting, run('levelTenXP + 4'));
+  const zero = run('calculateCheckinXP({"2026-10-27":{drafting:0}},starting)');
+  assert.equal(zero.drafting, run('starting.drafting'));
+  assert.equal(run('starting.drafting'), run('levelTenXP - 5'));
+});
+
