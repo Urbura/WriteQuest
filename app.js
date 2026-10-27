@@ -200,7 +200,18 @@ function celebrateAchievement(){
  document.body.appendChild(effect);setTimeout(()=>effect.remove(),1100);
 }
 // All achievement icons share one image download and a fixed square viewport.
+/* Shared writing crest gains richer framing at each skill milestone. */
+function skillMilestoneBadge(a){
+ const tier=a.goal,master=tier===50,advanced=tier>=25;
+ const metal=master?"#f8d780":advanced?"#eec16b":"#b9d6e7";
+ const dark=master?"#382453":advanced?"#3e3022":"#213b50";
+ const ribbon=master?"#9562cf":advanced?"#af713f":"#507f9f";
+ const ornament=master?'<path d="M22 42 3 24l4 24 17 12M74 42l19-18-4 24-17 12" fill="#8a65bc" stroke="'+metal+'" stroke-width="2"/><path d="m30 18 7-10 11 7L59 8l7 10" fill="'+metal+'"/>':'';
+ const wreath=advanced?'<path d="M28 65C12 51 16 32 25 23M68 65c16-14 12-33 3-42" fill="none" stroke="'+metal+'" stroke-width="3"/><path d="m21 48-7-5m8-3-6-7m9-1-3-8m53 24 7-5m-8-3 6-7m-9-1 3-8" stroke="'+metal+'" stroke-width="3" stroke-linecap="round"/>':'';
+ return '<span class="achievement-badge milestone-crest '+(a.earned?'':'achievement-badge-locked')+'" aria-hidden="true"><svg viewBox="0 0 96 106" focusable="false">'+ornament+'<path d="m30 62-7 36 17-8 8 11 8-11 17 8-7-36" fill="'+ribbon+'" stroke="'+metal+'" stroke-width="2"/>'+wreath+'<path d="M48 17 72 27v22c0 17-13 26-24 31-11-5-24-14-24-31V27Z" fill="'+dark+'" stroke="'+metal+'" stroke-width="'+(master?4:3)+'"/><path d="M48 24 65 31v18c0 12-9 20-17 24-8-4-17-12-17-24V31Z" fill="none" stroke="'+metal+'" opacity=".45"/><path d="M34 41q7-4 14 0 7-4 14 0v15q-7-4-14 0-7-4-14 0ZM48 41v15" fill="none" stroke="#fff0ce" stroke-width="2" stroke-linejoin="round"/><path d="m47 47 11-17 4-1-1 5-14 13" fill="'+metal+'"/>'+(master?'<path d="m48 2 2 4 5 1-4 3 1 5-4-2-4 2 1-5-4-3 5-1Z" fill="'+metal+'"/><path d="m8 67 2 4 4 2-4 2-2 4-2-4-4-2 4-2m82-4 2 4 4 2-4 2-2 4-2-4-4-2 4-2" fill="'+metal+'"/>':'')+'<rect x="33" y="63" width="30" height="20" rx="7" fill="'+dark+'" stroke="'+metal+'" stroke-width="2"/><text x="48" y="78" text-anchor="middle" fill="#fff0ce" font-family="system-ui,sans-serif" font-size="15" font-weight="800">'+tier+'</text></svg></span>';
+}
 function achievementBadge(a){
+ if(/^any-(10|25|50)$/.test(a.id))return skillMilestoneBadge(a);
  const skill=SKILLS.find(s=>a.id===s.id+'-25'||a.id===s.id+'-50');
  if(skill)return '<span class="achievement-badge achievement-skill-badge '+(a.earned?'':'achievement-badge-locked')+'" aria-hidden="true">'+skillIcon(skill)+'<span class="achievement-badge-tier">'+a.goal+'</span></span>';
  if(a.category==='Levels'){const key=a.name.toLowerCase();return '<span class="achievement-badge '+(a.earned?'':'achievement-badge-locked')+'" aria-hidden="true"><img src="./assets/achievements/ranks/'+key+'.svg?v=20261026-progression" alt="" width="64" height="64" decoding="async"></span>';}
