@@ -421,3 +421,13 @@ header.quest-header .header-rank-beginner{display:grid;place-items:center;font-s
 
 /* A restrained halo distinguishes the earned final collection award. */
 .achievement-badge.legend-crest-earned{filter:drop-shadow(0 0 4px #eac77355)}
+
+/* Earned final-tier badges: aura stays outside, sheen stays inside the icon. */
+.achievement-badge.achievement-holographic{isolation:isolate;overflow:visible}
+.achievement-holographic>.achievement-badge{position:absolute;inset:0;width:100%;height:100%;filter:none}
+.achievement-holographic::before,.achievement-holographic::after{content:"";position:absolute;pointer-events:none;border-radius:50%}
+.achievement-holographic::before{inset:5%;z-index:-1;background:conic-gradient(from 30deg,#86efff55,#c399e666,#f8d77d66,#86efff55);box-shadow:0 0 12px #c399e644,0 0 19px #86efff33;animation:achievement-aura 5s ease-in-out infinite}
+.achievement-holographic::after{inset:12% 17% 16%;z-index:2;background:linear-gradient(115deg,transparent 25%,#86efff44 39%,#ffffff99 48%,#e4bdff66 54%,#ffe3a144 62%,transparent 75%);background-size:300% 100%;mix-blend-mode:screen;opacity:0;animation:achievement-holo-sheen 9s ease-in-out infinite}
+@keyframes achievement-aura{0%,100%{opacity:.4;transform:scale(.94)}50%{opacity:.75;transform:scale(1.06)}}
+@keyframes achievement-holo-sheen{0%,60%{background-position:100% 0;opacity:0}65%{opacity:.65}88%{opacity:.65}95%,100%{background-position:0 0;opacity:0}}
+@media(prefers-reduced-motion:reduce){.achievement-holographic::before{animation:none;opacity:.55;transform:none}.achievement-holographic::after{animation:none;opacity:.15;background-position:50% 0}}
