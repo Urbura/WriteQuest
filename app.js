@@ -221,7 +221,19 @@ function wellRoundedBadge(a){
  const stars=Array.from({length:5},(_,i)=>{const x=28+i*10,y=35-Math.sin(i*Math.PI/4)*7;return '<path d="m'+x+' '+y+' 1.3 2.7 3 .4-2.2 2.1.5 3-2.6-1.4-2.6 1.4.5-3-2.2-2.1 3-.4Z" fill="'+metal+'"/>';}).join('');
  return '<span class="achievement-badge milestone-crest '+(a.earned?'':'achievement-badge-locked')+'" aria-hidden="true"><svg viewBox="0 0 96 106" focusable="false"><path d="m30 66-7 32 17-8 8 11 8-11 17 8-7-32" fill="'+ribbon+'" stroke="'+metal+'" stroke-width="2"/>'+crown+wreath+'<circle cx="48" cy="51" r="29" fill="'+face+'" stroke="'+metal+'" stroke-width="'+(master?4:3)+'"/><circle cx="48" cy="51" r="23" fill="none" stroke="'+metal+'" opacity=".5"/>'+stars+'<text x="48" y="60" text-anchor="middle" fill="#fff0ce" font-family="system-ui,sans-serif" font-size="23" font-weight="800">'+tier+'</text><text x="48" y="72" text-anchor="middle" fill="'+metal+'" font-family="system-ui,sans-serif" font-size="8" font-weight="700">'+(tier===1?'DAY':'DAYS')+'</text>'+(master?'<path d="m7 72 2 4 4 2-4 2-2 4-2-4-4-2 4-2m82-4 2 4 4 2-4 2-2 4-2-4-4-2 4-2" fill="'+metal+'"/>':'')+'</svg></span>';
 }
+/* All-skills awards add a new frame detail at every ten-level milestone. */
+function allSkillsBadge(a){
+ const n=a.goal;
+ const [metal,face]=({10:["#c3d9e8","#233d52"],20:["#f2c66d","#43341f"],30:["#81e1bf","#183e38"],40:["#a8d6ff","#233c64"],50:["#ffe295","#44265c"]})[n];
+ const rays=n>=30?Array.from({length:12},(_,i)=>'<path d="M48 13v-7" transform="rotate('+i*30+' 48 48)" stroke="'+metal+'" stroke-width="2" stroke-linecap="round"/>').join(''):'';
+ const wings=n>=40?'<path d="M24 38 3 25l5 25 17 11m47-23 21-13-5 25-17 11" fill="'+face+'" stroke="'+metal+'" stroke-width="2"/><path d="m7 36 16 12m66-12L73 48" stroke="'+metal+'" opacity=".6"/>':'';
+ const wreath=n>=20?'<path d="M24 72C8 58 12 33 23 24M72 72c16-14 12-39 1-48M17 55l-7-4m9-7-6-7m9-2-4-8m61 28 7-4m-9-7 6-7m-9-2 4-8" fill="none" stroke="'+metal+'" stroke-width="3" stroke-linecap="round"/>':'';
+ const crown=n===50?'<path d="m30 22-4-14 13 6 9-12 9 12 13-6-4 14Z" fill="'+metal+'" stroke="#bc8d45" stroke-width="2"/><path d="m5 73 2 4 4 2-4 2-2 4-2-4-4-2 4-2m84-4 2 4 4 2-4 2-2 4-2-4-4-2 4-2" fill="'+metal+'"/>':'';
+ const gems=Array.from({length:5},(_,i)=>{const x=28+i*10,y=38-Math.sin(i*Math.PI/4)*8;return '<path d="m'+x+' '+y+' 3 4-3 4-3-4Z" fill="'+metal+'"/>';}).join('');
+ return '<span class="achievement-badge milestone-crest '+(a.earned?'':'achievement-badge-locked')+'" aria-hidden="true"><svg viewBox="0 0 96 106" focusable="false"><path d="m31 66-6 31 15-7 8 11 8-11 15 7-6-31" fill="'+face+'" stroke="'+metal+'" stroke-width="2"/>'+rays+wings+wreath+'<path d="M48 20 75 32v21c0 17-14 28-27 33-13-5-27-16-27-33V32Z" fill="'+face+'" stroke="'+metal+'" stroke-width="'+(n===50?4:3)+'"/><path d="m48 27 20 10v16c0 12-10 22-20 26-10-4-20-14-20-26V37Z" fill="none" stroke="'+metal+'" opacity=".45"/>'+gems+'<text x="48" y="64" text-anchor="middle" fill="#fff1d0" font-family="system-ui,sans-serif" font-size="23" font-weight="800">'+n+'</text><text x="48" y="75" text-anchor="middle" fill="'+metal+'" font-family="system-ui,sans-serif" font-size="7" font-weight="700">ALL SKILLS</text>'+crown+'</svg></span>';
+}
 function achievementBadge(a){
+ if(/^all-(10|20|30|40|50)$/.test(a.id))return allSkillsBadge(a);
  if(a.id==="five-for-five"||/^five-for-five-(5|25)$/.test(a.id))return wellRoundedBadge(a);
  if(/^any-(10|25|50)$/.test(a.id))return skillMilestoneBadge(a);
  const skill=SKILLS.find(s=>a.id===s.id+'-25'||a.id===s.id+'-50');
