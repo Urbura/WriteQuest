@@ -3,35 +3,30 @@
 const SKILLS = [{
   id: "drafting",
   name: "Drafting",
-  icon: "🪶",
   color: "#38bdf8",
   description: "Creating new written content for your stories, books, poems, or other writing projects.",
   examples: ["Write a new chapter or scene", "Develop dialogue between characters", "Write a first draft", "Add new material to a manuscript"]
 }, {
   id: "editing",
   name: "Editing",
-  icon: "📜",
   color: "#c084fc",
   description: "Improving writing you have already created through revision, proofreading, and restructuring.",
   examples: ["Rewrite a paragraph", "Fix grammar and spelling", "Improve dialogue or descriptions", "Reorganize scenes or chapters"]
 }, {
   id: "creativity",
   name: "Creativity",
-  icon: "💡",
   color: "#f4c430",
   description: "Exploring ideas and creative possibilities for your writing.",
   examples: ["Brainstorm story ideas", "Create characters and settings", "Plan plot twists", "Experiment with story concepts"]
 }, {
   id: "learning",
   name: "Learning",
-  icon: "📖",
   color: "#34d399",
   description: "Developing your knowledge of writing techniques and storytelling craft.",
   examples: ["Study narrative structure", "Read about writing techniques", "Practise a new literary technique", "Learn how to write stronger dialogue"]
 }, {
   id: "research",
   name: "Research",
-  icon: "🔎",
   color: "#f472b6",
   description: "Gathering information to make your writing more informed and convincing.",
   examples: ["Research historical settings", "Investigate a topic for a manuscript", "Check factual accuracy", "Explore real-world locations for a story"]
@@ -129,7 +124,6 @@ const developer = globalThis.WriteQuestDeveloper?.create({
 });
 let developerBackgroundOnly = false;
 let page = "home",
-  previous = "home",
   selected = "drafting",
   draftRatings = null,
   draftDay = null;
@@ -258,11 +252,6 @@ function navigate(next) {
     draftRatings = null;
     draftDay = localDay();
   }
-  if (next === "detail") {
-    previous = page
-  } else {
-    previous = page
-  }
   page = next;
   render();
   window.scrollTo(0, 0)
@@ -320,7 +309,6 @@ function writingDay(ratings = todayRatings()) {
 }
 
 function home() {
-  const total = SKILLS.reduce((sum, s) => sum + stats(state.xp[s.id]).level, 0);
   const day = writingDay(),
     checkedIn = day.complete;
   return header() + '<div class="skill-star"><div class="skill-grid">' + SKILLS.map(s => '<button class="skill skill-rank-' + rank(stats(state.xp[s.id]).level).toLowerCase().replace(/[^a-z]/g, "") + (stats(state.xp[s.id]).level === 50 ? ' skill-mastery' : '') + '" style="--mastery-color:' + s.color + ';--mastery-delay:' + (-SKILLS.indexOf(s) * 1.7) + 's" data-skill="' + s.id + '"><span class="symbol" aria-hidden="true">' + skillIcon(s) + '</span><strong>' + s.name + '</strong><span class="small">Level ' + stats(state.xp[s.id]).level + ' · ' + rank(stats(state.xp[s.id]).level) + '</span>' + homeProgress(s) + '</button>').join("") + '</div><button class="star-checkin ' + (checkedIn ? 'star-checkin-done' : 'star-checkin-pending') + '" data-page="checkin" aria-label="' + (checkedIn ? 'Writing day complete. You made time for your writing. ' + day.count + ' of 5 skills checked in. Tap to edit.' : 'Tap to record today’s writing. One skill is enough.') + '"><span class="star-checkin-title">' + (checkedIn ? 'Writing day' : 'Skills') + '</span><span class="star-checkin-icon" aria-hidden="true">' + (checkedIn ? '✓' : '✎') + '</span><span class="star-checkin-label">' + (checkedIn ? 'Complete' : 'Check In') + '</span>' + (checkedIn ? '<span class="star-checkin-count">' + day.count + ' of 5 skills</span>' : '') + '</button></div>'
@@ -673,7 +661,7 @@ function confirmResetProgress() {
     draftDay = null;
     cancel();
     page = "home";
-    previous = "home";
+
     render();
     window.scrollTo(0, 0)
   });
@@ -690,7 +678,7 @@ function enterDeveloperMode() {
   draftRatings = null;
   draftDay = null;
   page = "home";
-  previous = "home";
+
   render();
   openDeveloperPanel();
 }
@@ -701,7 +689,7 @@ function exitDeveloperMode() {
   draftRatings = null;
   draftDay = null;
   page = "home";
-  previous = "home";
+
   if (typeof location !== "undefined" && window.history?.replaceState) {
     const url = new URL(location.href);
     url.searchParams.delete("dev");

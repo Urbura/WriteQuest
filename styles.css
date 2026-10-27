@@ -308,33 +308,6 @@ h2 {
   font-weight: 700;
 }
 
-.nav {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  max-width: 480px;
-  margin: auto;
-  background: #0d1b32;
-  border-top: 1px solid #375071;
-  display: flex;
-  justify-content: space-around;
-  padding: 10px 8px max(10px, env(safe-area-inset-bottom));
-}
-
-.nav button {
-  border: 0;
-  background: transparent;
-  color: #c8d0dd;
-
-  border-radius: 10px;
-}
-
-.nav button[aria-current="page"] {
-  color: var(--gold);
-  background: #233653;
-}
-
 .rating {
   display: flex;
   gap: 6px;
@@ -857,14 +830,6 @@ h2 {
     height: clamp(80px, 22vw, 104px);
   }
 
-  .app:has(.skill-star) .nav {
-    padding-top: 5px;
-    padding-bottom: max(5px, env(safe-area-inset-bottom));
-  }
-
-  .app:has(.skill-star) .nav button {
-    padding: 5px 9px;
-  }
 }
 
 @media(max-width:600px) and (max-height:590px) {
@@ -1371,11 +1336,6 @@ input:disabled {
   accent-color: #f4c76a;
 }
 
-.nav button {
-  padding: 7px 5px;
-  font-size: 12px;
-}
-
 .journey-week {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
@@ -1619,11 +1579,6 @@ header.quest-header .header-level {
   color: #f2d17b;
 }
 
-.page-back {
-  align-self: flex-start;
-  margin-top: 8px;
-}
-
 @media(max-width:350px) {
   header.quest-header {
     gap: 5px;
@@ -1660,22 +1615,6 @@ header.quest-header .header-level {
 .achievement-badge-locked {
   filter: grayscale(1);
   opacity: .5;
-}
-
-.achievement-badge-tier {
-  position: absolute;
-  bottom: -3px;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 2px 5px;
-  border-radius: 6px;
-  border: 1px solid #b8a26e;
-  background: #14243d;
-  color: #f4d48a;
-  font-size: 10px;
-  font-weight: 700;
-  line-height: 1.2;
-  white-space: nowrap;
 }
 
 @media(max-width:350px) {
@@ -1776,12 +1715,6 @@ header.quest-header>.back {
 }
 
 /* Skill achievements reuse the same artwork as Home and skill details. */
-.achievement-skill-badge>.skill-asset {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  padding: 3px;
-}
 
 /* Let the writing scenery show through while keeping labels fully opaque. */
 .skill-grid .skill {
@@ -1806,17 +1739,6 @@ header.quest-header {
   height: 26px;
   object-fit: contain;
   flex-shrink: 0;
-}
-
-.settings-heading {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.settings-heading .settings-icon {
-  width: 30px;
-  height: 30px;
 }
 
 /* Header navigation replaces the bottom tabs without reducing usable content space. */
@@ -1862,10 +1784,6 @@ header.quest-header .header-actions svg {
   border-radius: 50%;
   background: #ef476f;
   border: 1px solid #fff;
-}
-
-.page-back {
-  flex-shrink: 0;
 }
 
 /* A single quiet toolbar with aligned controls and a centred level badge. */
@@ -1946,10 +1864,6 @@ header.quest-header .header-actions .settings-button:hover {
 .card>h1,
 .checkin-heading>h1 {
   text-align: center;
-}
-
-.settings-heading {
-  justify-content: center;
 }
 
 .detail-top {

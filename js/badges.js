@@ -83,8 +83,7 @@ function achievementBadgeArtwork(a) {
     const key = a.name.toLowerCase();
     return '<span class="achievement-badge ' + (a.earned ? '' : 'achievement-badge-locked') + '" aria-hidden="true"><img src="./assets/achievements/ranks/' + key + '.svg?v=20261026-progression" alt="" width="64" height="64" decoding="async"></span>';
   }
-  let cell = 19,
-    tier = '';
+  let cell = 19;
   if (a.id === 'first') cell = 0;
   else if (a.id.startsWith('days-')) cell = ({
     3: 1,
@@ -99,19 +98,7 @@ function achievementBadgeArtwork(a) {
     14: 8,
     30: 9
   })[a.goal];
-  else if (a.id.startsWith('five-for-five')) cell = ({
-    1: 15,
-    5: 16,
-    25: 17
-  })[a.goal];
-  else if (a.id.startsWith('all-')) {
-    cell = 18;
-    tier = String(a.goal);
-  } else if (a.id.startsWith('any-')) {
-    cell = 10;
-    tier = String(a.goal);
-  }
   const x = 30 + (cell % 5) * 270,
     y = 48 + Math.floor(cell / 5) * 253;
-  return '<span class="achievement-badge ' + (a.earned ? '' : 'achievement-badge-locked') + '" aria-hidden="true"><svg viewBox="' + x + ' ' + y + ' 260 260" focusable="false"><image href="./assets/achievements/badges.png" width="1402" height="1122"/></svg>' + (tier ? '<span class="achievement-badge-tier">' + tier + '</span>' : '') + '</span>';
+  return '<span class="achievement-badge ' + (a.earned ? '' : 'achievement-badge-locked') + '" aria-hidden="true"><svg viewBox="' + x + ' ' + y + ' 260 260" focusable="false"><image href="./assets/achievements/badges.png" width="1402" height="1122"/></svg>' + '</span>';
 }
