@@ -431,3 +431,11 @@ header.quest-header .header-rank-beginner{display:grid;place-items:center;font-s
 @keyframes achievement-aura{0%,100%{opacity:.4;transform:scale(.94)}50%{opacity:.75;transform:scale(1.06)}}
 @keyframes achievement-holo-sheen{0%,60%{background-position:100% 0;opacity:0}65%{opacity:.65}88%{opacity:.65}95%,100%{background-position:0 0;opacity:0}}
 @media(prefers-reduced-motion:reduce){.achievement-holographic::before{animation:none;opacity:.55;transform:none}.achievement-holographic::after{animation:none;opacity:.15;background-position:50% 0}}
+
+/* Legend unlock: five finite bursts around the notification, never intercept input. */
+.legend-celebration{isolation:isolate;overflow:hidden}
+.legend-celebration>.save-dialog{position:relative;z-index:1;border-color:#f8d77d;box-shadow:0 0 24px #c399e64d,0 0 42px #f8d77d26}
+.legend-fireworks{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.legend-firework-origin{position:absolute;width:0;height:0}
+.legend-firework-origin .firework-spark{top:0;left:0;animation-duration:1400ms}
+@media(prefers-reduced-motion:reduce){.legend-fireworks{display:none}}
