@@ -308,10 +308,26 @@ function syncDeveloperUI(){
   const button=document.getElementById(id);if(button)button.disabled=true;
  }
 }
+/* Synthetic history exists only in the isolated Test Mode profile. */
+function previewAllAchievements(){
+ if(!developer?.active)return;
+ if(!developer.setTotal(250))return;
+ const next=validateSave(state),today=localDay();
+ const stamp=Date.parse(today+"T00:00:00Z");
+ for(let offset=0;offset<100;offset++){
+  const day=new Date(stamp-offset*86400000).toISOString().slice(0,10);
+  next.checkins[day]=Object.fromEntries(SKILLS.map(s=>[s.id,5]));
+ }
+ next.achievementsSeen=[];
+ save(next);
+ developerBackgroundOnly=false;draftRatings=null;draftDay=null;
+ navigate("projects");
+ app.querySelectorAll(".achievement-group").forEach(group=>{group.open=true;});
+}
 function openDeveloperPanel(){
  if(!developer?.active||document.getElementById("developer-panel"))return;
  const overlay=document.createElement("div");overlay.id="developer-panel";overlay.className="save-overlay";
- overlay.innerHTML='<section class="save-dialog developer-dialog" role="dialog" aria-modal="true" aria-labelledby="developer-heading"><h2 id="developer-heading">WriteQuest Test Mode</h2><p class="small">Temporary preview. Your normal progress is protected.</p><div class="developer-ranks">'+TOTAL_RANKS.map(([name,total])=>'<button type="button" data-preview-total="'+total+'">'+name+'<small>Total Level '+total+'</small></button>').join('')+'</div><button type="button" class="secondary" id="developer-background">'+(developerBackgroundOnly?'Show skill cards':'Background only')+'</button><button type="button" class="secondary" id="developer-restore">Restore original preview</button><button type="button" class="primary" id="developer-close">View app</button><button type="button" class="secondary" id="developer-exit">Exit Test Mode</button></section>';
+ overlay.innerHTML='<section class="save-dialog developer-dialog" role="dialog" aria-modal="true" aria-labelledby="developer-heading"><h2 id="developer-heading">WriteQuest Test Mode</h2><p class="small">Temporary preview. Your normal progress is protected.</p><div class="developer-ranks">'+TOTAL_RANKS.map(([name,total])=>'<button type="button" data-preview-total="'+total+'">'+name+'<small>Total Level '+total+'</small></button>').join('')+'</div><button type="button" class="secondary" id="developer-all-achievements">Preview All Achievements</button><button type="button" class="secondary" id="developer-background">'+(developerBackgroundOnly?'Show skill cards':'Background only')+'</button><button type="button" class="secondary" id="developer-restore">Restore original preview</button><button type="button" class="primary" id="developer-close">View app</button><button type="button" class="secondary" id="developer-exit">Exit Test Mode</button></section>';
  const close=()=>{overlay.remove();document.removeEventListener("keydown",onKey);document.getElementById("developer-launcher")?.focus();};
  const onKey=event=>{if(event.key==="Escape")close();};
  overlay.addEventListener("click",event=>{
@@ -319,7 +335,8 @@ function openDeveloperPanel(){
   const button=event.target.closest("button");if(!button)return;
   if(button.dataset.previewTotal!==undefined){
    if(developer.setTotal(Number(button.dataset.previewTotal))){draftRatings=null;draftDay=null;page="home";render();close();}
-  }else if(button.id==="developer-background"){developerBackgroundOnly=!developerBackgroundOnly;render();close();}
+  }else if(button.id==="developer-all-achievements"){close();previewAllAchievements();}
+  else if(button.id==="developer-background"){developerBackgroundOnly=!developerBackgroundOnly;render();close();}
   else if(button.id==="developer-restore"){developer.restore();draftRatings=null;draftDay=null;page="home";render();close();}
   else if(button.id==="developer-exit"){close();exitDeveloperMode();}
   else if(button.id==="developer-close")close();
