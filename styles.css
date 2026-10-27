@@ -411,3 +411,10 @@ header.quest-header .header-rank-beginner{display:grid;place-items:center;font-s
 /* Milestone crests share a readable footprint; higher tiers add wreaths and wings. */
 .achievement-badge.milestone-crest{overflow:visible;background:transparent}
 .achievement-badge.milestone-crest svg{display:block;width:100%;height:100%;overflow:visible}
+
+/* Specialist keeps a gold laurel; Mastery adds a crown and winged frame. */
+.achievement-specialism>.milestone-crest{position:absolute;inset:0;width:100%;height:100%}
+.achievement-specialism .specialism-art{position:absolute;left:34%;top:28%;width:32%;height:29%;display:grid;place-items:center;border-radius:4px;background:#3e3022}
+.achievement-specialism-50 .specialism-art{background:#382453}
+.achievement-specialism .specialism-art .skill-asset{width:100%;height:100%;object-fit:contain}
+.achievement-specialism-50>.milestone-crest:not(.achievement-badge-locked){filter:drop-shadow(0 0 3px color-mix(in srgb,var(--specialism-color) 50%,transparent))}
