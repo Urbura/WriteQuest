@@ -1,6 +1,6 @@
 (function(root){
  function summary(checkins,today){
-  const days=Object.keys(checkins).filter(d=>d<=today).sort(),set=new Set(days);
+  const days=Object.keys(checkins).filter(d=>d<=today&&Object.values(checkins[d]).some(n=>n>0)).sort(),set=new Set(days);
   const shift=(d,n)=>new Date(Date.parse(d+'T00:00:00Z')+n*86400000).toISOString().slice(0,10);
   const weekday=new Date(today+'T00:00:00Z').getUTCDay(),sunday=shift(today,-weekday);
   const week=Array.from({length:7},(_,i)=>{const day=shift(sunday,i);return {day,checked:set.has(day),future:day>today};});
