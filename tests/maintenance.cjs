@@ -130,3 +130,52 @@ test('dialog focus wraps, supports nested popups and cleans up on release', () =
   release(overlay); assert.equal(document.activeElement, opener);
   assert.equal(listeners.size, 0);
 });
+
+test('legacy saves default to automatic backgrounds; invalid preferences are ignored', () => {
+  const { run } = appContext();
+  assert.equal(run('const legacy = blank(); delete legacy.background; validateSave(legacy).background'), 'auto');
+  assert.equal(run('validateSave({...blank(),background:"not-a-background"}).background'), 'auto');
+});
+
+test('only unlocked backgrounds can be selected and selection survives reload and backup validation', () => {
+  const { run, storage } = appContext();
+  run('save(blank());');
+  const before = new Map(storage);
+  run('chooseBackground("gold");');
+  assert.deepEqual(storage, before);
+  run('const bronzeProfile = blank(); SKILLS.forEach(s=>bronzeProfile.xp[s.id]=5); save(bronzeProfile); chooseBackground("bronze");');
+  assert.equal(run('state.background'), 'bronze');
+  assert.equal(run('backgroundForTotal(10).key'), 'bronze');
+  assert.equal(run('loadProgress().background'), 'bronze');
+  assert.equal(run('validateSave(JSON.parse(JSON.stringify(state))).background'), 'bronze');
+  run('chooseBackground("silver");');
+  assert.equal(run('state.background'), 'bronze');
+});
+
+test('a chosen background stays selected as rank grows; automatic mode follows the current rank', () => {
+  const { run } = appContext();
+  run('const profile = blank(); SKILLS.forEach(s=>profile.xp[s.id]=5); save(profile); chooseBackground("beginner");');
+  assert.equal(run('backgroundForTotal(50).key'), 'beginner');
+  run('chooseBackground("auto");');
+  assert.equal(run('state.background'), 'auto');
+  assert.equal(run('backgroundForTotal(50).key'), 'gold');
+});
+
+test('a background that is locked after a lower-level restore safely falls back to current rank', () => {
+  const { run } = appContext();
+  run('state = validateSave({...blank(),background:"grandmaster"});');
+  assert.equal(run('backgroundForTotal(5).key'), 'beginner');
+  assert.match(run('rankProgression()'), /data-background="grandmaster" aria-pressed="false" disabled/);
+});
+
+test('Test Mode background choices cannot overwrite the normal preference', () => {
+  const { run, storage } = appContext();
+  run('chooseBackground("beginner");');
+  const before = new Map(storage);
+  run('developer.enter(); developer.setTotal(250); chooseBackground("diamond");');
+  assert.equal(run('state.background'), 'diamond');
+  assert.deepEqual(storage, before);
+  run('developer.exit();');
+  assert.equal(run('state.background'), 'beginner');
+});
+

@@ -51,10 +51,12 @@ const RANKS = [
   ["Bronze", 1]
 ];
 const rank = level => RANKS.find(r => level >= r[1])[0];
+const BACKGROUND_KEYS = ["auto", "beginner", "bronze", "silver", "gold", "platinum", "emerald", "diamond", "master", "grandmaster"];
 const KEY = "writequest-starter-v1";
 const blank = () => ({
   xp: Object.fromEntries(SKILLS.map(s => [s.id, 0])),
-  checkins: {}
+  checkins: {},
+  background: "auto"
 });
 const BACKUP_KEY = KEY + "-backup";
 let saveNotice = "",
@@ -64,6 +66,7 @@ let saveNotice = "",
 function validateSave(input) {
   if (!input || typeof input !== "object" || Array.isArray(input) || !input.xp || !input.checkins || Array.isArray(input.checkins)) throw Error("Invalid WriteQuest save.");
   const clean = blank();
+  if (BACKGROUND_KEYS.includes(input.background)) clean.background = input.background;
   if (Array.isArray(input.achievementsSeen)) clean.achievementsSeen = [...new Set(input.achievementsSeen.filter(id => typeof id === "string" && id.length < 80))];
   for (const skill of SKILLS) {
     const n = input.xp[skill.id];
@@ -98,7 +101,8 @@ function loadProgress() {
             saveNotice = "Showing your previous valid save. Export it, then use Restore Previous Save to resume saving.";
             return recovered;
           } catch (error) {
-            /* Preserve both copies for recovery. */ }
+            /* Preserve both copies for recovery. */
+          }
         }
         return blank();
       }
@@ -386,7 +390,28 @@ const BACKGROUND_REWARDS = {
 };
 
 function backgroundForTotal(total) {
-  return BACKGROUND_REWARDS[totalRank(total)];
+  const unlocked = TOTAL_RANKS.find(([name, min]) =>
+    BACKGROUND_REWARDS[name].key === state.background && total >= min);
+  return BACKGROUND_REWARDS[unlocked ? unlocked[0] : totalRank(total)];
+}
+
+function chooseBackground(key) {
+  const total = SKILLS.reduce((sum, skill) => sum + stats(state.xp[skill.id]).level, 0);
+  const unlocked = key === "auto" || TOTAL_RANKS.some(([name, min]) =>
+    BACKGROUND_REWARDS[name].key === key && total >= min);
+  if (!unlocked || !BACKGROUND_KEYS.includes(key)) return;
+  const next = validateSave(state);
+  next.background = key;
+  try {
+    save(next);
+  } catch (error) {
+    alert("Background was not changed. " + error.message);
+    return;
+  }
+  render();
+  app.querySelector('[data-background="' + key + '"]')?.focus({
+    preventScroll: true
+  });
 }
 
 function applyRankBackground() {
@@ -402,9 +427,29 @@ function totalRank(total) {
 }
 
 function rankProgression() {
-  const total = SKILLS.reduce((sum, s) => sum + stats(state.xp[s.id]).level, 0),
-    current = totalRank(total);
-  return header() + '<section class="card">' + contentTitle('Total Level Ranks') + '<p class="muted">Your Total Level is the sum of your five writing skills. Each rank unlocks a new writing background.</p><div class="rank-summary rank-summary-' + current.toLowerCase() + '"><strong>' + current + '</strong><span>Total Level ' + total + ' / 250</span></div><h2>Rank Progression</h2><div class="rank-list">' + TOTAL_RANKS.map(([name, min]) => '<div class="rank-row ' + (name === current ? 'rank-current' : '') + '"><span class="rank-symbol" aria-hidden="true">' + (name === 'Beginner' ? '◇' : '<img class="rank-list-icon ' + (total >= min ? '' : 'rank-list-icon-locked') + '" src="./assets/achievements/ranks/' + name.toLowerCase() + '.svg?v=20261026-progression" alt="" width="40" height="40" decoding="async">') + '</span><span class="rank-name">' + name + (name === current ? ' <span class="small muted">(Current)</span>' : '') + '<small class="rank-background-name">' + BACKGROUND_REWARDS[name].name + '</small></span><span class="small">' + min + '</span></div>').join('') + '</div></section>';
+  const total = SKILLS.reduce((sum, s) => sum + stats(state.xp[s.id]).level, 0);
+  const current = totalRank(total),
+    reward = backgroundForTotal(total);
+  const auto = !state.background || state.background === "auto";
+  return header() + '<section class="card">' + contentTitle('Total Level Ranks') +
+    '<p class="muted">Your Total Level is the sum of your five writing skills. Each rank unlocks a new writing background.</p>' +
+    '<div class="rank-summary rank-summary-' + current.toLowerCase() + '"><strong>' + current + '</strong><span>Total Level ' + total + ' / 250</span></div>' +
+    '<h2>Your background</h2><p class="small muted" role="status" aria-live="polite">Current background: ' + reward.name +
+    (auto ? ' · Following your rank.' : '') + (developer?.active ? ' · Test Mode preview only.' : '') + '</p>' +
+    '<button type="button" class="secondary background-auto" data-background="auto" aria-pressed="' + auto + '">Follow current rank' + (auto ? ' · Selected' : '') + '</button>' +
+    '<p class="small muted">Choose any unlocked background below. Your choice is saved on this device and included in backups.</p>' +
+    '<h2>Rank Progression</h2><div class="rank-list">' + TOTAL_RANKS.map(([name, min]) => {
+      const background = BACKGROUND_REWARDS[name],
+        unlocked = total >= min;
+      const chosen = !auto && state.background === background.key && unlocked;
+      const label = unlocked ? (chosen ? 'Selected' : 'Choose') : 'Locked';
+      return '<button type="button" class="rank-row background-choice ' + (name === current ? 'rank-current' : '') +
+        '" data-background="' + background.key + '" aria-pressed="' + chosen + '"' + (unlocked ? '' : ' disabled') +
+        ' aria-label="' + name + ': ' + background.name + '. ' + (unlocked ? (chosen ? 'Selected background.' : 'Choose background.') : 'Unlock at Total Level ' + min + '.') + '">' +
+        '<span class="rank-symbol" aria-hidden="true">' + (name === 'Beginner' ? '◇' : '<img class="rank-list-icon ' + (unlocked ? '' : 'rank-list-icon-locked') + '" src="./assets/achievements/ranks/' + name.toLowerCase() + '.svg?v=20261026-progression" alt="" width="40" height="40" decoding="async">') + '</span>' +
+        '<span class="rank-name">' + name + (name === current ? ' <span class="small muted">(Current)</span>' : '') +
+        '<small class="rank-background-name">' + background.name + '</small></span><span class="background-choice-state">' + label + '<small>Total Level ' + min + '</small></span></button>';
+    }).join('') + '</div></section>';
 }
 
 function settings() {
@@ -585,6 +630,7 @@ function render() {
   document.getElementById("clear-achievement-notifications")?.addEventListener("click", clearAchievementNotifications);
   document.getElementById("toggle-sounds")?.addEventListener("click", toggleSounds);
   document.getElementById("open-tutorial")?.addEventListener("click", openTutorial);
+  document.querySelectorAll("[data-background]").forEach(button => button.addEventListener("click", () => chooseBackground(button.dataset.background)));
   syncDeveloperUI()
 }
 /* DAILY SAVE: Recalculate XP from all saved daily ratings to prevent duplicate awards. */

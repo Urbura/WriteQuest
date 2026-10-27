@@ -2380,3 +2380,76 @@ header.quest-header .header-rank-beginner {
 .page-title-row {
   grid-auto-columns: max-content;
 }
+
+/* Background selection reuses the rank list without adding controls to Home. */
+.background-choice {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  cursor: pointer
+}
+
+.background-choice .rank-name {
+  min-width: 0;
+  overflow-wrap: anywhere
+}
+
+.background-choice-state {
+  text-align: right;
+  font-size: 12px;
+  line-height: 1.3
+}
+
+.background-choice-state small {
+  display: block;
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 3px
+}
+
+.background-choice[aria-pressed="true"],
+.background-auto[aria-pressed="true"] {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 1px var(--gold)
+}
+
+.background-choice:disabled {
+  cursor: default;
+  opacity: .65
+}
+
+.background-choice:not(:disabled):hover {
+  background: #233653
+}
+
+.background-choice:focus-visible,
+.background-auto:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 3px
+}
+
+@media(max-width:350px) {
+  .background-choice {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    gap: 6px;
+    padding: 10px 6px
+  }
+
+  .background-choice .rank-symbol,
+  .background-choice .rank-list-icon {
+    width: 32px;
+    height: 32px
+  }
+
+  .background-choice-state {
+    font-size: 11px
+  }
+
+  .background-choice-state small {
+    font-size: 9px
+  }
+}
