@@ -357,3 +357,6 @@ header.quest-header .header-actions .settings-button:hover{background:#233653}
 
 /* The wider Silver composition fills the screen at a stable scale. */
 body[data-rank-background="bronze"]::before,body[data-rank-background="silver"]::before,body[data-rank-background="gold"]::before,body[data-rank-background="platinum"]::before,body[data-rank-background="emerald"]::before,body[data-rank-background="diamond"]::before,body[data-rank-background="master"]::before,body[data-rank-background="grandmaster"]::before{background-size:cover;background-position:center bottom}
+
+/* Keep the focused-day count within the existing central button. */
+.star-checkin-count{font-size:9px;line-height:1.1;white-space:nowrap;font-weight:400}
