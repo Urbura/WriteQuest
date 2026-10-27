@@ -495,7 +495,7 @@ function chooseBackground(key) {
     return;
   }
   render();
-  app.querySelector('[data-background="' + key + '"]')?.focus({
+  document.getElementById("background-select")?.focus({
     preventScroll: true
   });
 }
@@ -514,28 +514,27 @@ function totalRank(total) {
 
 function rankProgression() {
   const total = getTotalLevel();
-  const current = totalRank(total),
-    reward = backgroundForTotal(total);
+  const current = totalRank(total), reward = backgroundForTotal(total);
   const auto = !state.background || state.background === "auto";
+  const options = TOTAL_RANKS.map(([name, min]) => {
+    const background = BACKGROUND_REWARDS[name], unlocked = total >= min;
+    const selected = !auto && state.background === background.key && unlocked;
+    return '<option value="' + background.key + '"' + (selected ? ' selected' : '') +
+      (unlocked ? '' : ' disabled') + '>' + background.name + ' — ' + name +
+      ' · Total Level ' + min + (unlocked ? '' : ' · Locked') + '</option>';
+  }).join('');
   return header() + '<section class="card">' + contentTitle('Total Level Ranks') +
     '<p class="muted">Your Total Level is the sum of your five writing skills. Each rank unlocks a new writing background.</p>' +
-    '<div class="rank-summary rank-summary-' + current.toLowerCase() + '"><strong>' + current + '</strong><span>Total Level ' + total + ' / 250</span></div>' +
-    '<h2>Your background</h2><p class="small muted" role="status" aria-live="polite">Current background: ' + reward.name +
-    (auto ? ' · Following your rank.' : '') + (developer?.active ? ' · Test Mode preview only.' : '') + '</p>' +
-    '<button type="button" class="secondary background-auto" data-background="auto" aria-pressed="' + auto + '">Change Background</button>' +
-    '<p class="small muted">Choose any unlocked background below. Your choice is saved on this device and included in backups.</p>' +
-    '<h2>Rank Progression</h2><div class="rank-list">' + TOTAL_RANKS.map(([name, min]) => {
-      const background = BACKGROUND_REWARDS[name],
-        unlocked = total >= min;
-      const chosen = !auto && state.background === background.key && unlocked;
-      const label = unlocked ? (chosen ? 'Selected' : 'Choose') : 'Locked';
-      return '<button type="button" class="rank-row background-choice ' + (name === current ? 'rank-current' : '') +
-        '" data-background="' + background.key + '" aria-pressed="' + chosen + '"' + (unlocked ? '' : ' disabled') +
-        ' aria-label="' + name + ': ' + background.name + '. ' + (unlocked ? (chosen ? 'Selected background.' : 'Choose background.') : 'Unlock at Total Level ' + min + '.') + '">' +
-        '<span class="rank-symbol" aria-hidden="true">' + (name === 'Beginner' ? '◇' : '<img class="rank-list-icon ' + (unlocked ? '' : 'rank-list-icon-locked') + '" src="./assets/achievements/ranks/' + name.toLowerCase() + '.svg?v=20261026-progression" alt="" width="40" height="40" decoding="async">') + '</span>' +
-        '<span class="rank-name">' + name + (name === current ? ' <span class="small muted">(Current)</span>' : '') +
-        '<small class="rank-background-name">' + background.name + '</small></span><span class="background-choice-state">' + label + '<small>Total Level ' + min + '</small></span></button>';
-    }).join('') + '</div></section>';
+    '<div class="rank-summary rank-summary-' + current.toLowerCase() + '"><strong>' + current +
+    '</strong><span>Total Level ' + total + ' / 250</span></div>' +
+    '<h2>Your background</h2><p class="small muted" role="status" aria-live="polite">Current background: ' +
+    reward.name + (auto ? ' · Following your rank.' : '') +
+    (developer?.active ? ' · Test Mode preview only.' : '') + '</p>' +
+    '<label class="background-select-label" for="background-select">Change Background</label>' +
+    '<select id="background-select" class="background-select" aria-describedby="background-select-help">' +
+    '<option value="auto"' + (auto ? ' selected' : '') + '>Follow current rank — ' + current + ' · ' + BACKGROUND_REWARDS[current].name + '</option>' +
+    options + '</select>' +
+    '<p id="background-select-help" class="small muted">View rank progression in the menu. Locked backgrounds show their required Total Level. Choose an unlocked background to apply it.</p></section>';
 }
 
 function settings() {
@@ -762,9 +761,7 @@ function connectPageControls() {
   for (const button of document.querySelectorAll("[data-view-achievement]")) {
     button.addEventListener("click", () => viewAchievement(button.dataset.viewAchievement));
   }
-  for (const button of document.querySelectorAll("[data-background]")) {
-    button.addEventListener("click", () => chooseBackground(button.dataset.background));
-  }
+  document.getElementById("background-select")?.addEventListener("change", event => chooseBackground(event.target.value));
 }
 
 // Replay days in date order so each rating receives the bonus for that day's level.
