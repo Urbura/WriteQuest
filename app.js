@@ -522,7 +522,7 @@ function rankProgression() {
     '<div class="rank-summary rank-summary-' + current.toLowerCase() + '"><strong>' + current + '</strong><span>Total Level ' + total + ' / 250</span></div>' +
     '<h2>Your background</h2><p class="small muted" role="status" aria-live="polite">Current background: ' + reward.name +
     (auto ? ' · Following your rank.' : '') + (developer?.active ? ' · Test Mode preview only.' : '') + '</p>' +
-    '<button type="button" class="secondary background-auto" data-background="auto" aria-pressed="' + auto + '">Follow current rank' + (auto ? ' · Selected' : '') + '</button>' +
+    '<button type="button" class="secondary background-auto" data-background="auto" aria-pressed="' + auto + '">Change Background</button>' +
     '<p class="small muted">Choose any unlocked background below. Your choice is saved on this device and included in backups.</p>' +
     '<h2>Rank Progression</h2><div class="rank-list">' + TOTAL_RANKS.map(([name, min]) => {
       const background = BACKGROUND_REWARDS[name],
