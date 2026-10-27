@@ -393,3 +393,17 @@ body[data-rank-background="bronze"]::before,body[data-rank-background="silver"]:
 /* Keep header labels and controls crisp on iOS without softening the scenery. */
 header.quest-header{backdrop-filter:none;-webkit-backdrop-filter:none}
 header.quest-header .header-level,header.quest-header .header-actions{filter:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+
+/* Mastered skills radiate beyond the border while the sheen stays clipped. */
+.skill-grid .skill.skill-mastery{
+ animation:mastery-outer-aura 4.8s ease-in-out infinite;
+ animation-delay:var(--mastery-delay,0s);
+ box-shadow:0 0 7px var(--mastery-color),0 0 16px color-mix(in srgb,var(--mastery-color) 40%,transparent),inset 0 0 8px #f2d17b33;
+}
+@keyframes mastery-outer-aura{
+ 0%,100%{box-shadow:0 0 5px color-mix(in srgb,var(--mastery-color) 65%,transparent),0 0 12px color-mix(in srgb,var(--mastery-color) 25%,transparent),inset 0 0 8px #f2d17b33}
+ 50%{box-shadow:0 0 9px var(--mastery-color),0 0 20px color-mix(in srgb,var(--mastery-color) 45%,transparent),inset 0 0 8px #f2d17b33}
+}
+header.quest-header .header-rank-icon{display:block;object-fit:contain;flex-shrink:0}
+header.quest-header .header-rank-beginner{display:grid;place-items:center;font-size:26px}
+@media(prefers-reduced-motion:reduce){.skill-grid .skill.skill-mastery{animation:none}}
