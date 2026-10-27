@@ -360,3 +360,32 @@ body[data-rank-background="bronze"]::before,body[data-rank-background="silver"]:
 
 /* Keep the focused-day count within the existing central button. */
 .star-checkin-count{font-size:9px;line-height:1.1;white-space:nowrap;font-weight:400}
+
+/* Level 50 mastery: contained sheen, skill-coloured aura, gold edging. */
+.skill-grid .skill.skill-mastery{
+ position:relative;isolation:isolate;border-color:#f2d17b;
+ box-shadow:0 0 10px color-mix(in srgb,var(--mastery-color) 45%,transparent),inset 0 0 8px #f2d17b33;
+}
+.skill-grid .skill.skill-mastery::before,
+.skill-grid .skill.skill-mastery::after{
+ content:"";position:absolute;pointer-events:none;border-radius:inherit;z-index:-1;
+}
+.skill-grid .skill.skill-mastery::before{
+ inset:0;border:1px solid var(--mastery-color);
+ box-shadow:inset 0 0 15px var(--mastery-color);
+ opacity:.2;animation:mastery-breathe 4.8s ease-in-out infinite;
+ animation-delay:var(--mastery-delay,0s);
+}
+.skill-grid .skill.skill-mastery::after{
+ inset:-50%;
+ background:linear-gradient(115deg,transparent 37%,#80baff18 43%,#ffffff38 48%,#f2d17b28 52%,#c084fc20 57%,transparent 63%);
+ opacity:0;transform:translateX(-75%);
+ animation:mastery-sheen 11s ease-in-out infinite;
+ animation-delay:var(--mastery-delay,0s);
+}
+@keyframes mastery-breathe{0%,100%{opacity:.16}50%{opacity:.43}}
+@keyframes mastery-sheen{0%,65%{opacity:0;transform:translateX(-75%)}70%{opacity:.65}88%{opacity:.65}94%,100%{opacity:0;transform:translateX(75%)}}
+@media(prefers-reduced-motion:reduce){
+ .skill-grid .skill.skill-mastery::before{animation:none;opacity:.25}
+ .skill-grid .skill.skill-mastery::after{animation:none;opacity:0}
+}
