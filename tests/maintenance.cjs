@@ -86,8 +86,8 @@ test('Journey and achievement consistency totals agree across gaps and zero days
   run(`state.checkins = {'2026-10-23':{drafting:2},'2026-10-24':{editing:1},'2026-10-25':{learning:0},'2026-10-26':{research:3}};`);
   const data = copy(run(`WriteQuestJourney.summary(state.checkins,'2026-10-27')`));
   assert.equal(data.activeDays, 3);
-  assert.equal(data.longest, 2);
-  assert.equal(data.current, 1);
+  assert.equal(data.longest, 3);
+  assert.equal(data.current, 3);
   assert.equal(run(`achievementList().find(a=>a.id==='days-7').value`), data.activeDays);
   assert.equal(run(`achievementList().find(a=>a.id==='streak-3').value`), data.longest);
 });
@@ -165,7 +165,7 @@ test('a background that is locked after a lower-level restore safely falls back 
   const { run } = appContext();
   run('state = validateSave({...blank(),background:"grandmaster"});');
   assert.equal(run('backgroundForTotal(5).key'), 'beginner');
-  assert.match(run('rankProgression()'), /data-background="grandmaster" aria-pressed="false" disabled/);
+  assert.match(run('rankProgression()'), /<option value="grandmaster" disabled>/);
 });
 
 test('Test Mode background choices cannot overwrite the normal preference', () => {
@@ -220,4 +220,56 @@ test('weekday 3/5 reaches Mastery on check-in 108; weekday 5/5 reaches it on che
   assert.equal(run('stats(simulateWeekdayRating(5,76).drafting).level'), 50);
   assert.equal(run('SKILLS.reduce((total,skill)=>total+stats(simulateWeekdayRating(3,108)[skill.id]).level,0)'), 250);
 });
+
+test('two rest days preserve a weekday writing streak without adding points', () => {
+  const activity = require('../js/activity.js');
+  const days = ['2026-10-05','2026-10-06','2026-10-07','2026-10-08','2026-10-09','2026-10-12','2026-10-13'];
+  assert.deepEqual(activity.streakSummary(days, '2026-10-13'), { current:7, longest:7 });
+  assert.deepEqual(activity.streakSummary(days, '2026-10-11'), { current:5, longest:5 });
+});
+
+test('the third missed day in a week breaks the streak even when misses are separated', () => {
+  const activity = require('../js/activity.js');
+  const days = ['2026-10-05','2026-10-07','2026-10-09'];
+  assert.deepEqual(activity.streakSummary(days, '2026-10-10'), { current:3, longest:3 });
+  // Tuesday, Thursday and Saturday were missed; Sunday is still open.
+  assert.deepEqual(activity.streakSummary(days, '2026-10-11'), { current:0, longest:3 });
+});
+
+test('three consecutive missed days break a streak across a week boundary', () => {
+  const activity = require('../js/activity.js');
+  assert.deepEqual(activity.streakSummary(['2026-10-08'], '2026-10-11'), { current:1, longest:1 });
+  assert.deepEqual(activity.streakSummary(['2026-10-08'], '2026-10-12'), { current:0, longest:1 });
+});
+
+test('missing days are reconstructed after absence; a new check-in starts a new streak', () => {
+  const activity = require('../js/activity.js');
+  assert.deepEqual(activity.streakSummary(['2026-10-05'], '2026-10-09'), { current:0, longest:1 });
+  assert.deepEqual(activity.streakSummary(['2026-10-05','2026-10-09'], '2026-10-09'), { current:1, longest:1 });
+  assert.deepEqual(activity.streakSummary([], '2026-10-09'), { current:0, longest:0 });
+});
+
+test('flexible streak achievements count positive days, not forgiven rest days', () => {
+  const activity = require('../js/activity.js');
+  const journey = require('../js/journey.js');
+  const achievements = require('../js/achievements.js');
+  const days = ['2026-10-05','2026-10-06','2026-10-07','2026-10-08','2026-10-09','2026-10-12','2026-10-13'];
+  const checkins = Object.fromEntries(days.map(day=>[day,{drafting:3}]));
+  checkins['2026-10-10'] = {drafting:0};
+  const summary = journey.summary(checkins,'2026-10-13');
+  const items = achievements.list({skills:[{id:'drafting',name:'Drafting'}],xp:{drafting:0},checkins,level:()=>1,ranks:[],today:'2026-10-13'});
+  assert.equal(summary.activeDays,7);
+  assert.equal(summary.current,7);
+  assert.equal(items.find(a=>a.id==='streak-7').earned,true);
+  assert.equal(items.find(a=>a.id==='streak-14').value,7);
+  assert.equal(activity.positiveDays(checkins).length,7);
+});
+
+test('the unfinished current day is not a missed day; future check-ins are ignored', () => {
+  const activity = require('../js/activity.js');
+  const days = ['2026-10-05','2026-10-20'];
+  assert.deepEqual(activity.streakSummary(days,'2026-10-08'),{current:1,longest:1});
+  assert.deepEqual(activity.streakSummary(days,'2026-10-09'),{current:0,longest:1});
+});
+
 

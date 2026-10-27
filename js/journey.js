@@ -16,9 +16,10 @@
         future: day > today
       };
     });
-    const longest = activity.longestStreak(days);
-    let current = 0;
-    for (let d = set.has(today) ? today : shift(today, -1); set.has(d); d = shift(d, -1)) current++;
+    const {
+      longest,
+      current
+    } = activity.streakSummary(days, today);
     return {
       activeDays: days.length,
       longest,

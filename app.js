@@ -514,10 +514,12 @@ function totalRank(total) {
 
 function rankProgression() {
   const total = getTotalLevel();
-  const current = totalRank(total), reward = backgroundForTotal(total);
+  const current = totalRank(total),
+    reward = backgroundForTotal(total);
   const auto = !state.background || state.background === "auto";
   const options = TOTAL_RANKS.map(([name, min]) => {
-    const background = BACKGROUND_REWARDS[name], unlocked = total >= min;
+    const background = BACKGROUND_REWARDS[name],
+      unlocked = total >= min;
     const selected = !auto && state.background === background.key && unlocked;
     return '<option value="' + background.key + '"' + (selected ? ' selected' : '') +
       (unlocked ? '' : ' disabled') + '>' + background.name + ' — ' + name +
@@ -566,13 +568,13 @@ function journeyMilestone() {
 
 function journey() {
   const data = globalThis.WriteQuestJourney.summary(state.checkins, localDay());
-  return header() + '<section class="card">' + contentTitle('Journey') + '' + (developer?.active ? '<p class="small muted">Test Mode preview</p>' : '') + '<h2>This week</h2><p>' + data.weekly + ' / 7 days checked in</p><div class="journey-week">' + data.week.map((d, i) => '<div class="journey-day ' + (d.checked ? 'journey-checked' : '') + '" aria-label="' + d.day + ': ' + (d.checked ? 'Checked in' : d.future ? 'Upcoming' : 'No check-in') + '"><span>' + ['S', 'M', 'T', 'W', 'T', 'F', 'S'][i] + '</span><strong aria-hidden="true">' + (d.checked ? '✓' : d.future ? '·' : '—') + '</strong></div>').join('') + '</div><div class="journey-stats"><div><strong>' + data.activeDays + '</strong><span>Active days</span></div><div><strong>' + data.current + '</strong><span>Current streak</span></div><div><strong>' + data.longest + '</strong><span>Longest streak</span></div></div><p class="muted">' + (data.started ? 'Your writing journey began ' + data.started + '.' : 'Your first positive check-in starts your journey. One skill is enough.') + '</p><p class="small muted">A rating of 1–5 in any one skill counts as an active day and toward your streak. Other skills can stay at zero. Your writing day resets at 3:30 a.m. your device’s local time.</p>' + journeyMilestone() + '<h2>About WriteQuest</h2><p class="muted">Track writing effort across Drafting, Editing, Creativity, Learning, and Research.</p></section>';
+  return header() + '<section class="card">' + contentTitle('Journey') + '' + (developer?.active ? '<p class="small muted">Test Mode preview</p>' : '') + '<h2>This week</h2><p>' + data.weekly + ' / 7 days checked in</p><div class="journey-week">' + data.week.map((d, i) => '<div class="journey-day ' + (d.checked ? 'journey-checked' : '') + '" aria-label="' + d.day + ': ' + (d.checked ? 'Checked in' : d.future ? 'Upcoming' : 'No check-in') + '"><span>' + ['S', 'M', 'T', 'W', 'T', 'F', 'S'][i] + '</span><strong aria-hidden="true">' + (d.checked ? '✓' : d.future ? '·' : '—') + '</strong></div>').join('') + '</div><div class="journey-stats"><div><strong>' + data.activeDays + '</strong><span>Active days</span></div><div><strong>' + data.current + '</strong><span>Current streak</span></div><div><strong>' + data.longest + '</strong><span>Longest streak</span></div></div><p class="muted">' + (data.started ? 'Your writing journey began ' + data.started + '.' : 'Your first positive check-in starts your journey. One skill is enough.') + '</p><p class="small muted">Any skill rated 1–5 counts toward your streak. Two missed days per Sunday–Saturday week are allowed. A third miss that week, or three in a row, resets the current streak. Rest days add no points. Today stays open until 3:30 a.m. local time.</p>' + journeyMilestone() + '<h2>About WriteQuest</h2><p class="muted">Track writing effort across Drafting, Editing, Creativity, Learning, and Research.</p></section>';
 }
 
 function openTutorial() {
   const steps = [
     ['Welcome to WriteQuest', 'Build your writing habits across Drafting, Editing, Creativity, Learning, and Research.'],
-    ['Check in once a day', 'Tap the centre Check In button. Rate progress toward your own goal from 0–5, then save. A rating of 1–5 in one skill completes your writing day and counts toward your streak. Leave other skills at zero; you can edit today’s ratings. Your day resets at 3:30 a.m. local time.'],
+    ['Check in once a day', 'Tap the centre Check In button. Rate progress toward your own goal from 0–5, then save. A rating of 1–5 in one skill completes your writing day and counts toward your streak. Leave other skills at zero; you can edit today’s ratings. Two missed days per Sunday–Saturday week preserve your streak. A third missed day that week, or three missed days in a row, ends it. Your day resets at 3:30 a.m. local time.'],
     ['Watch your progress grow', 'Earn XP, gain levels, and unlock cozy backgrounds. Achievements track your milestones; Journey shows your weekly activity. Back up your progress in Settings.']
   ];
   let step = 0;
@@ -623,7 +625,8 @@ function achievementList() {
     xp: state.xp,
     checkins: state.checkins,
     level: xp => stats(xp).level,
-    ranks: TOTAL_RANKS
+    ranks: TOTAL_RANKS,
+    today: localDay()
   }) || []
 }
 

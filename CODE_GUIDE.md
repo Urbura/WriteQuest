@@ -65,6 +65,17 @@ for behaviour; avoid mixing the two.
 functions read app data when called, after initialization. Keep their global
 function names unique. This preserves static hosting without a bundler.
 
+## Flexible streaks
+
+A streak counts positive check-in days. Up to two missed days in each
+Sunday–Saturday week preserve its score; rest days add neither streak points
+nor XP. A third missed day in that week resets the current score. Three missed
+days in a row also reset it across a week boundary. The current writing day is
+not missed until the existing 3:30 a.m. reset. The rule is reconstructed from
+history, so the app does not have to be opened on rest days. Weeks before the
+first check-in do not count. Your longest streak and earned achievements remain
+when the current streak ends. Journey and achievements both use activity.js.
+
 ## XP balance
 
 Level 2 requires 5 XP. Requirements then grow by 2.9% per level, rounded up.
@@ -114,3 +125,4 @@ all achievements and Grandmaster in Test Mode, then confirm reduced-motion
 behaviour. Keep media-query order intact when consolidating CSS: moving a rule
 can change which mobile styles win. Update asset version strings in `index.html`
 when publishing changed scripts or styles.
+

@@ -5,12 +5,13 @@
     xp,
     checkins,
     level,
-    ranks
+    ranks,
+    today = null
   }) {
     const levels = skills.map(s => level(xp[s.id])),
       total = levels.reduce((a, b) => a + b, 0);
     const activity = root.WriteQuestActivity || (typeof require !== "undefined" ? require("./activity.js") : null);
-    const days = activity.positiveDays(checkins),
+    const days = activity.positiveDays(checkins, today),
       longest = activity.longestStreak(days);
     const perfectDays = Object.values(checkins).filter(r => skills.every(s => r[s.id] === 5)).length;
     const result = [];
@@ -25,7 +26,7 @@
     });
     add('first', 'Consistency', 'First Check-In', 'Rate at least one skill 1–5 on your first writing day.', days.length, 1);
     for (const n of [3, 7, 14, 30, 100]) add('days-' + n, 'Consistency', n + ' Active Days', 'Check in on ' + n + ' different days with a rating of 1–5 in any skill.', days.length, n);
-    for (const n of [3, 7, 14, 30]) add('streak-' + n, 'Consistency', n + '-Day Streak', 'Check in ' + n + ' days in a row with a rating of 1–5 in any skill.', longest, n);
+    for (const n of [3, 7, 14, 30]) add('streak-' + n, 'Consistency', n + '-Day Streak', 'Reach ' + n + ' positive check-in days in one streak. Two missed days per Sunday–Saturday week are allowed; a third missed day in the week or in a row breaks the streak.', longest, n);
     for (const [name, n] of ranks.filter(([, n]) => n > 5)) add('total-' + n, 'Levels', name, 'Reach Total Level ' + n + '.', total, n);
     for (const n of [10, 25, 50]) add('any-' + n, 'Skills', 'Skill Level ' + n, 'Reach Level ' + n + ' in any skill.', Math.max(...levels), n);
     skills.forEach((s, i) => {
