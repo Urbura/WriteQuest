@@ -237,7 +237,13 @@ function legendBadge(a){
  const gems=SKILLS.map((s,i)=>{const x=20+i*14,y=39-Math.sin(i*Math.PI/4)*12;return '<path d="m'+x+' '+y+' 4 5-4 5-4-5Z" fill="'+s.color+'" stroke="#ffe5a2" stroke-width="1"/>';}).join('');
  return '<span class="achievement-badge milestone-crest legend-crest '+(a.earned?'legend-crest-earned':'achievement-badge-locked')+'" aria-hidden="true"><svg viewBox="0 0 96 106" focusable="false"><circle cx="48" cy="50" r="35" fill="none" stroke="#ffe3a1" stroke-width="2" opacity=".28"/><circle cx="48" cy="50" r="40" fill="none" stroke="#c399e6" opacity=".2"/><path d="m30 70-7 28 17-7 8 11 8-11 17 7-7-28" fill="#744595" stroke="#eec76e" stroke-width="2"/><path d="M25 42 3 26l4 25 19 15m45-24 22-16-4 25-19 15" fill="#80609c" stroke="#f3cd7c" stroke-width="2"/><path d="m7 37 17 14M9 48l15 10m65-21L72 51m15-3-15 10" fill="none" stroke="#e8d4b2" opacity=".6"/><path d="M48 19 74 31v25c0 16-15 27-26 31-11-4-26-15-26-31V31Z" fill="#302343" stroke="#f9d986" stroke-width="3"/><path d="M48 25 68 35v20c0 12-11 22-20 26-9-4-20-14-20-26V35Z" fill="none" stroke="#c399e6" opacity=".65"/>'+gems+'<path d="M31 48q9-5 17 0 8-5 17 0v20q-9-5-17 0-8-5-17 0Z" fill="#f6e7bf" stroke="#ceac68" stroke-width="1.5"/><path d="M48 48v20m-13-14 9 1m-9 4 9 1m8-5 9-1m-9 6 9-1" fill="none" stroke="#82613f" stroke-width="1.5"/><path d="m44 64 15-24 10-4-2 10-23 18Z" fill="#dfc4ff" stroke="#aa83c9" stroke-width="1"/><path d="m43 67 22-27" stroke="#fce3a2" stroke-width="1.5"/><path d="m31 23-4-15 13 7 8-12 8 12 13-7-4 15Z" fill="#f8d77d" stroke="#b78a43" stroke-width="2"/><path d="m48 11 3 4-3 4-3-4Z" fill="#c399e6"/><path d="m10 72 2 4 4 2-4 2-2 4-2-4-4-2 4-2m76-4 2 4 4 2-4 2-2 4-2-4-4-2 4-2" fill="#f8d77d"/><path d="M38 80h20" stroke="#f8d77d" stroke-width="3" stroke-linecap="round"/></svg></span>';
 }
+// Only earned final-tier achievements receive the holographic finish.
 function achievementBadge(a){
+ const maxed=a.earned&&(a.id==='legend'||a.id==='days-100'||a.id==='streak-30'||a.id==='total-250'||a.id==='five-for-five-25'||a.id==='all-50'||a.id==='any-50'||SKILLS.some(s=>a.id===s.id+'-50'));
+ const badge=achievementBadgeArtwork(a);
+ return maxed?'<span class="achievement-badge achievement-holographic" aria-hidden="true">'+badge+'</span>':badge;
+}
+function achievementBadgeArtwork(a){
  if(a.id==="legend")return legendBadge(a);
  if(/^all-(10|20|30|40|50)$/.test(a.id))return allSkillsBadge(a);
  if(a.id==="five-for-five"||/^five-for-five-(5|25)$/.test(a.id))return wellRoundedBadge(a);
