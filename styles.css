@@ -172,7 +172,7 @@ h1,h2{font-family:Georgia,serif;margin:0 0 8px}h1{font-size:28px}h2{font-size:22
 
 /* Approved wordmark replaces the text brand without crowding header controls. */
 header .brand.brand-logo{display:block;position:relative;flex:0 1 190px;width:190px;min-width:0;height:44px;overflow:hidden}
-.brand-logo img{display:block;position:absolute;left:0;top:50%;transform:translateY(-50%);width:100%;height:auto;max-width:100%}
+.brand-logo img{display:block;position:absolute;left:0;top:0;transform:none;width:100%;height:100%;max-width:100%;object-fit:contain;object-position:left center}
 
 /* Thin XP bars add visible progress without increasing dashboard height. */
 .skill-grid .home-progress{display:block;flex:0 0 6px;width:82%;height:6px;margin:5px 0 1px;background:#31435d;border-radius:999px;overflow:hidden}
@@ -290,7 +290,7 @@ header.quest-header>.back{min-width:0;white-space:nowrap;padding:8px;font-size:1
 /* Let the writing scenery show through while keeping labels fully opaque. */
 .skill-grid .skill{background:rgba(23,39,65,.7)}
 .skill-grid .skill:hover{background:rgba(34,56,88,.82)}
-header.quest-header{background:rgba(11,20,40,.94);border:1px solid #51638280;border-radius:14px;box-shadow:0 4px 16px #0005;padding:6px 8px}
+header.quest-header{background:#0b1428;border:1px solid #51638280;border-radius:14px;box-shadow:0 4px 16px #0005;padding:6px 8px}
 
 .settings-icon{display:block;width:26px;height:26px;object-fit:contain;flex-shrink:0}
 .settings-heading{display:flex;align-items:center;gap:10px}
@@ -389,3 +389,7 @@ body[data-rank-background="bronze"]::before,body[data-rank-background="silver"]:
  .skill-grid .skill.skill-mastery::before{animation:none;opacity:.25}
  .skill-grid .skill.skill-mastery::after{animation:none;opacity:0}
 }
+
+/* Keep header labels and controls crisp on iOS without softening the scenery. */
+header.quest-header{backdrop-filter:none;-webkit-backdrop-filter:none}
+header.quest-header .header-level,header.quest-header .header-actions{filter:none;backdrop-filter:none;-webkit-backdrop-filter:none}
