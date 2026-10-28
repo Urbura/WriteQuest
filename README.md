@@ -36,6 +36,7 @@ WriteQuest uses plain HTML, CSS, and small JavaScript modules. You can edit them
 
 - Journey with a Sunday–Saturday calendar and flexible streaks
 - Forty achievements, writing badges, celebrations, and optional sounds
+- Recent achievement badge on Home; tap it to reveal its details
 - Rank backgrounds, background selection, and Level 50 skill effects
 - Tutorial and isolated Test Mode for previewing ranks and achievements
 

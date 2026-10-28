@@ -78,6 +78,7 @@ function validateSave(input) {
   const clean = blank();
   if (BACKGROUND_KEYS.includes(input.background)) clean.background = input.background;
   if (Array.isArray(input.achievementsSeen)) clean.achievementsSeen = [...new Set(input.achievementsSeen.filter(id => typeof id === "string" && id.length < 80))];
+  if (Array.isArray(input.recentAchievements)) clean.recentAchievements = [...new Set(input.recentAchievements.filter(id => typeof id === "string" && /^[a-z0-9-]{1,79}$/.test(id)))].slice(0, 40);
   for (const skill of SKILLS) {
     const n = input.xp[skill.id];
     if (!Number.isSafeInteger(n) || n < 0) throw Error("Invalid skill XP.");
@@ -372,7 +373,8 @@ function home() {
     SKILLS.map(homeSkillCard).join(""),
     '</div>',
     homeCheckinButton(writingDay()),
-    '</div>'
+    '</div>',
+    homeAchievement()
   ].join("");
 }
 
@@ -619,15 +621,48 @@ function toggleSounds() {
   render();
 }
 
-function achievementList() {
+function achievementList(profile = state) {
   return globalThis.WriteQuestAchievements?.list({
     skills: SKILLS,
-    xp: state.xp,
-    checkins: state.checkins,
+    xp: profile.xp,
+    checkins: profile.checkins,
     level: xp => stats(xp).level,
     ranks: TOTAL_RANKS,
     today: localDay()
   }) || []
+}
+
+// Latest recorded unlock first; older saves can still display an earned badge.
+function recentAchievement() {
+  const earned = achievementList().filter(item => item.earned);
+  for (const id of state.recentAchievements || []) {
+    const item = earned.find(item => item.id === id);
+    if (item) return { item, tracked: true };
+  }
+  const item = earned[earned.length - 1];
+  return item ? { item, tracked: false } : null;
+}
+
+function homeAchievement() {
+  const recent = recentAchievement();
+  if (!recent) return "";
+  const { item, tracked } = recent;
+  return '<button type="button" class="home-achievement" id="open-recent-achievement" aria-label="View achievement: ' + item.name + '">' +
+    achievementBadge(item) + '<span class="home-achievement-copy"><span class="small muted">' +
+    (tracked ? 'Recently unlocked' : 'Unlocked achievement') + '</span><strong>' + item.name +
+    '</strong></span><span aria-hidden="true">›</span></button>';
+}
+
+function openRecentAchievement() {
+  const recent = recentAchievement();
+  if (!recent) return;
+  navigate("projects");
+  const target = document.getElementById("achievement-" + recent.item.id);
+  if (!target) return;
+  const group = target.closest("details");
+  if (group) group.open = true;
+  target.scrollIntoView({ block: "center" });
+  target.focus({ preventScroll: true });
 }
 
 function unseenAchievements() {
@@ -681,7 +716,7 @@ function achievements() {
   return header() + '<section class="card achievements-card">' + contentTitle('Achievements', '<button type="button" class="secondary achievement-clear-button" id="clear-achievement-notifications" aria-label="Clear all achievement notifications (' + unseen.size + ')" title="Clear all notifications"' + (unseen.size ? '' : ' disabled') + '>Clear all</button>') + '<p class="muted">' + earned + ' / ' + items.length + ' unlocked' + (developer?.active ? ' · Test Mode preview' : '') + '</p><progress class="collection-progress" max="' + items.length + '" value="' + earned + '" aria-label="Collection completion"></progress><p class="small">Optional Well-Rounded Days: <strong>' + medals + '</strong></p><p class="small muted">Tap an unlocked achievement to clear its New marker.</p>' + (!unseen.size ? '<p class="small muted" id="achievement-notifications-status" tabindex="-1" role="status">All notifications cleared.</p>' : '') + ['Consistency', 'Levels', 'Skills', 'Legend'].map(category => {
     const group = items.filter(a => a.category === category),
       fresh = group.filter(a => unseen.has(a.id)).length;
-    return '<details class="achievement-group"><summary>' + category + (fresh ? ' <span class="achievement-new">' + fresh + ' new</span>' : '') + ' <span class="small muted">' + group.filter(a => a.earned).length + ' / ' + group.length + '</span></summary>' + group.map(a => '<article class="achievement-row ' + (a.earned ? 'achievement-earned' : '') + '">' + achievementBadge(a) + '<div>' + (a.earned ? '<button class="achievement-view" data-view-achievement="' + a.id + '">' + a.name + '</button>' : '<strong>' + a.name + '</strong>') + (unseen.has(a.id) ? ' <span class="achievement-new">New</span>' : '') + '<p class="small muted">' + a.description + '</p><progress max="' + a.goal + '" value="' + a.value + '" aria-label="' + a.name + ' progress"></progress><span class="small">' + a.value + ' / ' + a.goal + (a.earned ? ' · Unlocked' : '') + '</span></div></article>').join('') + '</details>';
+    return '<details class="achievement-group"><summary>' + category + (fresh ? ' <span class="achievement-new">' + fresh + ' new</span>' : '') + ' <span class="small muted">' + group.filter(a => a.earned).length + ' / ' + group.length + '</span></summary>' + group.map(a => '<article id="achievement-' + a.id + '" tabindex="-1" class="achievement-row ' + (a.earned ? 'achievement-earned' : '') + '">' + achievementBadge(a) + '<div>' + (a.earned ? '<button class="achievement-view" data-view-achievement="' + a.id + '">' + a.name + '</button>' : '<strong>' + a.name + '</strong>') + (unseen.has(a.id) ? ' <span class="achievement-new">New</span>' : '') + '<p class="small muted">' + a.description + '</p><progress max="' + a.goal + '" value="' + a.value + '" aria-label="' + a.name + ' progress"></progress><span class="small">' + a.value + ' / ' + a.goal + (a.earned ? ' · Unlocked' : '') + '</span></div></article>').join('') + '</details>';
   }).join('') + '</section>';
 }
 
@@ -748,6 +783,7 @@ function connectPageControls() {
   connectButton("reset-progress", confirmResetProgress);
   connectButton("open-developer", enterDeveloperMode);
   connectButton("clear-achievement-notifications", clearAchievementNotifications);
+  connectButton("open-recent-achievement", openRecentAchievement);
   connectButton("toggle-sounds", toggleSounds);
   connectButton("open-tutorial", openTutorial);
 
@@ -802,6 +838,10 @@ function saveCheckin() {
   next.checkins[day] = Object.assign({}, editingRatings());
   const startingXP = developer?.active ? developer.baseXP() : blank().xp;
   next.xp = calculateCheckinXP(next.checkins, startingXP);
+  const newAchievements = achievementList(next).filter(item => item.earned && !earnedBefore.has(item.id));
+  if (newAchievements.length) next.recentAchievements = [...new Set([
+    ...newAchievements.map(item => item.id).reverse(), ...(next.recentAchievements || [])
+  ])].slice(0, 40);
   try {
     save(next);
   } catch (error) {
@@ -829,8 +869,6 @@ function saveCheckin() {
   const newRank = totalRank(afterTotal);
   let unlockedRank = null;
   if (afterTotal > beforeTotal && newRank !== oldRank) unlockedRank = newRank;
-  const newAchievements = achievementList().filter(achievement =>
-    achievement.earned && !earnedBefore.has(achievement.id));
   showSaveDialog(leveled, unlockedRank, newAchievements);
 }
 
