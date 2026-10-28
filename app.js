@@ -644,13 +644,17 @@ function recentAchievement() {
 }
 
 function homeAchievement() {
+  return recentAchievementCard("home");
+}
+
+function recentAchievementCard(location) {
   const recent = recentAchievement();
   if (!recent) return "";
   const { item, tracked } = recent;
-  return '<button type="button" class="home-achievement" id="open-recent-achievement" aria-label="View achievement: ' + item.name + '">' +
-    achievementBadge(item) + '<span class="home-achievement-copy"><span class="small muted">' +
-    (tracked ? 'Recently unlocked' : 'Unlocked achievement') + '</span><strong>' + item.name +
-    '</strong></span><span aria-hidden="true">›</span></button>';
+  return '<button type="button" class="recent-achievement ' + (location === 'home' ? 'home-achievement' : 'achievement-highlight') + '" id="open-recent-achievement" aria-label="View achievement: ' + item.name + '">' +
+    achievementBadge(item) + '<span class="recent-achievement-copy"><span class="small muted">' +
+    (tracked ? (location === 'home' ? 'Recently unlocked' : 'Most recent unlock') : 'Unlocked achievement') + '</span><strong>' + item.name +
+    '</strong>' + (location === 'home' ? '' : '<span class="small muted">' + item.description + '</span>') + '</span><span aria-hidden="true">›</span></button>';
 }
 
 function openRecentAchievement() {
@@ -713,7 +717,7 @@ function achievements() {
     unseen = new Set(unseenAchievements().map(a => a.id)),
     earned = items.filter(a => a.earned).length;
   const medals = Object.values(state.checkins).filter(r => SKILLS.every(s => r[s.id] === 5)).length;
-  return header() + '<section class="card achievements-card">' + contentTitle('Achievements', '<button type="button" class="secondary achievement-clear-button" id="clear-achievement-notifications" aria-label="Clear all achievement notifications (' + unseen.size + ')" title="Clear all notifications"' + (unseen.size ? '' : ' disabled') + '>Clear all</button>') + '<p class="muted">' + earned + ' / ' + items.length + ' unlocked' + (developer?.active ? ' · Test Mode preview' : '') + '</p><progress class="collection-progress" max="' + items.length + '" value="' + earned + '" aria-label="Collection completion"></progress><p class="small">Optional Well-Rounded Days: <strong>' + medals + '</strong></p><p class="small muted">Tap an unlocked achievement to clear its New marker.</p>' + (!unseen.size ? '<p class="small muted" id="achievement-notifications-status" tabindex="-1" role="status">All notifications cleared.</p>' : '') + ['Consistency', 'Levels', 'Skills', 'Legend'].map(category => {
+  return header() + '<section class="card achievements-card">' + contentTitle('Achievements', '<button type="button" class="secondary achievement-clear-button" id="clear-achievement-notifications" aria-label="Clear all achievement notifications (' + unseen.size + ')" title="Clear all notifications"' + (unseen.size ? '' : ' disabled') + '>Clear all</button>') + recentAchievementCard('achievements') + '<p class="muted">' + earned + ' / ' + items.length + ' unlocked' + (developer?.active ? ' · Test Mode preview' : '') + '</p><progress class="collection-progress" max="' + items.length + '" value="' + earned + '" aria-label="Collection completion"></progress><p class="small">Optional Well-Rounded Days: <strong>' + medals + '</strong></p><p class="small muted">Tap an unlocked achievement to clear its New marker.</p>' + (!unseen.size ? '<p class="small muted" id="achievement-notifications-status" tabindex="-1" role="status">All notifications cleared.</p>' : '') + ['Consistency', 'Levels', 'Skills', 'Legend'].map(category => {
     const group = items.filter(a => a.category === category),
       fresh = group.filter(a => unseen.has(a.id)).length;
     return '<details class="achievement-group"><summary>' + category + (fresh ? ' <span class="achievement-new">' + fresh + ' new</span>' : '') + ' <span class="small muted">' + group.filter(a => a.earned).length + ' / ' + group.length + '</span></summary>' + group.map(a => '<article id="achievement-' + a.id + '" tabindex="-1" class="achievement-row ' + (a.earned ? 'achievement-earned' : '') + '">' + achievementBadge(a) + '<div>' + (a.earned ? '<button class="achievement-view" data-view-achievement="' + a.id + '">' + a.name + '</button>' : '<strong>' + a.name + '</strong>') + (unseen.has(a.id) ? ' <span class="achievement-new">New</span>' : '') + '<p class="small muted">' + a.description + '</p><progress max="' + a.goal + '" value="' + a.value + '" aria-label="' + a.name + ' progress"></progress><span class="small">' + a.value + ' / ' + a.goal + (a.earned ? ' · Unlocked' : '') + '</span></div></article>').join('') + '</details>';

@@ -335,3 +335,20 @@ test('opening the Home badge reveals and focuses its achievement details', () =>
   assert.equal(run('page'), 'projects');
   assert(group.open && scrolled && focused);
 });
+
+test('Achievements highlights the same latest unlock as Home without clearing its notification', () => {
+  const { run, storage } = appContext();
+  assert.doesNotMatch(run('achievements()'), /achievement-highlight/);
+  run('showSaveDialog=()=>{}; draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5])); saveCheckin();');
+  const before = new Map(storage);
+  const markup = run('achievements()');
+  assert.match(markup, /Most recent unlock/);
+  assert.match(markup, /achievement-highlight/);
+  assert(markup.indexOf('achievement-highlight') < markup.indexOf('achievement-group'));
+  assert.match(run('recentAchievementCard("achievements")'), /Well-Rounded Day/);
+  assert.match(run('homeAchievement()'), /Well-Rounded Day/);
+  assert.equal(run('unseenAchievements().some(a=>a.id===recentAchievement().item.id)'), true);
+  assert.deepEqual(storage, before);
+  run('draftRatings={drafting:0}; saveCheckin();');
+  assert.doesNotMatch(run('achievements()'), /achievement-highlight/);
+});
