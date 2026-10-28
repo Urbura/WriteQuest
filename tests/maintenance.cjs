@@ -273,3 +273,65 @@ test('the unfinished current day is not a missed day; future check-ins are ignor
 });
 
 
+
+test('Home shows no badge before an unlock, then keeps the latest unlock through reload and backup validation', () => {
+  const { run } = appContext();
+  assert.equal(run('homeAchievement()'), '');
+  run('showSaveDialog=()=>{}; draftRatings={drafting:1}; saveCheckin();');
+  assert.equal(run('recentAchievement().item.id'), 'first');
+  assert.match(run('homeAchievement()'), /Recently unlocked/);
+  assert.match(run('homeAchievement()'), /First Check-In/);
+  assert.equal(run('loadProgress().recentAchievements[0]'), 'first');
+  assert.equal(run('validateSave(JSON.parse(JSON.stringify(state))).recentAchievements[0]'), 'first');
+  run('draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5])); saveCheckin();');
+  assert.equal(run('recentAchievement().item.id'), 'five-for-five');
+  const recent = copy(run('state.recentAchievements'));
+  run('saveCheckin();');
+  assert.deepEqual(copy(run('state.recentAchievements')), recent);
+});
+
+test('correcting ratings never showcases a now-locked achievement', () => {
+  const { run } = appContext();
+  run('showSaveDialog=()=>{}; draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5])); saveCheckin();');
+  run('draftRatings={drafting:1}; saveCheckin();');
+  assert.equal(run('recentAchievement().item.id'), 'first');
+  run('draftRatings={drafting:0}; saveCheckin();');
+  assert.equal(run('recentAchievement()'), null);
+  assert.equal(run('homeAchievement()'), '');
+});
+
+test('legacy profiles show an earned badge without claiming to know its unlock date', () => {
+  const { run } = appContext();
+  run('state.checkins[localDay()]={drafting:1};');
+  assert.match(run('homeAchievement()'), /Unlocked achievement/);
+  assert.doesNotMatch(run('homeAchievement()'), /Recently unlocked/);
+  assert.equal(run('validateSave({...state,recentAchievements:[null,17,"<script>","first","first"]}).recentAchievements.join(",")'), 'first');
+});
+
+test('failed check-in and Test Mode cannot overwrite the saved recent achievement', () => {
+  const { run, context, storage } = appContext();
+  run('showSaveDialog=()=>{}; draftRatings={drafting:1}; saveCheckin();');
+  const before = new Map(storage);
+  context.localStorage.setItem = () => { throw Error('Storage full'); };
+  assert.throws(() => run('draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5])); saveCheckin();'), /not saved/);
+  assert.equal(run('recentAchievement().item.id'), 'first');
+  assert.deepEqual(storage, before);
+  run('developer.enter(); draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5])); saveCheckin();');
+  assert.equal(run('recentAchievement().item.id'), 'five-for-five');
+  assert.deepEqual(storage, before);
+  run('developer.exit();');
+  assert.equal(run('recentAchievement().item.id'), 'first');
+});
+
+test('opening the Home badge reveals and focuses its achievement details', () => {
+  const { run, context } = appContext();
+  run('showSaveDialog=()=>{}; draftRatings={drafting:1}; saveCheckin();');
+  const group = { open:false }; let scrolled=false, focused=false;
+  const original = context.document.getElementById;
+  context.document.getElementById = id => id === 'achievement-first' ? {
+    closest: () => group, scrollIntoView(){scrolled=true;}, focus(){focused=true;}
+  } : original(id);
+  run('openRecentAchievement();');
+  assert.equal(run('page'), 'projects');
+  assert(group.open && scrolled && focused);
+});

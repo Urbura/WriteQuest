@@ -10,7 +10,7 @@ function boot(entries={}){
  const storage={getItem:k=>map.get(k)??null,setItem(k,v){if(fail)throw Error('Storage full');map.set(k,v);}};
  const context=vm.createContext({localStorage:storage,document:{getElementById:()=>({}),addEventListener(){}},window:{addEventListener(){},confirm:()=>true},setInterval(){},setTimeout(){},Intl,Date,alert:m=>alerts.push(m)});
  vm.runInContext(source,context);vm.runInContext('render=()=>{};showSaveDialog=()=>{};',context);
- return {map,alerts,run:s=>vm.runInContext(s,context),fail:()=>fail=true};
+ return {context,map,alerts,run:s=>vm.runInContext(s,context),fail:()=>fail=true};
 }
 test('local 3:30 reset in Winnipeg, Ontario, Vancouver, year boundaries and DST',()=>{
  const original=process.env.TZ;
@@ -28,3 +28,42 @@ test('check-in corrections do not duplicate XP; failed check-in retains draft',(
 test('unsaved ratings across reset require review',()=>{const b=boot();b.run('draftDay="2000-01-01";draftRatings={drafting:5};saveCheckin();');assert.equal(b.map.has(key),false);assert.match(b.alerts[0],/new writing day/);});
 test('reset can be recovered from previous copy',()=>{const b=boot({[key]:JSON.stringify(sample)});b.run('save(blank());restorePrevious();');assert.equal(b.run('state.xp.drafting'),5);});
 test('import validates before replacing and supports exported format',async()=>{const b=boot({[key]:JSON.stringify(sample)});await b.run(`importBackup({target:{files:[{size:10,text:async()=>JSON.stringify({app:'Other',version:1,data:state})}],value:'a'}})`);assert.equal(b.run('state.xp.drafting'),5);await b.run(`importBackup({target:{files:[{size:10,text:async()=>JSON.stringify({app:'WriteQuest',version:1,data:{...state,xp:{...state.xp,drafting:7}}})}],value:'a'}})`);assert.equal(b.run('state.xp.drafting'),7);});
+
+
+test('exported backup round-trips XP, history, background and viewed achievements', async () => {
+ const b=boot({[key]:JSON.stringify({...sample,background:'beginner',achievementsSeen:['first']})});
+ let exported,clicked=false,removed=false;
+ b.context.Blob=class { constructor(parts) { exported=parts.join(''); } };
+ b.context.URL={createObjectURL:()=> 'blob:backup',revokeObjectURL(){}};
+ b.context.document.body={appendChild(){}};
+ b.context.document.createElement=()=>({click(){clicked=true;},remove(){removed=true;}});
+ b.run('exportBackup()');
+ assert(clicked && removed);
+ const payload=JSON.parse(exported);
+ assert.equal(payload.app,'WriteQuest');assert.equal(payload.version,1);
+ assert.equal(payload.data.xp.drafting,5);
+ assert.equal(payload.data.checkins['2026-10-22'].drafting,5);
+ assert.equal(payload.data.background,'beginner');
+ assert.deepEqual(payload.data.achievementsSeen,['first']);
+ const other=boot();other.context.backupText=exported;
+ await other.run("importBackup({target:{files:[{size:backupText.length,text:async()=>backupText}],value:'backup.json'}})");
+ assert.deepEqual(JSON.parse(other.map.get(key)),payload.data);
+});
+
+test('cancelled, oversized and malformed imports preserve both saved copies',async()=>{
+ const raw=JSON.stringify(sample),b=boot({[key]:raw,[key+'-backup']:raw});
+ const before=new Map(b.map);
+ b.context.window.confirm=()=>false;
+ await b.run("importBackup({target:{files:[{size:10,text:async()=>JSON.stringify({app:'WriteQuest',version:1,data:blank()})}],value:'backup.json'}})");
+ b.context.window.confirm=()=>true;
+ for(const file of ["{size:6000000,text:async()=>''}","{size:10,text:async()=>'{broken'}"]){
+  await b.run(`importBackup({target:{files:[${file}],value:'backup.json'}})`);
+ }
+ assert.deepEqual(b.map,before);
+});
+
+test('save validation rejects non-object progress containers',()=>{
+ const b=boot();
+ for(const checkins of [1,true,'history',[]])assert.throws(()=>b.run(`validateSave({...blank(),checkins:${JSON.stringify(checkins)}})`));
+ for(const xp of [1,true,'xp',[]])assert.throws(()=>b.run(`validateSave({...blank(),xp:${JSON.stringify(xp)}})`));
+});

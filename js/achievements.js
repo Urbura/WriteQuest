@@ -33,7 +33,7 @@
       for (const [n, title] of [
           [25, 'Specialist'],
           [50, 'Mastery']
-        ]) add(s.id + '-' + n, 'Skills', s.name + ' ' + title, 'Reach Level ' + n + ' in ' + s.name + '.', levels[i], n);
+        ]) add(s.id + '-' + n, 'Skills', s.name + ' ' + title, title + ': reach Level ' + n + ' in ' + s.name + (n === 50 ? ', the maximum skill level.' : '. Keep progressing toward Mastery at Level 50.'), levels[i], n);
     });
     for (const n of [1, 5, 25]) add(n === 1 ? 'five-for-five' : 'five-for-five-' + n, 'Skills', 'Well-Rounded Day · ' + n + (n === 1 ? ' Day' : ' Days'), 'Optional: rate all five skills 5/5 on ' + n + (n === 1 ? ' day.' : ' separate days. Consecutive days are not required.'), perfectDays, n);
     for (const n of [10, 20, 30, 40, 50]) add('all-' + n, 'Skills', 'All Skills Level ' + n, 'Reach Level ' + n + ' in all five skills.', Math.min(...levels), n);

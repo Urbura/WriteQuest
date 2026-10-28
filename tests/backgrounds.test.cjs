@@ -7,8 +7,10 @@ function app(){
  const values=new Map(),styles=new Map(),body={dataset:{},style:{setProperty:(key,value)=>styles.set(key,value)}};
  const context=vm.createContext({localStorage:{getItem:key=>values.get(key)??null,setItem:(key,value)=>values.set(key,value)},document:{body,getElementById:()=>({}),addEventListener(){}},window:{addEventListener(){}},setInterval(){},Date,Intl,alert(){}});
  const source=fs.readFileSync(path.join(root,'app.js'),'utf8').replace(/render\(\);\s*$/,'');
+ vm.runInContext(fs.readFileSync(path.join(root,"js/activity.js"),"utf8"),context);
  vm.runInContext(fs.readFileSync(path.join(root,"js/achievements.js"),"utf8"),context);
  vm.runInContext(fs.readFileSync(path.join(root,'js/journey.js'),'utf8'),context);
+ vm.runInContext(fs.readFileSync(path.join(root,"js/badges.js"),"utf8"),context);
  vm.runInContext(source,context);
  vm.runInContext('render=()=>{};var unlockedBackground=null;showSaveDialog=(levels,rank)=>{unlockedBackground=rank;};',context);
  return {run:code=>vm.runInContext(code,context),body,styles};

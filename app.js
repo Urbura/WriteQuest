@@ -74,10 +74,11 @@ let saveNotice = "",
   expectedRaw = null;
 
 function validateSave(input) {
-  if (!input || typeof input !== "object" || Array.isArray(input) || !input.xp || !input.checkins || Array.isArray(input.checkins)) throw Error("Invalid WriteQuest save.");
+  if (!input || typeof input !== "object" || Array.isArray(input) || !input.xp || typeof input.xp !== "object" || Array.isArray(input.xp) || !input.checkins || typeof input.checkins !== "object" || Array.isArray(input.checkins)) throw Error("Invalid WriteQuest save.");
   const clean = blank();
   if (BACKGROUND_KEYS.includes(input.background)) clean.background = input.background;
   if (Array.isArray(input.achievementsSeen)) clean.achievementsSeen = [...new Set(input.achievementsSeen.filter(id => typeof id === "string" && id.length < 80))];
+  if (Array.isArray(input.recentAchievements)) clean.recentAchievements = [...new Set(input.recentAchievements.filter(id => typeof id === "string" && /^[a-z0-9-]{1,79}$/.test(id)))].slice(0, 40);
   for (const skill of SKILLS) {
     const n = input.xp[skill.id];
     if (!Number.isSafeInteger(n) || n < 0) throw Error("Invalid skill XP.");
@@ -297,13 +298,13 @@ function header() {
   const total = getTotalLevel(),
     current = totalRank(total),
     rankClass = current.toLowerCase();
-  const brand = '<button type="button" class="brand brand-logo" data-page="journey" aria-label="WriteQuest — open Journey" title="Journey"><img src="./assets/branding/writequest-logo-white-gold.png?v=20261026-logo-02" alt="WriteQuest" width="2172" height="724" decoding="async"></button>';
+  const brand = '<button type="button" class="brand brand-logo" data-page="journey" aria-label="WriteQuest — open Journey" title="Journey"><img src="./assets/branding/writequest-logo-white-gold.png?v=20261026-logo-02" alt="WriteQuest" width="2172" height="724" decoding="async"><span class="brand-destination">Journey</span></button>';
   const badge = current === "Beginner" ? '<span class="header-rank-icon header-rank-beginner" aria-hidden="true">◇</span>' : '<img class="header-rank-icon" src="./assets/achievements/ranks/' + rankClass + '.svg?v=20261026-progression" alt="" aria-hidden="true" width="28" height="32" decoding="async">';
   return '<header class="quest-header">' + brand + '<button class="header-level total-level-button rank-border-' + rankClass + '" id="open-ranks" aria-label="' + current + ' rank. Total level ' + total + '. View rank progression" title="' + current + ' — view rank progression">' + badge + '<span class="header-level-label">Total Level <strong>' + total + '</strong></span></button>' + '<div class="header-actions"><button class="settings-button achievements-button" data-page="projects" aria-label="Achievements' + (unseenAchievements().length ? ', ' + unseenAchievements().length + ' new' : '') + '" title="Achievements"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 3h10v5c0 4-2 6-5 6S7 12 7 8ZM7 5H3v3c0 3 2 4 5 4m9-7h4v3c0 3-2 4-5 4M12 14v6m-5 1h10"/></svg>' + (unseenAchievements().length ? '<span class="header-new-dot"></span>' : '') + '</button><button class="settings-button" id="open-settings" aria-label="Open settings" title="Settings">' + GEAR_ICON + '</button></div></header>';
 }
 
 function contentBack() {
-  return '<button class="back content-back" id="back" aria-label="Go Back to Home">← Go Back</button>';
+  return '<button class="back content-back" id="back" aria-label="Go Back to Home">← Home</button>';
 }
 
 function contentTitle(title, actions = '') {
@@ -372,7 +373,8 @@ function home() {
     SKILLS.map(homeSkillCard).join(""),
     '</div>',
     homeCheckinButton(writingDay()),
-    '</div>'
+    '</div>',
+    homeAchievement()
   ].join("");
 }
 
@@ -395,7 +397,7 @@ function checkinSkillRow(skill, ratings) {
   const rating = ratings[skill.id] ?? 0;
   const buttons = [];
   for (let score = 0; score <= 5; score += 1) {
-    buttons.push(`<button data-rate="${skill.id}" data-value="${score}" aria-pressed="${rating === score}">${score}</button>`);
+    buttons.push(`<button aria-label="${skill.name}: ${score} out of 5" data-rate="${skill.id}" data-value="${score}" aria-pressed="${rating === score}">${score}</button>`);
   }
   return [
     '<div class="check-row"><div class="row">',
@@ -419,7 +421,7 @@ function checkin() {
     SKILLS.map(skill => checkinSkillRow(skill, ratings)).join(""),
     '</section>',
     '<button class="primary" id="save-checkin">Save Today’s Check-In</button>',
-    '<p class="small muted checkin-footer">Resets at 3:30 a.m. local time · Backups in Settings</p>'
+    '<p class="small muted checkin-footer">Resets at 3:30 a.m. local time · <button class="text-button" data-page="settings">Back up progress</button></p>'
   ].join("");
 }
 
@@ -540,7 +542,7 @@ function rankProgression() {
 }
 
 function settings() {
-  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Your progress</h2><p class="notice">Progress is saved on this device, with a previous-save recovery copy. Download a backup before clearing browser data or changing devices. Backups are not cloud synced.</p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Back up and restore</h2><button class="primary" id="export-backup">Export Backup</button><details class="backup-options"><summary class="secondary">Restore Backup</summary><div class="backup-options-actions"><button class="secondary" id="choose-backup" type="button">Import Backup File</button><input id="import-backup" type="file" accept="application/json,.json" hidden><button class="secondary" id="restore-previous">Restore Previous Save</button></div></details><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Erase all saved skill XP and daily check-ins on this device. This cannot be undone.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
+  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Your progress</h2><p class="notice">Progress is saved on this device, with a previous-save recovery copy. Download a backup before clearing browser data or changing devices. Backups are not cloud synced.</p><h2>Back up and restore</h2><p class="small muted">Export a file to keep a copy. To move devices, export here, transfer the file, then import it in WriteQuest on the other device.</p><button class="primary" id="export-backup">Export Backup</button><details class="backup-options"><summary class="secondary">Restore Backup</summary><div class="backup-options-actions"><button class="secondary" id="choose-backup" type="button">Import Backup File</button><input id="import-backup" type="file" accept="application/json,.json" hidden><button class="secondary" id="restore-previous">Restore Previous Save</button></div></details><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Erase all saved skill XP and daily check-ins on this device. This cannot be undone.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
 }
 /* One attainable goal keeps Journey useful for focused writing days. */
 function nextMilestone(items) {
@@ -619,15 +621,48 @@ function toggleSounds() {
   render();
 }
 
-function achievementList() {
+function achievementList(profile = state) {
   return globalThis.WriteQuestAchievements?.list({
     skills: SKILLS,
-    xp: state.xp,
-    checkins: state.checkins,
+    xp: profile.xp,
+    checkins: profile.checkins,
     level: xp => stats(xp).level,
     ranks: TOTAL_RANKS,
     today: localDay()
   }) || []
+}
+
+// Latest recorded unlock first; older saves can still display an earned badge.
+function recentAchievement() {
+  const earned = achievementList().filter(item => item.earned);
+  for (const id of state.recentAchievements || []) {
+    const item = earned.find(item => item.id === id);
+    if (item) return { item, tracked: true };
+  }
+  const item = earned[earned.length - 1];
+  return item ? { item, tracked: false } : null;
+}
+
+function homeAchievement() {
+  const recent = recentAchievement();
+  if (!recent) return "";
+  const { item, tracked } = recent;
+  return '<button type="button" class="home-achievement" id="open-recent-achievement" aria-label="View achievement: ' + item.name + '">' +
+    achievementBadge(item) + '<span class="home-achievement-copy"><span class="small muted">' +
+    (tracked ? 'Recently unlocked' : 'Unlocked achievement') + '</span><strong>' + item.name +
+    '</strong></span><span aria-hidden="true">›</span></button>';
+}
+
+function openRecentAchievement() {
+  const recent = recentAchievement();
+  if (!recent) return;
+  navigate("projects");
+  const target = document.getElementById("achievement-" + recent.item.id);
+  if (!target) return;
+  const group = target.closest("details");
+  if (group) group.open = true;
+  target.scrollIntoView({ block: "center" });
+  target.focus({ preventScroll: true });
 }
 
 function unseenAchievements() {
@@ -681,7 +716,7 @@ function achievements() {
   return header() + '<section class="card achievements-card">' + contentTitle('Achievements', '<button type="button" class="secondary achievement-clear-button" id="clear-achievement-notifications" aria-label="Clear all achievement notifications (' + unseen.size + ')" title="Clear all notifications"' + (unseen.size ? '' : ' disabled') + '>Clear all</button>') + '<p class="muted">' + earned + ' / ' + items.length + ' unlocked' + (developer?.active ? ' · Test Mode preview' : '') + '</p><progress class="collection-progress" max="' + items.length + '" value="' + earned + '" aria-label="Collection completion"></progress><p class="small">Optional Well-Rounded Days: <strong>' + medals + '</strong></p><p class="small muted">Tap an unlocked achievement to clear its New marker.</p>' + (!unseen.size ? '<p class="small muted" id="achievement-notifications-status" tabindex="-1" role="status">All notifications cleared.</p>' : '') + ['Consistency', 'Levels', 'Skills', 'Legend'].map(category => {
     const group = items.filter(a => a.category === category),
       fresh = group.filter(a => unseen.has(a.id)).length;
-    return '<details class="achievement-group"><summary>' + category + (fresh ? ' <span class="achievement-new">' + fresh + ' new</span>' : '') + ' <span class="small muted">' + group.filter(a => a.earned).length + ' / ' + group.length + '</span></summary>' + group.map(a => '<article class="achievement-row ' + (a.earned ? 'achievement-earned' : '') + '">' + achievementBadge(a) + '<div>' + (a.earned ? '<button class="achievement-view" data-view-achievement="' + a.id + '">' + a.name + '</button>' : '<strong>' + a.name + '</strong>') + (unseen.has(a.id) ? ' <span class="achievement-new">New</span>' : '') + '<p class="small muted">' + a.description + '</p><progress max="' + a.goal + '" value="' + a.value + '" aria-label="' + a.name + ' progress"></progress><span class="small">' + a.value + ' / ' + a.goal + (a.earned ? ' · Unlocked' : '') + '</span></div></article>').join('') + '</details>';
+    return '<details class="achievement-group"><summary>' + category + (fresh ? ' <span class="achievement-new">' + fresh + ' new</span>' : '') + ' <span class="small muted">' + group.filter(a => a.earned).length + ' / ' + group.length + '</span></summary>' + group.map(a => '<article id="achievement-' + a.id + '" tabindex="-1" class="achievement-row ' + (a.earned ? 'achievement-earned' : '') + '">' + achievementBadge(a) + '<div>' + (a.earned ? '<button class="achievement-view" data-view-achievement="' + a.id + '">' + a.name + '</button>' : '<strong>' + a.name + '</strong>') + (unseen.has(a.id) ? ' <span class="achievement-new">New</span>' : '') + '<p class="small muted">' + a.description + '</p><progress max="' + a.goal + '" value="' + a.value + '" aria-label="' + a.name + ' progress"></progress><span class="small">' + a.value + ' / ' + a.goal + (a.earned ? ' · Unlocked' : '') + '</span></div></article>').join('') + '</details>';
   }).join('') + '</section>';
 }
 
@@ -748,6 +783,7 @@ function connectPageControls() {
   connectButton("reset-progress", confirmResetProgress);
   connectButton("open-developer", enterDeveloperMode);
   connectButton("clear-achievement-notifications", clearAchievementNotifications);
+  connectButton("open-recent-achievement", openRecentAchievement);
   connectButton("toggle-sounds", toggleSounds);
   connectButton("open-tutorial", openTutorial);
 
@@ -802,6 +838,10 @@ function saveCheckin() {
   next.checkins[day] = Object.assign({}, editingRatings());
   const startingXP = developer?.active ? developer.baseXP() : blank().xp;
   next.xp = calculateCheckinXP(next.checkins, startingXP);
+  const newAchievements = achievementList(next).filter(item => item.earned && !earnedBefore.has(item.id));
+  if (newAchievements.length) next.recentAchievements = [...new Set([
+    ...newAchievements.map(item => item.id).reverse(), ...(next.recentAchievements || [])
+  ])].slice(0, 40);
   try {
     save(next);
   } catch (error) {
@@ -829,8 +869,6 @@ function saveCheckin() {
   const newRank = totalRank(afterTotal);
   let unlockedRank = null;
   if (afterTotal > beforeTotal && newRank !== oldRank) unlockedRank = newRank;
-  const newAchievements = achievementList().filter(achievement =>
-    achievement.earned && !earnedBefore.has(achievement.id));
   showSaveDialog(leveled, unlockedRank, newAchievements);
 }
 
