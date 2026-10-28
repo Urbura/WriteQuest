@@ -707,7 +707,7 @@ function safeDailyChallengeHTML() {
 function dailyChallengeHTML() {
   const entry=ensureDailyChallenge(), challenge=DAILY_CHALLENGES.find(c=>c.id===entry.id);
   const skill=SKILLS.find(s=>s.id===challenge.skill);
-  return '<section class="card" style="margin:10px auto 0;max-width:520px;padding:12px 16px;text-align:left" aria-label="Daily Challenge">'+
+  return '<section class="card daily-challenge-card" aria-label="Daily Challenge">'+
     '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><strong>Daily Challenge</strong><span class="small">+2 '+skill.name+' XP</span></div>'+
     '<p class="challenge-title">'+challenge.title+'</p><p class="challenge-description">'+challenge.description+'</p>'+
     '<div style="display:flex;gap:8px;align-items:center;justify-content:space-between">'+
