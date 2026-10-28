@@ -760,29 +760,6 @@ h2 {
     flex-direction: column;
   }
 
-  .app:has(.skill-star) header {
-    flex: 0 0 auto;
-    min-height: 44px;
-  }
-
-  .app:has(.skill-star) .brand {
-    font-size: clamp(24px, 7vw, 31px);
-  }
-
-  .app:has(.skill-star) .settings-button {
-    width: 36px;
-    height: 36px;
-  }
-
-  .app:has(.skill-star) .header-level {
-    padding: 5px 7px;
-    font-size: 11px;
-  }
-
-  .app:has(.skill-star) .header-level strong {
-    font-size: 14px;
-  }
-
   .app:has(.skill-star) h1 {
     flex: 0 0 auto;
     font-size: clamp(19px, 5vw, 25px);
@@ -835,10 +812,6 @@ h2 {
 @media(max-width:600px) and (max-height:590px) {
   .app:has(.skill-star) {
     padding-top: env(safe-area-inset-top);
-  }
-
-  .app:has(.skill-star) header {
-    min-height: 38px;
   }
 
   .app:has(.skill-star) h1 {
@@ -923,39 +896,6 @@ h2 {
 }
 
 @media(max-width:600px) {
-  .app:has(.skill-star) header {
-    min-width: 0;
-    gap: 5px;
-  }
-
-  .app:has(.skill-star) .brand {
-    flex: 0 1 auto;
-    min-width: 0;
-    font-size: clamp(20px, 5.7vw, 27px);
-    letter-spacing: -.8px;
-    white-space: nowrap;
-  }
-
-  .app:has(.skill-star) .header-actions {
-    flex: 0 0 auto;
-    gap: 5px;
-  }
-
-  .app:has(.skill-star) .header-level {
-    font-size: 10px;
-    padding: 4px 6px;
-    line-height: 1.2;
-  }
-
-  .app:has(.skill-star) .header-level strong {
-    font-size: 13px;
-  }
-
-  .app:has(.skill-star) .settings-button {
-    width: 33px;
-    height: 33px;
-  }
-
   .app:has(.skill-star) .star-checkin {
     gap: 1px;
   }
@@ -973,20 +913,7 @@ h2 {
   }
 }
 
-@media(max-width:350px) {
-  .app:has(.skill-star) .brand {
-    font-size: 20px;
-  }
 
-  .app:has(.skill-star) .header-level {
-    font-size: 9px;
-    padding: 3px 4px;
-  }
-
-  .app:has(.skill-star) .header-level strong {
-    font-size: 12px;
-  }
-}
 
 /* Fill available dashboard space with larger skill tiles, without changing
    the fixed viewport height or crowding the central check-in button. */
@@ -1504,6 +1431,7 @@ header.quest-header {
   grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 8px;
   align-items: center;
+  flex-shrink: 0;
 }
 
 header.quest-header .brand.brand-logo {
