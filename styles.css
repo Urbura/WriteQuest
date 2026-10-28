@@ -2470,3 +2470,9 @@ header.quest-header .header-rank-beginner {
   .skill-star + .card {margin-top:6px!important;padding:10px 12px!important;}
   .skill-star + .card button {min-height:40px;font-size:12px;padding:8px;}
 }
+
+/* Align Daily Challenge with the full Editing + Creativity card row. */
+.daily-challenge-card {width:100%;max-width:440px;margin:8px auto 0;padding:12px 16px;text-align:left;box-sizing:border-box;}
+.daily-challenge-card > div:last-child {flex-wrap:wrap;}
+.daily-challenge-card button {min-width:0;}
+@media(max-width:430px){.skill-star + .daily-challenge-card {margin:6px auto 0!important;padding:12px 14px!important;}}
