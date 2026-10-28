@@ -893,9 +893,8 @@ function rankProgression() {
     '<p class="muted">Your Total Level is the sum of your five writing skills. Each rank unlocks a new writing background.</p>' +
     '<div class="rank-summary rank-summary-' + current.toLowerCase() + '"><strong>' + current +
     '</strong><span>Total Level ' + total + ' / 250</span></div>' +
-    '<h2>Your background</h2><p class="small muted" role="status" aria-live="polite">Current background: ' +
-    reward.name + (auto ? ' · Following your rank.' : '') +
-    (developer?.active ? ' · Test Mode preview only.' : '') + '</p>' +
+    '<h2>Your background</h2>' +
+    (developer?.active ? '<p class="small muted">Test Mode preview only.</p>' : '') +
     '<label class="background-select-label" for="background-select">Change Background</label>' +
     '<select id="background-select" class="background-select" aria-describedby="background-select-help">' +
     '<option value="auto"' + (auto ? ' selected' : '') + '>Follow current rank — ' + current + ' · ' + BACKGROUND_REWARDS[current].name + '</option>' +
