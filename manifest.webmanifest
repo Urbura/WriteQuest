@@ -1,0 +1,31 @@
+{
+  "id": "./",
+  "name": "WriteQuest",
+  "short_name": "WriteQuest",
+  "description": "Build your writing habit with daily skill check-ins and fantasy progression.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0b1428",
+  "theme_color": "#0b1428",
+  "icons": [
+    {
+      "src": "./assets/icons/writequest-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/icons/writequest-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./assets/icons/writequest-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

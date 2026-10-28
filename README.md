@@ -12,6 +12,9 @@ After enabling GitHub Pages, visit the Pages link shown in **Settings → Pages*
 4. Select **main** and **/(root)**, then click **Save**.
 5. Wait a minute or two for GitHub to publish the site.
 
+## Phone home-screen icon
+Use your browser’s **Add to Home Screen** option to save WriteQuest with the ivory W / gold Q icon on dark navy. The app includes an Apple touch icon, browser favicon, and standard/maskable manifest icons. The manifest uses relative paths for GitHub Pages project hosting. An existing home-screen shortcut may need to be removed and added again to refresh its cached icon. Progress still lives in the browser/device; the icon does not add offline support or cloud sync.
+
 ## Edit WriteQuest without coding experience
 WriteQuest uses plain HTML, CSS, and small JavaScript modules. You can edit them directly on GitHub without installing anything.
 
