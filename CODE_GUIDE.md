@@ -91,7 +91,7 @@ from that XP. The next check-in also replays history using the current bonuses.
 ## Progress and Test Mode
 
 The saved profile contains XP, daily ratings, viewed achievement IDs and the
-background preference, and a newest-first list of recent achievement IDs. Home displays the most recent ID that is still earned after corrections. A check-in records new unlocks in the same save as its XP; repeated saves do not reorder them. Older profiles display an earned badge without claiming an unlock date. Older profiles default to following the current rank.
+background preference, and a newest-first list of recent achievement IDs. The Achievements page displays the most recent ID that is still earned after corrections. A check-in records new unlocks in the same save as its XP; repeated saves do not reorder them. Older profiles display an earned badge without claiming an unlock date. Older profiles default to following the current rank.
 Achievements are calculated from that profile. Keep existing skill and
 achievement IDs stable when changing their visible names or artwork.
 
