@@ -1730,7 +1730,8 @@ header.quest-header {
   border: 1px solid #51638280;
   border-radius: 14px;
   box-shadow: 0 4px 16px #0005;
-  padding: 6px 8px;
+  min-height: 70px;
+  padding: 10px 8px;
 }
 
 .settings-icon {
@@ -1793,9 +1794,9 @@ header.quest-header .brand.brand-logo {
 }
 
 header.quest-header .header-level {
-  min-height: 44px;
+  min-height: 48px;
   gap: 6px;
-  padding: 4px 7px;
+  padding: 6px 7px;
 }
 
 header.quest-header .header-actions .settings-button:hover {
@@ -1804,7 +1805,7 @@ header.quest-header .header-actions .settings-button:hover {
 
 @media(max-width:350px) {
   header.quest-header {
-    padding: 5px;
+    padding: 10px 5px;
     column-gap: 5px;
   }
 
