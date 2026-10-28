@@ -385,7 +385,7 @@ function validateSave(input) {
     for (const [day, entry] of Object.entries(input.challenges)) {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !entry || typeof entry !== "object") continue;
       if (!DAILY_CHALLENGES.some(c => c.id === entry.id)) continue;
-      clean.challenges[day] = {id:entry.id, swaps:Math.min(2,Math.max(0,Number.isInteger(entry.swaps)?entry.swaps:0)), completed:entry.completed===true};
+      clean.challenges[day] = {id:entry.id, swaps:Math.min(2,Math.max(0,Number.isInteger(entry.swaps)?entry.swaps:0)), completed:entry.completed===true,everCompleted:entry.everCompleted===true||entry.completed===true};
     }
   }
   if (Array.isArray(input.achievementsSeen)) clean.achievementsSeen = [...new Set(input.achievementsSeen.filter(id => typeof id === "string" && id.length < 80))];
@@ -693,7 +693,7 @@ function ensureDailyChallenge() {
   const day=localDay();
   if(state.challenges?.[day]) return state.challenges[day];
   const next=validateSave(state), chosen=pickDailyChallenge(next,day);
-  next.challenges[day]={id:chosen.id,swaps:0,completed:false};
+  next.challenges[day]={id:chosen.id,swaps:0,completed:false,everCompleted:false};
   try {save(next)} catch(error) {return next.challenges[day]}
   return state.challenges[day];
 }
@@ -707,20 +707,25 @@ function safeDailyChallengeHTML() {
 function dailyChallengeHTML() {
   const entry=ensureDailyChallenge(), challenge=DAILY_CHALLENGES.find(c=>c.id===entry.id);
   const skill=SKILLS.find(s=>s.id===challenge.skill);
-  return '<section class="card daily-challenge-card" aria-label="Daily Challenge">'+
-    '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><strong>Daily Challenge</strong><span class="small">+2 '+skill.name+' XP</span></div>'+
-    '<p class="challenge-title">'+challenge.title+'</p><p class="challenge-description">'+challenge.description+'</p>'+
-    '<div style="display:flex;gap:8px;align-items:center;justify-content:space-between">'+
-    '<button id="complete-challenge" class="primary" style="flex:1" '+(entry.completed?'disabled':'')+'>'+(entry.completed?'✓ Completed':'Complete Challenge')+'</button>'+
-    '<button id="swap-challenge" class="secondary" '+(entry.completed||entry.swaps>=2?'disabled':'')+'>Swap ('+(2-entry.swaps)+' left)</button></div></section>';
+  return '<section class="daily-quest daily-challenge-card" aria-label="Daily Quest">'+
+    '<div class="daily-quest-heading"><strong>Daily Quest</strong><small>+2 XP · '+skill.name+'</small></div>'+
+    '<label class="daily-quest-task"><input type="checkbox" id="daily-quest-check" '+(entry.completed?'checked ':'')+'><span><strong>'+challenge.title+'</strong><span>'+challenge.description+'</span></span></label>'+
+    (entry.everCompleted?'':'<button type="button" id="swap-challenge" '+(entry.swaps>=2?'disabled':'')+'>Swap · '+(2-entry.swaps)+' left</button>')+
+    '</section>';
 }
-function changeDailyChallenge(swap) {
+function changeDailyChallenge(swap, completed) {
   const day=localDay(), next=validateSave(state), entry=next.challenges[day];
-  if(!entry||entry.completed||(swap&&entry.swaps>=2))return;
-  if(swap){const chosen=pickDailyChallenge(next,day,[entry.id]);entry.id=chosen.id;entry.swaps++;}
-  else entry.completed=true;
+  if(!entry)return;
+  if(swap){
+    if(entry.everCompleted||entry.completed||entry.swaps>=2)return;
+    const chosen=pickDailyChallenge(next,day,[entry.id]);entry.id=chosen.id;entry.swaps++;
+  } else {
+    if(typeof completed!=="boolean"||entry.completed===completed)return;
+    entry.completed=completed;
+    if(completed)entry.everCompleted=true;
+  }
   next.xp=calculateCheckinXP(next.checkins,developer?.active?developer.baseXP():blank().xp,next.challenges);
-  try{save(next);globalThis.WriteQuestSounds?.unlock();render()}catch(error){alert("Challenge was not saved: "+error.message)}
+  try{save(next);globalThis.WriteQuestSounds?.unlock();render()}catch(error){alert("Quest was not saved: "+error.message);render()}
 }
 
 function home() {
@@ -1137,7 +1142,7 @@ function connectPageControls() {
   connectButton("open-settings", () => navigate("settings"));
   connectButton("open-ranks", () => navigate("ranks"));
   connectButton("save-checkin", saveCheckin);
-  connectButton("complete-challenge",()=>changeDailyChallenge(false));
+  document.getElementById("daily-quest-check")?.addEventListener("change",event=>changeDailyChallenge(false,event.target.checked));
   connectButton("swap-challenge",()=>changeDailyChallenge(true));
   connectButton("reset-progress", confirmResetProgress);
   connectButton("open-developer", enterDeveloperMode);
