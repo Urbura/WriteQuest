@@ -2488,3 +2488,7 @@ header.quest-header .header-rank-beginner {
 .daily-quest-task > span > strong {font-size:14px;}
 .daily-quest-task > span > span {font-size:13px;color:var(--muted);}
 .daily-quest > button {align-self:flex-start;min-height:34px;padding:6px 12px;font-size:12px;}
+
+/* Home layout: keep Drafting below the top bar while retaining the central check-in. */
+.app:has(.skill-star) > .skill-star {margin-top:14px;}
+@media(max-width:430px){.app:has(.skill-star) > .skill-star {margin-top:12px;}}
