@@ -13,7 +13,7 @@ After enabling GitHub Pages, visit the Pages link shown in **Settings → Pages*
 5. Wait a minute or two for GitHub to publish the site.
 
 ## Edit WriteQuest without coding experience
-WriteQuest is organized into three simple files. You can edit them directly on GitHub without installing anything.
+WriteQuest uses plain HTML, CSS, and small JavaScript modules. You can edit them directly on GitHub without installing anything.
 
 1. Open `styles.css` to adjust colours, spacing, and mobile layout.
 2. Open `app.js` to edit skill descriptions, XP progression, or application behavior.
@@ -26,7 +26,7 @@ WriteQuest is organized into three simple files. You can edit them directly on G
 ### What works now
 - Home page with five writing skills
 - Tap any skill for its definition, examples, level, rank, XP bar, and next bonus
-- Back arrow and bottom navigation
+- Visible Journey link on the logo, achievements/settings shortcuts, and Home buttons
 - Daily 0–5 ratings saved locally on the device
 - Skill XP and levels, capped at 50
 - Correcting today's check-in recalculates XP rather than awarding it twice
@@ -34,13 +34,20 @@ WriteQuest is organized into three simple files. You can edit them directly on G
 - Validated JSON backup export/import in Settings
 - Previous valid save retained for recovery, failed-write protection, and stale-tab conflict detection
 
-### Planned next
-- Projects with custom uploaded images, rank borders, and their own XP
-- Daily quests, achievements, sounds, and polished fantasy artwork
-- Cloud synchronization and configurable reset options
+- Journey with a Sunday–Saturday calendar and flexible streaks
+- Forty achievements, writing badges, celebrations, and optional sounds
+- Rank backgrounds, background selection, and Level 50 skill effects
+- Tutorial and isolated Test Mode for previewing ranks and achievements
+
+### Next priorities
+- Projects connecting daily effort to an individual manuscript and milestones
+- Personal-best rewards and daily quests, after their rules are defined
+- Cloud synchronization
+
+One positive skill completes a writing day. Well-Rounded Day achievements are optional (all five skills at 5/5 on 1, 5, or 25 separate days), with no additional completion XP. Specialist means skill Level 25; Mastery means Level 50.
 
 ## Important limitations of this starter
-This is a working **prototype**, not the completed WriteQuest app. The check-in day changes at 3:30 a.m. in the device’s local time zone, including daylight saving changes. Data is saved only in the current browser/device; clearing browser data can erase progress. Project and achievement screens are placeholders. The XP curve has not yet been fully calibrated to the six-month target.
+This is a working **prototype**, not the completed WriteQuest app. The check-in day changes at 3:30 a.m. in the device’s local time zone, including daylight saving changes. Data is saved only in the current browser/device; clearing browser data can erase progress. Projects are not implemented yet. At 3/5, skill Level 50 takes 108 active check-ins (about five months at five check-ins per week); at 5/5 it takes 76.
 
 ## Keeping the code easy to manage
 The files are now separated: `index.html` loads `styles.css` and `app.js`. No build tools or installations are required. As new features are added, they can be moved into small, clearly named JavaScript modules without changing saved-data keys.
@@ -56,4 +63,4 @@ Use Settings → Export Backup to download a JSON copy, and Import Backup to res
 
 A new writing day opens at 3:30 a.m. according to the device clock and time zone. Existing dated history is preserved. Travelling follows the new device time zone; the app uses one record per calendar date. Unsaved ratings spanning a reset require review before saving.
 
-Run regression checks with `node --test save.test.cjs` and syntax checks with `node --check app.js`.
+Run all regression checks with `node --test save.test.cjs tests/*.test.cjs tests/maintenance.cjs` and syntax checks with `node --check app.js`. See `CODE_GUIDE.md` for module responsibilities and mobile verification.

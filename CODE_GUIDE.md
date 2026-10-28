@@ -111,7 +111,7 @@ and dismissal handlers in the popup itself.
 Run from the repository root:
 
 ```sh
-node --test tests/maintenance.cjs
+node --test save.test.cjs tests/*.test.cjs tests/maintenance.cjs
 ```
 
 These dependency-free checks cover script initialization, save validation,
