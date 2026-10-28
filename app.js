@@ -697,6 +697,13 @@ function ensureDailyChallenge() {
   try {save(next)} catch(error) {return next.challenges[day]}
   return state.challenges[day];
 }
+function safeDailyChallengeHTML() {
+  try { return dailyChallengeHTML(); }
+  catch (error) {
+    console.error("Daily Challenge could not load:", error);
+    return '<section class="card" aria-label="Daily Challenge"><strong>Daily Challenge</strong><p class="small">Challenge temporarily unavailable. Your writing progress is safe.</p></section>';
+  }
+}
 function dailyChallengeHTML() {
   const entry=ensureDailyChallenge(), challenge=DAILY_CHALLENGES.find(c=>c.id===entry.id);
   const skill=SKILLS.find(s=>s.id===challenge.skill);
@@ -724,7 +731,7 @@ function home() {
     '</div>',
     homeCheckinButton(writingDay()),
     '</div>',
-    dailyChallengeHTML()
+    safeDailyChallengeHTML()
   ].join("");
 }
 
