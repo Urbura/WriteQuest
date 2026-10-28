@@ -383,7 +383,7 @@ function validateSave(input) {
   if (BACKGROUND_KEYS.includes(input.background)) clean.background = input.background;
   if (input.challenges && typeof input.challenges === "object" && !Array.isArray(input.challenges)) {
     for (const [day, entry] of Object.entries(input.challenges)) {
-      if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(day) || !entry || typeof entry !== "object") continue;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !entry || typeof entry !== "object") continue;
       if (!DAILY_CHALLENGES.some(c => c.id === entry.id)) continue;
       clean.challenges[day] = {id:entry.id, swaps:Math.min(2,Math.max(0,Number.isInteger(entry.swaps)?entry.swaps:0)), completed:entry.completed===true};
     }
