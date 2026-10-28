@@ -66,9 +66,12 @@ const KEY = "writequest-starter-v1";
 const blank = () => ({
   xp: Object.fromEntries(SKILLS.map(s => [s.id, 0])),
   checkins: {},
-  background: "auto"
+  background: "auto",
+  challenges: {}
 });
 const BACKUP_KEY = KEY + "-backup";
+const DAILY_CHALLENGES = [{"id":"drafting-1","skill":"drafting","title":"Write for five uninterrupted minutes"},{"id":"drafting-2","skill":"drafting","title":"Draft an opening sentence"},{"id":"drafting-3","skill":"drafting","title":"Write a short dialogue exchange"},{"id":"drafting-4","skill":"drafting","title":"Describe a character entering a room"},{"id":"drafting-5","skill":"drafting","title":"Draft a scene ending"},{"id":"drafting-6","skill":"drafting","title":"Write a paragraph without editing"},{"id":"drafting-7","skill":"drafting","title":"Describe a setting using three senses"},{"id":"drafting-8","skill":"drafting","title":"Write a character's immediate goal"},{"id":"drafting-9","skill":"drafting","title":"Draft a moment of surprise"},{"id":"drafting-10","skill":"drafting","title":"Write a brief scene transition"},{"id":"editing-1","skill":"editing","title":"Revise one paragraph"},{"id":"editing-2","skill":"editing","title":"Replace three vague words"},{"id":"editing-3","skill":"editing","title":"Read a passage aloud and revise it"},{"id":"editing-4","skill":"editing","title":"Improve one sentence's clarity"},{"id":"editing-5","skill":"editing","title":"Tighten a dialogue exchange"},{"id":"editing-6","skill":"editing","title":"Check a paragraph for repetition"},{"id":"editing-7","skill":"editing","title":"Strengthen a scene opening"},{"id":"editing-8","skill":"editing","title":"Improve the pacing of one passage"},{"id":"editing-9","skill":"editing","title":"Proofread one page"},{"id":"editing-10","skill":"editing","title":"Rewrite a sentence two ways"},{"id":"creativity-1","skill":"creativity","title":"Brainstorm three plot twists"},{"id":"creativity-2","skill":"creativity","title":"Invent a character secret"},{"id":"creativity-3","skill":"creativity","title":"Imagine an unusual setting"},{"id":"creativity-4","skill":"creativity","title":"List five possible story titles"},{"id":"creativity-5","skill":"creativity","title":"Create a surprising obstacle"},{"id":"creativity-6","skill":"creativity","title":"Invent a minor character"},{"id":"creativity-7","skill":"creativity","title":"Think of three different endings"},{"id":"creativity-8","skill":"creativity","title":"Combine two unrelated story ideas"},{"id":"creativity-9","skill":"creativity","title":"Sketch a fictional place"},{"id":"creativity-10","skill":"creativity","title":"Imagine a character's difficult choice"},{"id":"learning-1","skill":"learning","title":"Learn one writing technique"},{"id":"learning-2","skill":"learning","title":"Study an example of dialogue"},{"id":"learning-3","skill":"learning","title":"Read about point of view"},{"id":"learning-4","skill":"learning","title":"Learn a way to build suspense"},{"id":"learning-5","skill":"learning","title":"Explore scene structure"},{"id":"learning-6","skill":"learning","title":"Study a strong opening paragraph"},{"id":"learning-7","skill":"learning","title":"Learn about pacing"},{"id":"learning-8","skill":"learning","title":"Find an example of imagery"},{"id":"learning-9","skill":"learning","title":"Study character motivation"},{"id":"learning-10","skill":"learning","title":"Learn a revision strategy"},{"id":"research-1","skill":"research","title":"Check one detail in your story"},{"id":"research-2","skill":"research","title":"Research a location for a scene"},{"id":"research-3","skill":"research","title":"Look up a historical detail"},{"id":"research-4","skill":"research","title":"Investigate a character's occupation"},{"id":"research-5","skill":"research","title":"Find a realistic setting detail"},{"id":"research-6","skill":"research","title":"Research a cultural custom respectfully"},{"id":"research-7","skill":"research","title":"Check a timeline detail"},{"id":"research-8","skill":"research","title":"Look up a relevant scientific fact"},{"id":"research-9","skill":"research","title":"Explore a real-world landscape"},{"id":"research-10","skill":"research","title":"Verify a piece of terminology"}];
+
 let saveNotice = "",
   storageBlocked = false,
   expectedRaw = null;
@@ -77,6 +80,13 @@ function validateSave(input) {
   if (!input || typeof input !== "object" || Array.isArray(input) || !input.xp || typeof input.xp !== "object" || Array.isArray(input.xp) || !input.checkins || typeof input.checkins !== "object" || Array.isArray(input.checkins)) throw Error("Invalid WriteQuest save.");
   const clean = blank();
   if (BACKGROUND_KEYS.includes(input.background)) clean.background = input.background;
+  if (input.challenges && typeof input.challenges === "object" && !Array.isArray(input.challenges)) {
+    for (const [day, entry] of Object.entries(input.challenges)) {
+      if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(day) || !entry || typeof entry !== "object") continue;
+      if (!DAILY_CHALLENGES.some(c => c.id === entry.id)) continue;
+      clean.challenges[day] = {id:entry.id, swaps:Math.min(2,Math.max(0,Number.isInteger(entry.swaps)?entry.swaps:0)), completed:entry.completed===true};
+    }
+  }
   if (Array.isArray(input.achievementsSeen)) clean.achievementsSeen = [...new Set(input.achievementsSeen.filter(id => typeof id === "string" && id.length < 80))];
   if (Array.isArray(input.recentAchievements)) clean.recentAchievements = [...new Set(input.recentAchievements.filter(id => typeof id === "string" && /^[a-z0-9-]{1,79}$/.test(id)))].slice(0, 40);
   for (const skill of SKILLS) {
@@ -366,6 +376,45 @@ function homeCheckinButton(day) {
   ].join("");
 }
 
+
+function pickDailyChallenge(progress, day, excluded = []) {
+  const entries = Object.entries(progress.challenges || {}).filter(([date]) => date < day).sort((a,b)=>b[0].localeCompare(a[0]));
+  const recent = entries.slice(0,10).map(([,v])=>v.id);
+  const pool = DAILY_CHALLENGES.filter(c=>!excluded.includes(c.id));
+  const fresh = pool.filter(c=>!recent.includes(c.id));
+  const candidates = fresh.length ? fresh : pool;
+  const skillIds = [...new Set(candidates.map(c=>c.skill))];
+  const skill = skillIds[Math.floor(Math.random()*skillIds.length)];
+  const options = candidates.filter(c=>c.skill===skill);
+  return options[Math.floor(Math.random()*options.length)];
+}
+function ensureDailyChallenge() {
+  const day=localDay();
+  if(state.challenges?.[day]) return state.challenges[day];
+  const next=validateSave(state), chosen=pickDailyChallenge(next,day);
+  next.challenges[day]={id:chosen.id,swaps:0,completed:false};
+  try {save(next)} catch(error) {return next.challenges[day]}
+  return state.challenges[day];
+}
+function dailyChallengeHTML() {
+  const entry=ensureDailyChallenge(), challenge=DAILY_CHALLENGES.find(c=>c.id===entry.id);
+  const skill=SKILLS.find(s=>s.id===challenge.skill);
+  return '<section class="card" style="margin:10px auto 0;max-width:520px;padding:12px 16px;text-align:left" aria-label="Daily Challenge">'+
+    '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><strong>Daily Challenge</strong><span class="small">+2 '+skill.name+' XP</span></div>'+
+    '<p style="margin:8px 0">'+challenge.title+'</p>'+
+    '<div style="display:flex;gap:8px;align-items:center;justify-content:space-between">'+
+    '<button id="complete-challenge" class="primary" style="flex:1" '+(entry.completed?'disabled':'')+'>'+(entry.completed?'✓ Completed':'Complete Challenge')+'</button>'+
+    '<button id="swap-challenge" class="secondary" '+(entry.completed||entry.swaps>=2?'disabled':'')+'>Swap ('+(2-entry.swaps)+' left)</button></div></section>';
+}
+function changeDailyChallenge(swap) {
+  const day=localDay(), next=validateSave(state), entry=next.challenges[day];
+  if(!entry||entry.completed||(swap&&entry.swaps>=2))return;
+  if(swap){const chosen=pickDailyChallenge(next,day,[entry.id]);entry.id=chosen.id;entry.swaps++;}
+  else entry.completed=true;
+  next.xp=calculateCheckinXP(next.checkins,developer?.active?developer.baseXP():blank().xp,next.challenges);
+  try{save(next);globalThis.WriteQuestSounds?.unlock();render()}catch(error){alert("Challenge was not saved: "+error.message)}
+}
+
 function home() {
   return [
     header(),
@@ -373,7 +422,8 @@ function home() {
     SKILLS.map(homeSkillCard).join(""),
     '</div>',
     homeCheckinButton(writingDay()),
-    '</div>'
+    '</div>',
+    dailyChallengeHTML()
   ].join("");
 }
 
@@ -779,6 +829,8 @@ function connectPageControls() {
   connectButton("open-settings", () => navigate("settings"));
   connectButton("open-ranks", () => navigate("ranks"));
   connectButton("save-checkin", saveCheckin);
+  connectButton("complete-challenge",()=>changeDailyChallenge(false));
+  connectButton("swap-challenge",()=>changeDailyChallenge(true));
   connectButton("reset-progress", confirmResetProgress);
   connectButton("open-developer", enterDeveloperMode);
   connectButton("clear-achievement-notifications", clearAchievementNotifications);
@@ -803,7 +855,7 @@ function connectPageControls() {
 }
 
 // Replay days in date order so each rating receives the bonus for that day's level.
-function calculateCheckinXP(checkins, startingXP) {
+function calculateCheckinXP(checkins, startingXP, challenges = {}) {
   const xp = {
     ...startingXP
   };
@@ -816,6 +868,9 @@ function calculateCheckinXP(checkins, startingXP) {
         xp[skill.id] += rating + checkinBonus(level);
       }
     }
+  }
+  for(const entry of Object.values(challenges)) {
+    if(entry.completed){const challenge=DAILY_CHALLENGES.find(c=>c.id===entry.id);if(challenge)xp[challenge.skill]+=2;}
   }
   return xp;
 }
@@ -836,7 +891,7 @@ function saveCheckin() {
   const next = validateSave(state);
   next.checkins[day] = Object.assign({}, editingRatings());
   const startingXP = developer?.active ? developer.baseXP() : blank().xp;
-  next.xp = calculateCheckinXP(next.checkins, startingXP);
+  next.xp = calculateCheckinXP(next.checkins, startingXP, next.challenges);
   const newAchievements = achievementList(next).filter(item => item.earned && !earnedBefore.has(item.id));
   if (newAchievements.length) next.recentAchievements = [...new Set([
     ...newAchievements.map(item => item.id).reverse(), ...(next.recentAchievements || [])
