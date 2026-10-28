@@ -70,7 +70,308 @@ const blank = () => ({
   challenges: {}
 });
 const BACKUP_KEY = KEY + "-backup";
-const DAILY_CHALLENGES = [{"id":"drafting-1","skill":"drafting","title":"Write for five uninterrupted minutes"},{"id":"drafting-2","skill":"drafting","title":"Draft an opening sentence"},{"id":"drafting-3","skill":"drafting","title":"Write a short dialogue exchange"},{"id":"drafting-4","skill":"drafting","title":"Describe a character entering a room"},{"id":"drafting-5","skill":"drafting","title":"Draft a scene ending"},{"id":"drafting-6","skill":"drafting","title":"Write a paragraph without editing"},{"id":"drafting-7","skill":"drafting","title":"Describe a setting using three senses"},{"id":"drafting-8","skill":"drafting","title":"Write a character's immediate goal"},{"id":"drafting-9","skill":"drafting","title":"Draft a moment of surprise"},{"id":"drafting-10","skill":"drafting","title":"Write a brief scene transition"},{"id":"editing-1","skill":"editing","title":"Revise one paragraph"},{"id":"editing-2","skill":"editing","title":"Replace three vague words"},{"id":"editing-3","skill":"editing","title":"Read a passage aloud and revise it"},{"id":"editing-4","skill":"editing","title":"Improve one sentence's clarity"},{"id":"editing-5","skill":"editing","title":"Tighten a dialogue exchange"},{"id":"editing-6","skill":"editing","title":"Check a paragraph for repetition"},{"id":"editing-7","skill":"editing","title":"Strengthen a scene opening"},{"id":"editing-8","skill":"editing","title":"Improve the pacing of one passage"},{"id":"editing-9","skill":"editing","title":"Proofread one page"},{"id":"editing-10","skill":"editing","title":"Rewrite a sentence two ways"},{"id":"creativity-1","skill":"creativity","title":"Brainstorm three plot twists"},{"id":"creativity-2","skill":"creativity","title":"Invent a character secret"},{"id":"creativity-3","skill":"creativity","title":"Imagine an unusual setting"},{"id":"creativity-4","skill":"creativity","title":"List five possible story titles"},{"id":"creativity-5","skill":"creativity","title":"Create a surprising obstacle"},{"id":"creativity-6","skill":"creativity","title":"Invent a minor character"},{"id":"creativity-7","skill":"creativity","title":"Think of three different endings"},{"id":"creativity-8","skill":"creativity","title":"Combine two unrelated story ideas"},{"id":"creativity-9","skill":"creativity","title":"Sketch a fictional place"},{"id":"creativity-10","skill":"creativity","title":"Imagine a character's difficult choice"},{"id":"learning-1","skill":"learning","title":"Learn one writing technique"},{"id":"learning-2","skill":"learning","title":"Study an example of dialogue"},{"id":"learning-3","skill":"learning","title":"Read about point of view"},{"id":"learning-4","skill":"learning","title":"Learn a way to build suspense"},{"id":"learning-5","skill":"learning","title":"Explore scene structure"},{"id":"learning-6","skill":"learning","title":"Study a strong opening paragraph"},{"id":"learning-7","skill":"learning","title":"Learn about pacing"},{"id":"learning-8","skill":"learning","title":"Find an example of imagery"},{"id":"learning-9","skill":"learning","title":"Study character motivation"},{"id":"learning-10","skill":"learning","title":"Learn a revision strategy"},{"id":"research-1","skill":"research","title":"Check one detail in your story"},{"id":"research-2","skill":"research","title":"Research a location for a scene"},{"id":"research-3","skill":"research","title":"Look up a historical detail"},{"id":"research-4","skill":"research","title":"Investigate a character's occupation"},{"id":"research-5","skill":"research","title":"Find a realistic setting detail"},{"id":"research-6","skill":"research","title":"Research a cultural custom respectfully"},{"id":"research-7","skill":"research","title":"Check a timeline detail"},{"id":"research-8","skill":"research","title":"Look up a relevant scientific fact"},{"id":"research-9","skill":"research","title":"Explore a real-world landscape"},{"id":"research-10","skill":"research","title":"Verify a piece of terminology"}];
+const DAILY_CHALLENGES = [
+  {
+    "id": "drafting-1",
+    "skill": "drafting",
+    "title": "The First Sentence",
+    "description": "Write an opening sentence for a story."
+  },
+  {
+    "id": "drafting-2",
+    "skill": "drafting",
+    "title": "Five-Minute Sprint",
+    "description": "Write continuously for five minutes."
+  },
+  {
+    "id": "drafting-3",
+    "skill": "drafting",
+    "title": "A Little Dialogue",
+    "description": "Write a short conversation between two characters."
+  },
+  {
+    "id": "drafting-4",
+    "skill": "drafting",
+    "title": "Set the Scene",
+    "description": "Describe a location using three senses."
+  },
+  {
+    "id": "drafting-5",
+    "skill": "drafting",
+    "title": "The Cliffhanger",
+    "description": "Write an ending that creates suspense."
+  },
+  {
+    "id": "drafting-6",
+    "skill": "drafting",
+    "title": "No Looking Back",
+    "description": "Write one paragraph without editing."
+  },
+  {
+    "id": "drafting-7",
+    "skill": "drafting",
+    "title": "A New Beginning",
+    "description": "Draft the opening of a new scene."
+  },
+  {
+    "id": "drafting-8",
+    "skill": "drafting",
+    "title": "Character Moment",
+    "description": "Write about a character’s immediate goal."
+  },
+  {
+    "id": "drafting-9",
+    "skill": "drafting",
+    "title": "Unexpected Event",
+    "description": "Write a moment that surprises a character."
+  },
+  {
+    "id": "drafting-10",
+    "skill": "drafting",
+    "title": "Keep It Moving",
+    "description": "Write a transition between two scenes."
+  },
+  {
+    "id": "editing-1",
+    "skill": "editing",
+    "title": "Polish the Prose",
+    "description": "Revise one paragraph."
+  },
+  {
+    "id": "editing-2",
+    "skill": "editing",
+    "title": "Stronger Words",
+    "description": "Replace three vague words."
+  },
+  {
+    "id": "editing-3",
+    "skill": "editing",
+    "title": "Read It Aloud",
+    "description": "Read a passage aloud and improve its flow."
+  },
+  {
+    "id": "editing-4",
+    "skill": "editing",
+    "title": "Less Is More",
+    "description": "Shorten a sentence without losing meaning."
+  },
+  {
+    "id": "editing-5",
+    "skill": "editing",
+    "title": "Dialogue Doctor",
+    "description": "Improve a conversation between characters."
+  },
+  {
+    "id": "editing-6",
+    "skill": "editing",
+    "title": "Find the Repetition",
+    "description": "Remove unnecessary repetition."
+  },
+  {
+    "id": "editing-7",
+    "skill": "editing",
+    "title": "Opening Improvement",
+    "description": "Strengthen the beginning of a scene."
+  },
+  {
+    "id": "editing-8",
+    "skill": "editing",
+    "title": "Pacing Check",
+    "description": "Improve the pacing of one passage."
+  },
+  {
+    "id": "editing-9",
+    "skill": "editing",
+    "title": "Proofreader",
+    "description": "Check one page for spelling and grammar."
+  },
+  {
+    "id": "editing-10",
+    "skill": "editing",
+    "title": "Second Attempt",
+    "description": "Rewrite a sentence in two different ways."
+  },
+  {
+    "id": "creativity-1",
+    "skill": "creativity",
+    "title": "Plot Twist",
+    "description": "Brainstorm three unexpected plot developments."
+  },
+  {
+    "id": "creativity-2",
+    "skill": "creativity",
+    "title": "Hidden Secrets",
+    "description": "Invent a secret for one character."
+  },
+  {
+    "id": "creativity-3",
+    "skill": "creativity",
+    "title": "Somewhere New",
+    "description": "Imagine an unusual setting."
+  },
+  {
+    "id": "creativity-4",
+    "skill": "creativity",
+    "title": "What’s in a Name?",
+    "description": "Create five possible story titles."
+  },
+  {
+    "id": "creativity-5",
+    "skill": "creativity",
+    "title": "The Obstacle",
+    "description": "Invent a new problem for your protagonist."
+  },
+  {
+    "id": "creativity-6",
+    "skill": "creativity",
+    "title": "New Arrival",
+    "description": "Create a minor character."
+  },
+  {
+    "id": "creativity-7",
+    "skill": "creativity",
+    "title": "Alternate Endings",
+    "description": "Imagine three different endings."
+  },
+  {
+    "id": "creativity-8",
+    "skill": "creativity",
+    "title": "Unlikely Combination",
+    "description": "Combine two unrelated story ideas."
+  },
+  {
+    "id": "creativity-9",
+    "skill": "creativity",
+    "title": "World Builder",
+    "description": "Sketch or describe a fictional location."
+  },
+  {
+    "id": "creativity-10",
+    "skill": "creativity",
+    "title": "The Difficult Choice",
+    "description": "Imagine a moral dilemma for a character."
+  },
+  {
+    "id": "learning-1",
+    "skill": "learning",
+    "title": "Something New",
+    "description": "Learn one new writing technique."
+  },
+  {
+    "id": "learning-2",
+    "skill": "learning",
+    "title": "Dialogue Study",
+    "description": "Examine an example of effective dialogue."
+  },
+  {
+    "id": "learning-3",
+    "skill": "learning",
+    "title": "Perspective Matters",
+    "description": "Learn about narrative point of view."
+  },
+  {
+    "id": "learning-4",
+    "skill": "learning",
+    "title": "Building Suspense",
+    "description": "Study a technique for creating tension."
+  },
+  {
+    "id": "learning-5",
+    "skill": "learning",
+    "title": "Scene Structure",
+    "description": "Learn how effective scenes are organized."
+  },
+  {
+    "id": "learning-6",
+    "skill": "learning",
+    "title": "The Hook",
+    "description": "Study an effective opening paragraph."
+  },
+  {
+    "id": "learning-7",
+    "skill": "learning",
+    "title": "Pacing Matters",
+    "description": "Learn one way to control story pacing."
+  },
+  {
+    "id": "learning-8",
+    "skill": "learning",
+    "title": "Literary Devices",
+    "description": "Find an example of imagery."
+  },
+  {
+    "id": "learning-9",
+    "skill": "learning",
+    "title": "Character Motivation",
+    "description": "Learn how motivation drives a story."
+  },
+  {
+    "id": "learning-10",
+    "skill": "learning",
+    "title": "Revision Skills",
+    "description": "Learn a new approach to editing."
+  },
+  {
+    "id": "research-1",
+    "skill": "research",
+    "title": "Fact Checker",
+    "description": "Verify one detail in your manuscript."
+  },
+  {
+    "id": "research-2",
+    "skill": "research",
+    "title": "Location Scout",
+    "description": "Research a location for a story."
+  },
+  {
+    "id": "research-3",
+    "skill": "research",
+    "title": "A Moment in History",
+    "description": "Investigate a historical detail."
+  },
+  {
+    "id": "research-4",
+    "skill": "research",
+    "title": "A Day in Their Shoes",
+    "description": "Research a character’s occupation."
+  },
+  {
+    "id": "research-5",
+    "skill": "research",
+    "title": "Authentic Settings",
+    "description": "Find one realistic detail about a setting."
+  },
+  {
+    "id": "research-6",
+    "skill": "research",
+    "title": "Cultural Discovery",
+    "description": "Learn about a cultural custom relevant to your story."
+  },
+  {
+    "id": "research-7",
+    "skill": "research",
+    "title": "Timeline Check",
+    "description": "Verify the timing of a story event."
+  },
+  {
+    "id": "research-8",
+    "skill": "research",
+    "title": "Science of Fiction",
+    "description": "Research a scientific concept for your writing."
+  },
+  {
+    "id": "research-9",
+    "skill": "research",
+    "title": "Explore the World",
+    "description": "Investigate a landscape or environment."
+  },
+  {
+    "id": "research-10",
+    "skill": "research",
+    "title": "The Right Word",
+    "description": "Verify terminology used in your manuscript."
+  }
+];
 
 let saveNotice = "",
   storageBlocked = false,
@@ -401,7 +702,7 @@ function dailyChallengeHTML() {
   const skill=SKILLS.find(s=>s.id===challenge.skill);
   return '<section class="card" style="margin:10px auto 0;max-width:520px;padding:12px 16px;text-align:left" aria-label="Daily Challenge">'+
     '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center"><strong>Daily Challenge</strong><span class="small">+2 '+skill.name+' XP</span></div>'+
-    '<p style="margin:8px 0">'+challenge.title+'</p>'+
+    '<p class="challenge-title">'+challenge.title+'</p><p class="challenge-description">'+challenge.description+'</p>'+
     '<div style="display:flex;gap:8px;align-items:center;justify-content:space-between">'+
     '<button id="complete-challenge" class="primary" style="flex:1" '+(entry.completed?'disabled':'')+'>'+(entry.completed?'✓ Completed':'Complete Challenge')+'</button>'+
     '<button id="swap-challenge" class="secondary" '+(entry.completed||entry.swaps>=2?'disabled':'')+'>Swap ('+(2-entry.swaps)+' left)</button></div></section>';
