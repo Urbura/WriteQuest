@@ -1023,7 +1023,7 @@ header .brand.brand-logo {
   top: 0;
   transform: none;
   width: 100%;
-  height: 29px;
+  height: 100%;
   max-width: 100%;
   object-fit: contain;
   object-position: left center;
@@ -2425,15 +2425,6 @@ header.quest-header .header-rank-beginner {
  .achievements-card>.page-title-row{gap:4px}
 }
 
-/* Visible Journey destination shares the logo's existing 44px touch target. */
-.brand-destination {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  font: 600 11px/15px system-ui, sans-serif;
-  letter-spacing: 0;
-  color: var(--muted);
-}
 .text-button {
   border: 0;
   background: transparent;

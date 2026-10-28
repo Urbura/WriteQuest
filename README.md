@@ -29,7 +29,7 @@ WriteQuest uses plain HTML, CSS, and small JavaScript modules. You can edit them
 ### What works now
 - Home page with five writing skills
 - Tap any skill for its definition, examples, level, rank, XP bar, and next bonus
-- Visible Journey link on the logo, achievements/settings shortcuts, and Home buttons
+- Tap the WriteQuest logo to open Journey, achievements/settings shortcuts, and Home buttons
 - Daily 0–5 ratings saved locally on the device
 - Skill XP and levels, capped at 50
 - Correcting today's check-in recalculates XP rather than awarding it twice
