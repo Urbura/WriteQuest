@@ -2461,3 +2461,12 @@ header.quest-header .header-rank-beginner {
 
 .achievement-highlight { margin: 12px 0 16px; }
 .achievement-highlight .recent-achievement-copy > strong { margin: 3px 0; }
+
+/* Daily challenge: compact mobile panel below the skill star. */
+.challenge-title {font-weight:700;font-size:15px;margin:7px 0 2px;}
+.challenge-description {font-size:13px;line-height:1.35;color:var(--muted);margin:0 0 9px;}
+@media(max-width:430px){
+  .skill-star {margin-bottom:8px;}
+  .skill-star + .card {margin-top:6px!important;padding:10px 12px!important;}
+  .skill-star + .card button {min-height:40px;font-size:12px;padding:8px;}
+}
