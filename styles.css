@@ -2534,9 +2534,9 @@ body:not(.developer-mode) #developer-launcher { display: none; }
 }
 
 /* Pending check-in: one clear action, with its notification inside the circle. */
-.app:has(.skill-star) .star-checkin-pending { gap: 9px; }
+.app:has(.skill-star) .star-checkin-pending { gap: 5px; }
 .app:has(.skill-star) .star-checkin-pending .star-checkin-label {
-  font-size: clamp(18px, 5vw, 23px);
+  font-size: clamp(15px, 4vw, 20px);
   line-height: 1.1;
 }
 .star-checkin-dot {
@@ -2547,4 +2547,25 @@ body:not(.developer-mode) #developer-launcher { display: none; }
   background: #ed4054;
   border: 1px solid #ffbdc5;
   box-shadow: 0 0 7px #ed405477;
+}
+
+/* Inset the content so labels stay clear of the circular rim. */
+.app:has(.skill-star) .star-checkin {
+  box-sizing: border-box;
+  padding: 8px;
+  text-align: center;
+}
+.app:has(.skill-star) .star-checkin > span {
+  max-width: 100%;
+}
+.app:has(.skill-star) .star-checkin .star-checkin-label {
+  white-space: normal;
+  text-wrap: balance;
+}
+@media (max-width: 600px) and (max-height: 590px) {
+  .app:has(.skill-star) .star-checkin-done { gap: 0; }
+  .app:has(.skill-star) .star-checkin-title { font-size: 8px; }
+  .app:has(.skill-star) .star-checkin-icon { font-size: 16px; }
+  .app:has(.skill-star) .star-checkin-count { font-size: 7px; }
+  .app:has(.skill-star) .star-checkin-pending { gap: 4px; }
 }
