@@ -739,7 +739,24 @@ function requestDailyQuestSubmission(completed) {
     document.removeEventListener("keydown", onKey);
   };
   const onKey = event => { if (event.key === "Escape") close(); };
-  overlay.querySelector("#daily-quest-no").addEventListener("click", close);
+  overlay.querySelector("#daily-quest-no").addEventListener("click", () => {
+    close();
+    // Cancelling submission never completes the quest or spends a swap.
+    render();
+    const current = state.challenges?.[localDay()];
+    const remaining = current && !current.everCompleted ? Math.max(0, 2 - current.swaps) : 0;
+    const quest = document.querySelector?.(".daily-quest");
+    if (quest) {
+      const notice = document.createElement("p");
+      notice.className = "small muted";
+      notice.setAttribute("role", "status");
+      notice.textContent = remaining
+        ? "Task not submitted. You can still swap your Daily Quest · " + remaining + " left."
+        : "Task not submitted.";
+      quest.appendChild(notice);
+    }
+    if (remaining) document.getElementById("swap-challenge")?.focus();
+  });
   overlay.querySelector("#daily-quest-yes").addEventListener("click", () => {
     close();
     if (day !== localDay() || state.challenges?.[day]?.id !== questId) {
@@ -971,7 +988,7 @@ function rankProgression() {
 }
 
 function settings() {
-  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Your progress</h2><p class="notice">Progress is saved on this device, with a previous-save recovery copy. Download a backup before clearing browser data or changing devices. Backups are not cloud synced.</p><h2>Back up and restore</h2><p class="small muted">Export a file to keep a copy. To move devices, export here, transfer the file, then import it in WriteQuest on the other device.</p><button class="primary" id="export-backup">Export Backup</button><details class="backup-options"><summary class="secondary">Restore Backup</summary><div class="backup-options-actions"><button class="secondary" id="choose-backup" type="button">Import Backup File</button><input id="import-backup" type="file" accept="application/json,.json" hidden><button class="secondary" id="restore-previous">Restore Previous Save</button></div></details><h2>App updates</h2><p class="small muted">Version 2026.10.29.3 · Progress stays on this device when updating.</p><button class="secondary" id="check-updates">Check for Updates</button><p id="update-status" class="small" role="status"></p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Erase all saved skill XP and daily check-ins on this device. This cannot be undone.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
+  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Your progress</h2><p class="notice">Progress is saved on this device, with a previous-save recovery copy. Download a backup before clearing browser data or changing devices. Backups are not cloud synced.</p><h2>Back up and restore</h2><p class="small muted">Export a file to keep a copy. To move devices, export here, transfer the file, then import it in WriteQuest on the other device.</p><button class="primary" id="export-backup">Export Backup</button><details class="backup-options"><summary class="secondary">Restore Backup</summary><div class="backup-options-actions"><button class="secondary" id="choose-backup" type="button">Import Backup File</button><input id="import-backup" type="file" accept="application/json,.json" hidden><button class="secondary" id="restore-previous">Restore Previous Save</button></div></details><h2>App updates</h2><p class="small muted">Version 2026.10.29.4 · Progress stays on this device when updating.</p><button class="secondary" id="check-updates">Check for Updates</button><p id="update-status" class="small" role="status"></p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Erase all saved skill XP and daily check-ins on this device. This cannot be undone.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
 }
 /* One attainable goal keeps Journey useful for focused writing days. */
 function nextMilestone(items) {
@@ -1509,7 +1526,7 @@ function recoverRatingDraft() {
 }
 
 /* Check HTML without cache; only a user action reloads the app. No service worker. */
-const APP_BUILD = "20261029-reliable-3";
+const APP_BUILD = "20261029-reliable-4";
 let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
 function renderUpdateNotice() {
   if (!availableBuild || typeof document.createElement !== "function") return;

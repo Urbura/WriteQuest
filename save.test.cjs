@@ -109,7 +109,7 @@ test('mobile update checks bypass cache and reject missing build markers',async(
  b.context.location={href:'https://example.com/WriteQuest/',replace:url=>requests.push(url)};
  b.context.URL=URL;
  b.context.document.getElementById=()=>status;
- b.context.fetch=async(url,options)=>{requests.push({url,options});return {ok:true,text:async()=>'<meta name="writequest-build" content="20261029-reliable-3">'}};
+ b.context.fetch=async(url,options)=>{requests.push({url,options});return {ok:true,text:async()=>'<meta name="writequest-build" content="20261029-reliable-4">'}};
  await b.run('checkForUpdates(true)');
  assert.equal(status.textContent,'WriteQuest is up to date.');
  assert.equal(requests[0].options.cache,'no-store');
@@ -181,4 +181,24 @@ test('a swapped quest cannot be submitted through an outdated confirmation',()=>
  assert.equal(b.run('state.xp.drafting'),0);
  assert.equal(b.run('state.challenges[localDay()].completed'),false);
  assert.match(b.alerts.at(-1),/changed/);
+});
+
+
+test('No preserves remaining quest swaps, even after repeated accidental taps',()=>{
+ for(const swaps of [0,1,2]) {
+  const b=boot(),ui=questUI(b);
+  b.run(`const withSwaps=validateSave(state);withSwaps.challenges[localDay()].swaps=${swaps};save(withSwaps);`);
+  const before=b.map.get(key);
+  for(let tap=0;tap<3;tap++){
+   b.run('requestDailyQuestSubmission(true)');
+   ui.controls.get('#daily-quest-no').click();
+   assert.equal(b.map.get(key),before);
+   assert.equal(b.run('state.challenges[localDay()].swaps'),swaps);
+   assert.equal(b.run('state.challenges[localDay()].everCompleted'),false);
+   assert.equal(b.run('state.xp.drafting'),0);
+  }
+  b.run('changeDailyChallenge(true)');
+  assert.equal(b.run('state.challenges[localDay()].swaps'),Math.min(2,swaps+1));
+  assert.equal(b.run('state.challenges[localDay()].id === "drafting-1"'),swaps===2);
+ }
 });
