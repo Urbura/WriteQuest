@@ -109,7 +109,7 @@ test('mobile update checks bypass cache and reject missing build markers',async(
  b.context.location={href:'https://example.com/WriteQuest/',replace:url=>requests.push(url)};
  b.context.URL=URL;
  b.context.document.getElementById=()=>status;
- b.context.fetch=async(url,options)=>{requests.push({url,options});return {ok:true,text:async()=>'<meta name="writequest-build" content="20261029-reliable-5">'}};
+ b.context.fetch=async(url,options)=>{requests.push({url,options});return {ok:true,text:async()=>'<meta name="writequest-build" content="20261029-reliable-6">'}};
  await b.run('checkForUpdates(true)');
  assert.equal(status.textContent,'WriteQuest is up to date.');
  assert.equal(requests[0].options.cache,'no-store');

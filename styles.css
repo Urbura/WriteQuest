@@ -694,9 +694,9 @@ h2 {
 }
 
 .star-checkin-pending {
-  background: linear-gradient(150deg, #e9bd65, #aa702a);
-  border: 3px solid #ffe0a0;
-  color: #182640;
+  background: linear-gradient(150deg, #263e60, #14243d);
+  border: 3px solid #8aa4c5;
+  color: #fff;
 }
 
 .star-checkin-pending:hover {
@@ -719,14 +719,14 @@ h2 {
 }
 
 .star-checkin-done {
-  background: #3d4959;
-  border: 2px solid #738094;
-  color: #e2e8f0;
-  box-shadow: none;
+  background: linear-gradient(150deg, #ffe59a, #e5b54e 55%, #b67a29);
+  border: 3px solid #fff0b5;
+  color: #35250d;
+  box-shadow: 0 0 18px #edc56866, 0 3px 16px #0008;
 }
 
 .star-checkin-done .star-checkin-icon {
-  color: #75e2a3;
+  color: #206a3b;
 }
 
 @media(max-width:350px) {
@@ -2531,4 +2531,20 @@ body:not(.developer-mode) #developer-launcher { display: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .daily-quest-xp-reward { animation: none; }
+}
+
+/* Pending check-in: one clear action, with its notification inside the circle. */
+.app:has(.skill-star) .star-checkin-pending { gap: 9px; }
+.app:has(.skill-star) .star-checkin-pending .star-checkin-label {
+  font-size: clamp(18px, 5vw, 23px);
+  line-height: 1.1;
+}
+.star-checkin-dot {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 11px;
+  border-radius: 50%;
+  background: #ed4054;
+  border: 1px solid #ffbdc5;
+  box-shadow: 0 0 7px #ed405477;
 }
