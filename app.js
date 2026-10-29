@@ -971,8 +971,8 @@ function rankProgression() {
       unlocked = total >= min;
     const selected = !auto && state.background === background.key && unlocked;
     return '<option value="' + background.key + '"' + (selected ? ' selected' : '') +
-      (unlocked ? '' : ' disabled') + '>' + background.name + ' — ' + name +
-      ' · Total Level ' + min + (unlocked ? '' : ' · Locked') + '</option>';
+      (unlocked ? '' : ' disabled') + '>' + background.name +
+      ' · Total Level ' + min + '</option>';
   }).join('');
   return header() + '<section class="card">' + contentTitle('Total Level Ranks') +
     '<p class="muted">Your Total Level is the sum of your five writing skills. Each rank unlocks a new writing background.</p>' +
@@ -982,13 +982,13 @@ function rankProgression() {
     (developer?.active ? '<p class="small muted">Test Mode preview only.</p>' : '') +
     '<label class="background-select-label" for="background-select">Change Background</label>' +
     '<select id="background-select" class="background-select" aria-describedby="background-select-help">' +
-    '<option value="auto"' + (auto ? ' selected' : '') + '>Follow current rank — ' + current + ' · ' + BACKGROUND_REWARDS[current].name + '</option>' +
+    '<option value="auto"' + (auto ? ' selected' : '') + '>Auto: ' + BACKGROUND_REWARDS[current].name + ' · Total Level ' + TOTAL_RANKS.find(([name]) => name === current)[1] + '</option>' +
     options + '</select>' +
-    '<p id="background-select-help" class="small muted">View rank progression in the menu. Locked backgrounds show their required Total Level. Choose an unlocked background to apply it.</p></section>';
+    '<p id="background-select-help" class="small muted">Each background shows its required Total Level. Choose an unlocked background, or Auto to follow your progress.</p></section>';
 }
 
 function settings() {
-  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Your progress</h2><p class="notice">Progress is saved on this device, with a previous-save recovery copy. Download a backup before clearing browser data or changing devices. Backups are not cloud synced.</p><h2>Back up and restore</h2><p class="small muted">Export a file to keep a copy. To move devices, export here, transfer the file, then import it in WriteQuest on the other device.</p><button class="primary" id="export-backup">Export Backup</button><details class="backup-options"><summary class="secondary">Restore Backup</summary><div class="backup-options-actions"><button class="secondary" id="choose-backup" type="button">Import Backup File</button><input id="import-backup" type="file" accept="application/json,.json" hidden><button class="secondary" id="restore-previous">Restore Previous Save</button></div></details><h2>App updates</h2><p class="small muted">Version 2026.10.29.4 · Progress stays on this device when updating.</p><button class="secondary" id="check-updates">Check for Updates</button><p id="update-status" class="small" role="status"></p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Erase all saved skill XP and daily check-ins on this device. This cannot be undone.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
+  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Your progress</h2><p class="notice">Progress is saved on this device, with a previous-save recovery copy. Download a backup before clearing browser data or changing devices. Backups are not cloud synced.</p><h2>Back up and restore</h2><p class="small muted">Export a file to keep a copy. To move devices, export here, transfer the file, then import it in WriteQuest on the other device.</p><button class="primary" id="export-backup">Export Backup</button><details class="backup-options"><summary class="secondary">Restore Backup</summary><div class="backup-options-actions"><button class="secondary" id="choose-backup" type="button">Import Backup File</button><input id="import-backup" type="file" accept="application/json,.json" hidden><button class="secondary" id="restore-previous">Restore Previous Save</button></div></details><h2>App updates</h2><p class="small muted">Version 2026.10.29.5 · Progress stays on this device when updating.</p><button class="secondary" id="check-updates">Check for Updates</button><p id="update-status" class="small" role="status"></p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Erase all saved skill XP and daily check-ins on this device. This cannot be undone.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
 }
 /* One attainable goal keeps Journey useful for focused writing days. */
 function nextMilestone(items) {
@@ -1526,7 +1526,7 @@ function recoverRatingDraft() {
 }
 
 /* Check HTML without cache; only a user action reloads the app. No service worker. */
-const APP_BUILD = "20261029-reliable-4";
+const APP_BUILD = "20261029-reliable-5";
 let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
 function renderUpdateNotice() {
   if (!availableBuild || typeof document.createElement !== "function") return;
