@@ -182,6 +182,7 @@ test('Test Mode background choices cannot overwrite the normal preference', () =
 test('changing a draft rating does not change saved ratings or XP until Save', () => {
   const { run, storage } = appContext();
   run('const saved = blank(); saved.checkins[localDay()] = {drafting:2}; saved.xp.drafting=2; save(saved);');
+  run('navigate("checkin");');
   const before = new Map(storage);
   run('updateDraftRating("drafting",5);');
   assert.equal(run('editingRatings().drafting'), 5);

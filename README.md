@@ -68,3 +68,33 @@ Use Settings → Export Backup to download a JSON copy, and Import Backup to res
 A new writing day opens at 3:30 a.m. according to the device clock and time zone. Existing dated history is preserved. Travelling follows the new device time zone; the app uses one record per calendar date. Unsaved ratings spanning a reset require review before saving.
 
 Run all regression checks with `node --test save.test.cjs tests/*.test.cjs tests/maintenance.cjs` and syntax checks with `node --check app.js`. See `CODE_GUIDE.md` for module responsibilities and mobile verification.
+
+## Save and update reliability (2026-10-29)
+
+The zero rating is displayed as **Not Practiced Today**. Its stored value remains
+zero, so existing history and XP calculations are unchanged.
+
+Saves are read back before success is reported. A missing main save with a valid
+previous copy opens recovery instead of starting over. Competing-tab changes are
+flagged when the app returns to the foreground. Unfinished ratings are retained
+in session storage for recovery after a reload in the same tab, only when their
+date and original save still match. Returning to Check-In preserves the draft.
+Session drafts are best effort and are not completed check-ins or durable backups.
+
+Settings → Check for Updates bypasses the HTTP cache and checks the release marker
+in index.html. Returning to the app also checks, at most once a minute. Updates
+require tapping Update App, and unfinished ratings must be saved first. All script
+and stylesheet URLs share the release marker to avoid stale assets after an
+update. For each release, update APP_BUILD, the HTML marker and asset versions,
+and the version displayed in Settings together. Older installed versions need
+one ordinary reload to receive this update mechanism.
+
+This remains browser-local storage, without cloud sync or offline support.
+
+Developer Mode must be opened through Settings → Open Test Mode. Saved links
+containing `?dev` or `?test=1` no longer activate it on startup. The floating
+Test Mode badge is visible only while the temporary developer session is active.
+
+Submitting a Daily Quest asks for Yes/No confirmation. Only a successful save
+animates the associated skill bar and shows +2 XP on that skill card. Cancelling
+leaves the task unchecked and awards no XP. Reduced motion keeps a static reward.

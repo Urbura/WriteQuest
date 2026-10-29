@@ -67,3 +67,118 @@ test('save validation rejects non-object progress containers',()=>{
  for(const checkins of [1,true,'history',[]])assert.throws(()=>b.run(`validateSave({...blank(),checkins:${JSON.stringify(checkins)}})`));
  for(const xp of [1,true,'xp',[]])assert.throws(()=>b.run(`validateSave({...blank(),xp:${JSON.stringify(xp)}})`));
 });
+
+test('missing primary displays recovery copy and blocks new writes',()=>{
+ const raw=JSON.stringify(sample), b=boot({[key+'-backup']:raw});
+ assert.equal(b.run('state.xp.drafting'),5);
+ assert.throws(()=>b.run('save(blank())'),/paused/);
+ assert.equal(b.map.has(key),false);
+ b.run('restorePrevious()');
+ assert.equal(JSON.parse(b.map.get(key)).xp.drafting,5);
+});
+test('silent browser write failure never reports successful progress',()=>{
+ const b=boot({[key]:JSON.stringify(sample)});
+ b.context.localStorage.setItem=()=>{};
+ assert.throws(()=>b.run('save({...state,xp:{...state.xp,drafting:8}})'),/verify/);
+ assert.equal(b.run('state.xp.drafting'),5);
+});
+test('unfinished ratings recover only for the same day and saved profile',()=>{
+ const b=boot(), drafts=new Map();
+ b.context.sessionStorage={setItem:(k,v)=>drafts.set(k,v),getItem:k=>drafts.get(k)??null,removeItem:k=>drafts.delete(k)};
+ b.run('draftDay=localDay();updateDraftRating("drafting",4);draftRatings=null;recoverRatingDraft();');
+ assert.equal(b.run('draftRatings.drafting'),4);
+ assert.equal(b.run('page'),'checkin');
+ assert.equal(b.map.has(key),false);
+ b.run('saveCheckin()');
+ assert.equal(drafts.size,0);
+ b.run('draftRatings={drafting:3};draftDay="2000-01-01";retainRatingDraft();draftRatings=null;recoverRatingDraft();');
+ assert.equal(b.run('draftRatings'),null);
+ b.run('draftRatings={drafting:3};draftDay=localDay();retainRatingDraft();draftRatings=null;save({...state,background:"beginner"});recoverRatingDraft();');
+ assert.equal(b.run('draftRatings'),null);
+});
+test('ratings show rest wording and preserve numeric zero for XP',()=>{
+ const b=boot();
+ const html=b.run('checkinSkillRow(SKILLS[0],{drafting:0})');
+ assert.match(html,/data-value="0"[^>]*>Not Practiced Today/);
+ assert.doesNotMatch(html,/0 out of 5|>0\/5</);
+ b.run('draftRatings={drafting:0};saveCheckin()');
+ assert.equal(b.run('state.xp.drafting'),0);
+});
+test('mobile update checks bypass cache and reject missing build markers',async()=>{
+ const b=boot();const requests=[];let status={};
+ b.context.location={href:'https://example.com/WriteQuest/',replace:url=>requests.push(url)};
+ b.context.URL=URL;
+ b.context.document.getElementById=()=>status;
+ b.context.fetch=async(url,options)=>{requests.push({url,options});return {ok:true,text:async()=>'<meta name="writequest-build" content="20261029-reliable-3">'}};
+ await b.run('checkForUpdates(true)');
+ assert.equal(status.textContent,'WriteQuest is up to date.');
+ assert.equal(requests[0].options.cache,'no-store');
+ b.context.fetch=async()=>({ok:true,text:async()=>'<meta name="writequest-build" content="20261030-next">'});
+ await b.run('checkForUpdates(true)');
+ assert.equal(b.run('availableBuild'),'20261030-next');
+ b.run('draftRatings={drafting:4};applyUpdate()');
+ assert.equal(requests.length,1);
+ b.run('draftRatings=null;applyUpdate()');
+ assert.match(requests[1],/v=20261030-next/);
+ b.context.fetch=async()=>({ok:true,text:async()=>'<html>Error page</html>'});
+ await b.run('checkForUpdates(true)');
+ assert.match(status.textContent,/Could not check/);
+});
+test('every loaded script and stylesheet uses the same release marker',()=>{
+ const html=fs.readFileSync(__dirname+'/index.html','utf8');
+ const build=html.match(/name="writequest-build" content="([^"]+)"/)[1];
+ const assets=[...html.matchAll(/(?:src|href)="((?:js\/[^"?]+\.js|app\.js|styles\.css)\?v=([^"]+))"/g)];
+ assert.equal(assets.length,11);
+ for(const match of assets)assert.equal(match[2],build,match[1]);
+});
+
+function questUI(b) {
+ const controls=new Map();let overlay=null;
+ const checkbox={checked:true};
+ b.context.document.getElementById=id=>id==='daily-quest-check'?checkbox:id==='daily-quest-confirm'?overlay:null;
+ b.context.document.removeEventListener=()=>{};
+ b.context.document.body={appendChild:item=>{overlay=item;}};
+ b.context.document.createElement=()=>({
+   innerHTML:'',addEventListener(){},remove(){overlay=null;},
+   querySelector(id){
+     if(!controls.has(id))controls.set(id,{addEventListener:(event,fn)=>controls.get(id)[event]=fn,focus(){}});
+     return controls.get(id);
+   }
+ });
+ b.run('showDailyQuestReward=id=>{globalThis.rewarded=id};const questProfile=blank();questProfile.challenges[localDay()]={id:"drafting-1",swaps:0,completed:false};save(questProfile);');
+ return {controls,checkbox,overlay:()=>overlay};
+}
+test('quest confirmation cancels without saving and Yes awards exactly two XP to its skill',()=>{
+ const b=boot(),ui=questUI(b),before=b.map.get(key);
+ b.run('requestDailyQuestSubmission(true)');
+ assert.equal(ui.checkbox.checked,false);
+ assert.match(ui.overlay().innerHTML,/Are you sure you want to submit this task for your Daily Quest\?/);
+ assert.equal(b.map.get(key),before);
+ ui.controls.get('#daily-quest-no').click();
+ assert.equal(ui.overlay(),null);assert.equal(b.map.get(key),before);
+ b.run('requestDailyQuestSubmission(true)');
+ ui.controls.get('#daily-quest-yes').click();
+ assert.equal(b.run('state.xp.drafting'),2);
+ assert.equal(b.run('state.xp.editing'),0);
+ assert.equal(b.run('globalThis.rewarded'),'drafting');
+ const after=b.map.get(key);
+ b.run('requestDailyQuestSubmission(true)');
+ assert.equal(ui.overlay(),null);assert.equal(b.map.get(key),after);
+});
+test('failed quest save awards no XP and shows no reward',()=>{
+ const b=boot(),ui=questUI(b);
+ b.run('requestDailyQuestSubmission(true)');b.fail();
+ ui.controls.get('#daily-quest-yes').click();
+ assert.equal(b.run('state.xp.drafting'),0);
+ assert.equal(b.run('state.challenges[localDay()].completed'),false);
+ assert.equal(b.run('globalThis.rewarded'),undefined);
+ assert.match(b.alerts.at(-1),/Quest was not saved/);
+});
+test('a swapped quest cannot be submitted through an outdated confirmation',()=>{
+ const b=boot(),ui=questUI(b);
+ b.run('requestDailyQuestSubmission(true);changeDailyChallenge(true)');
+ ui.controls.get('#daily-quest-yes').click();
+ assert.equal(b.run('state.xp.drafting'),0);
+ assert.equal(b.run('state.challenges[localDay()].completed'),false);
+ assert.match(b.alerts.at(-1),/changed/);
+});

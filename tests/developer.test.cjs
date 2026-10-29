@@ -18,18 +18,21 @@ function boot(search=''){
  vm.runInContext('render=()=>{};openDeveloperPanel=()=>{};showSaveDialog=()=>{};',context);
  return {run:s=>vm.runInContext(s,context),map,raw,alerts,writes:()=>writes};
 }
-test('normal links stay normal; explicit dev and test links start isolated previews',()=>{
- assert.equal(boot().run('developer.active'),false);
- assert.equal(boot('?test=0').run('developer.active'),false);
- for(const query of ['?dev','?test=1']){
-  const b=boot(query);assert.equal(b.run('developer.active'),true);
-  assert.equal(b.run('state.xp.drafting'),12);
+test('all startup links stay normal until Developer Mode is explicitly opened',()=>{
+ for(const query of ['', '?test=0', '?dev', '?test=1']){
+  const b=boot(query);
+  assert.equal(b.run('developer.active'),false);
+  assert.equal(b.run('Object.keys(state.checkins).length'),1);
+  b.run('enterDeveloperMode()');
+  assert.equal(b.run('developer.active'),true);
   assert.equal(b.run('Object.keys(state.checkins).length'),0);
+  b.run('exitDeveloperMode()');
+  assert.equal(b.run('developer.active'),false);
   assert.equal(b.map.get(key),b.raw);assert.equal(b.writes(),0);
  }
 });
 test('all nine rank presets reach exact totals without changing either normal save',()=>{
- const b=boot('?dev');
+ const b=boot('?dev');b.run('enterDeveloperMode()');
  for(const total of [5,10,25,50,75,100,150,200,250]){
   assert.equal(b.run('developer.setTotal('+total+')'),true);
   assert.equal(b.run('SKILLS.reduce((sum,s)=>sum+stats(state.xp[s.id]).level,0)'),total);
@@ -38,7 +41,7 @@ test('all nine rank presets reach exact totals without changing either normal sa
  for(const invalid of [4,251,10.5,'10'])assert.equal(b.run('developer.setTotal('+JSON.stringify(invalid)+')'),false);
 });
 test('preview check-ins retain preset XP and never persist; original preview can be restored',()=>{
- const b=boot('?dev');b.run('developer.setTotal(100)');
+ const b=boot('?dev');b.run('enterDeveloperMode()');b.run('developer.setTotal(100)');
  const xp=b.run('state.xp.drafting');
  b.run('draftDay=localDay();draftRatings={drafting:3};saveCheckin()');
  assert.equal(b.run('state.xp.drafting'),xp+5); // Level 20 adds the existing +2 bonus.
@@ -49,14 +52,14 @@ test('preview check-ins retain preset XP and never persist; original preview can
  assert.equal(b.map.get(key),b.raw);
 });
 test('exit loads the latest normal save, including updates from another tab',()=>{
- const b=boot('?dev');b.run('developer.setTotal(250)');
+ const b=boot('?dev');b.run('enterDeveloperMode()');b.run('developer.setTotal(250)');
  const updated=JSON.parse(b.raw);updated.xp.drafting=30;
  b.map.set(key,JSON.stringify(updated));b.run('exitDeveloperMode()');
  assert.equal(b.run('developer.active'),false);assert.equal(b.run('state.xp.drafting'),30);
  assert.equal(b.run('Object.keys(state.checkins).length'),1);assert.equal(b.writes(),0);
 });
 test('backup import, export, restoration and reset are guarded during previews',async()=>{
- const b=boot('?dev');
+ const b=boot('?dev');b.run('enterDeveloperMode()');
  b.run('exportBackup();restorePrevious();confirmResetProgress()');
  await b.run('importBackup({target:{value:""}})');
  assert.equal(b.alerts.length,4);assert.equal(b.writes(),0);assert.equal(b.map.get(key),b.raw);

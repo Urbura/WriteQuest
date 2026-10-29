@@ -429,6 +429,12 @@ function loadProgress() {
         return blank();
       }
     }
+    const previous = localStorage.getItem(BACKUP_KEY);
+    if (previous !== null) {
+      storageBlocked = true;
+      saveNotice = "The main save is missing. Showing your previous save; open Settings to restore it before saving.";
+      return validateSave(JSON.parse(previous));
+    }
     return blank();
   } catch (error) {
     storageBlocked = true;
@@ -476,6 +482,7 @@ function save(next, {
   }
   const raw = JSON.stringify(clean);
   localStorage.setItem(KEY, raw);
+  if (localStorage.getItem(KEY) !== raw) throw Error("The browser could not verify the save. Keep this page open and retry.");
   expectedRaw = raw;
   state = clean;
   storageBlocked = false;
@@ -553,6 +560,7 @@ async function importBackup(event) {
       recover: true
     });
     draftRatings = null;
+    clearRatingDraft();
     draftDay = null;
     render();
     alert("Backup restored successfully.");
@@ -577,6 +585,7 @@ function restorePrevious() {
       recover: true
     });
     draftRatings = null;
+    clearRatingDraft();
     draftDay = null;
     render();
   } catch (error) {
@@ -586,8 +595,7 @@ function restorePrevious() {
 
 function navigate(next) {
   if (next === "checkin") {
-    draftRatings = null;
-    draftDay = localDay();
+    if (!draftRatings) draftDay = localDay();
   }
   page = next;
   render();
@@ -713,9 +721,59 @@ function dailyChallengeHTML() {
     (entry.everCompleted?'':'<button type="button" id="swap-challenge" '+(entry.swaps>=2?'disabled':'')+'>Swap · '+(2-entry.swaps)+' left</button>')+
     '</section>';
 }
+function requestDailyQuestSubmission(completed) {
+  const entry = state.challenges?.[localDay()];
+  const checkbox = document.getElementById("daily-quest-check");
+  if (checkbox) checkbox.checked = Boolean(entry?.completed);
+  if (!entry || entry.completed === completed) return;
+  if (!completed) { changeDailyChallenge(false, false); return; }
+  if (document.getElementById("daily-quest-confirm")) return;
+  const day = localDay(), questId = entry.id;
+  const overlay = document.createElement("div");
+  overlay.id = "daily-quest-confirm";
+  overlay.className = "save-overlay";
+  overlay.innerHTML = '<section class="save-dialog" role="dialog" aria-modal="true" aria-labelledby="daily-quest-confirm-heading"><h2 id="daily-quest-confirm-heading">Daily Quest</h2><p>Are you sure you want to submit this task for your Daily Quest?</p><button type="button" class="primary" id="daily-quest-yes">Yes</button><button type="button" class="secondary" id="daily-quest-no">No</button></section>';
+  const close = () => {
+    globalThis.WriteQuestDialogs?.release(overlay);
+    overlay.remove();
+    document.removeEventListener("keydown", onKey);
+  };
+  const onKey = event => { if (event.key === "Escape") close(); };
+  overlay.querySelector("#daily-quest-no").addEventListener("click", close);
+  overlay.querySelector("#daily-quest-yes").addEventListener("click", () => {
+    close();
+    if (day !== localDay() || state.challenges?.[day]?.id !== questId) {
+      alert("Your Daily Quest changed. Review the current task before submitting.");
+      render();
+      return;
+    }
+    changeDailyChallenge(false, true);
+  });
+  overlay.addEventListener("click", event => { if (event.target === overlay) close(); });
+  document.body.appendChild(overlay);
+  globalThis.WriteQuestDialogs?.contain(overlay);
+  document.addEventListener("keydown", onKey);
+  overlay.querySelector("#daily-quest-no").focus();
+}
+
+function showDailyQuestReward(skillId) {
+  const skill = SKILLS.find(item => item.id === skillId);
+  const card = document.querySelector('[data-skill="' + skillId + '"]');
+  if (!skill || !card) return;
+  const reward = document.createElement("span");
+  reward.className = "daily-quest-xp-reward";
+  reward.setAttribute("role", "status");
+  reward.setAttribute("aria-label", "+2 XP to " + skill.name);
+  reward.textContent = "+2 XP";
+  card.appendChild(reward);
+  setTimeout(() => reward.remove(), 2200);
+}
+
 function changeDailyChallenge(swap, completed) {
   const day=localDay(), next=validateSave(state), entry=next.challenges[day];
   if(!entry)return;
+  const rewardedSkill = !swap && completed === true && !entry.completed
+    ? DAILY_CHALLENGES.find(item => item.id === entry.id)?.skill : null;
   if(swap){
     if(entry.everCompleted||entry.completed||entry.swaps>=2)return;
     const chosen=pickDailyChallenge(next,day,[entry.id]);entry.id=chosen.id;entry.swaps++;
@@ -725,7 +783,16 @@ function changeDailyChallenge(swap, completed) {
     if(completed)entry.everCompleted=true;
   }
   next.xp=calculateCheckinXP(next.checkins,developer?.active?developer.baseXP():blank().xp,next.challenges);
-  try{save(next);globalThis.WriteQuestSounds?.unlock();render()}catch(error){alert("Quest was not saved: "+error.message);render()}
+  try {
+    save(next);
+  } catch (error) {
+    alert("Quest was not saved: " + error.message);
+    render();
+    return;
+  }
+  globalThis.WriteQuestSounds?.unlock();
+  render(); // The existing XP animator fills the awarded skill’s bar.
+  if (rewardedSkill) showDailyQuestReward(rewardedSkill);
 }
 
 function home() {
@@ -759,12 +826,13 @@ function checkinSkillRow(skill, ratings) {
   const rating = ratings[skill.id] ?? 0;
   const buttons = [];
   for (let score = 0; score <= 5; score += 1) {
-    buttons.push(`<button aria-label="${skill.name}: ${score} out of 5" data-rate="${skill.id}" data-value="${score}" aria-pressed="${rating === score}">${score}</button>`);
+    const label = score === 0 ? "Not Practiced Today" : String(score);
+    buttons.push(`<button class="${score === 0 ? 'rating-rest' : ''}" aria-label="${skill.name}: ${score === 0 ? label : score + ' out of 5'}" data-rate="${skill.id}" data-value="${score}" aria-pressed="${rating === score}">${label}</button>`);
   }
   return [
     '<div class="check-row"><div class="row">',
     `<strong>${skillIcon(skill)} ${skill.name}</strong>`,
-    `<span class="small muted" id="value-${skill.id}">${rating}/5</span>`,
+    `<span class="small muted" id="value-${skill.id}">${rating === 0 ? "Not Practiced Today" : rating + "/5"}</span>`,
     '</div><div class="rating">',
     buttons.join(""),
     '</div></div>'
@@ -778,7 +846,7 @@ function checkin() {
     '<div class="checkin-heading">',
     contentBack(),
     '<h1>Daily Check-In</h1>',
-    '<p class="muted checkin-intro">Rate progress toward your own goal: 0–5. One skill is enough; leave the others at zero.</p>',
+    '<p class="muted checkin-intro">Rate progress toward your own goal: 1–5. One skill is enough; choose “Not Practiced Today” for the others.</p>',
     '</div><section class="card checkin-card">',
     SKILLS.map(skill => checkinSkillRow(skill, ratings)).join(""),
     '</section>',
@@ -903,7 +971,7 @@ function rankProgression() {
 }
 
 function settings() {
-  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Your progress</h2><p class="notice">Progress is saved on this device, with a previous-save recovery copy. Download a backup before clearing browser data or changing devices. Backups are not cloud synced.</p><h2>Back up and restore</h2><p class="small muted">Export a file to keep a copy. To move devices, export here, transfer the file, then import it in WriteQuest on the other device.</p><button class="primary" id="export-backup">Export Backup</button><details class="backup-options"><summary class="secondary">Restore Backup</summary><div class="backup-options-actions"><button class="secondary" id="choose-backup" type="button">Import Backup File</button><input id="import-backup" type="file" accept="application/json,.json" hidden><button class="secondary" id="restore-previous">Restore Previous Save</button></div></details><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Erase all saved skill XP and daily check-ins on this device. This cannot be undone.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
+  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Your progress</h2><p class="notice">Progress is saved on this device, with a previous-save recovery copy. Download a backup before clearing browser data or changing devices. Backups are not cloud synced.</p><h2>Back up and restore</h2><p class="small muted">Export a file to keep a copy. To move devices, export here, transfer the file, then import it in WriteQuest on the other device.</p><button class="primary" id="export-backup">Export Backup</button><details class="backup-options"><summary class="secondary">Restore Backup</summary><div class="backup-options-actions"><button class="secondary" id="choose-backup" type="button">Import Backup File</button><input id="import-backup" type="file" accept="application/json,.json" hidden><button class="secondary" id="restore-previous">Restore Previous Save</button></div></details><h2>App updates</h2><p class="small muted">Version 2026.10.29.3 · Progress stays on this device when updating.</p><button class="secondary" id="check-updates">Check for Updates</button><p id="update-status" class="small" role="status"></p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Erase all saved skill XP and daily check-ins on this device. This cannot be undone.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
 }
 /* One attainable goal keeps Journey useful for focused writing days. */
 function nextMilestone(items) {
@@ -937,7 +1005,7 @@ function journey() {
 function openTutorial() {
   const steps = [
     ['Welcome to WriteQuest', 'Build your writing habits across Drafting, Editing, Creativity, Learning, and Research.'],
-    ['Check in once a day', 'Tap the centre Check In button. Rate progress toward your own goal from 0–5, then save. A rating of 1–5 in one skill completes your writing day and counts toward your streak. Leave other skills at zero; you can edit today’s ratings. Two missed days per Sunday–Saturday week preserve your streak. A third missed day that week, or three missed days in a row, ends it. Your day resets at 3:30 a.m. local time.'],
+    ['Check in once a day', 'Tap the centre Check In button. Rate progress toward your own goal from 0–5, then save. A rating of 1–5 in one skill completes your writing day and counts toward your streak. Choose “Not Practiced Today” for other skills; you can edit today’s ratings. Two missed days per Sunday–Saturday week preserve your streak. A third missed day that week, or three missed days in a row, ends it. Your day resets at 3:30 a.m. local time.'],
     ['Watch your progress grow', 'Earn XP, gain levels, and unlock cozy backgrounds. Achievements track your milestones; Journey shows your weekly activity. Back up your progress in Settings.']
   ];
   let step = 0;
@@ -1114,6 +1182,7 @@ function render() {
   }
   connectPageControls();
   syncDeveloperUI();
+  renderUpdateNotice();
 }
 
 // A page only contains some of these buttons. Skip buttons that are absent.
@@ -1128,10 +1197,13 @@ function updateDraftRating(skillId, rating) {
     ...editingRatings()
   };
   draftRatings[skillId] = rating;
+  retainRatingDraft();
   render();
 }
 
 function connectPageControls() {
+  connectButton("check-updates", () => checkForUpdates(true));
+  connectButton("apply-update", applyUpdate);
   connectButton("export-backup", exportBackup);
   const importInput = document.getElementById("import-backup");
   if (importInput) importInput.addEventListener("change", importBackup);
@@ -1141,7 +1213,7 @@ function connectPageControls() {
   connectButton("open-settings", () => navigate("settings"));
   connectButton("open-ranks", () => navigate("ranks"));
   connectButton("save-checkin", saveCheckin);
-  document.getElementById("daily-quest-check")?.addEventListener("change",event=>changeDailyChallenge(false,event.target.checked));
+  document.getElementById("daily-quest-check")?.addEventListener("change",event=>requestDailyQuestSubmission(event.target.checked));
   connectButton("swap-challenge",()=>changeDailyChallenge(true));
   connectButton("reset-progress", confirmResetProgress);
   connectButton("open-developer", enterDeveloperMode);
@@ -1192,6 +1264,7 @@ function saveCheckin() {
   globalThis.WriteQuestSounds?.unlock();
   const day = localDay();
   if (draftDay && draftDay !== day) {
+    clearRatingDraft();
     alert("A new writing day started at 3:30 a.m. Please review your ratings for the new day.");
     draftRatings = null;
     draftDay = day;
@@ -1226,6 +1299,7 @@ function saveCheckin() {
     }
   }
   draftRatings = null;
+  clearRatingDraft();
   draftDay = day;
   render();
 
@@ -1268,6 +1342,7 @@ function confirmResetProgress() {
       return
     }
     draftRatings = null;
+    clearRatingDraft();
     draftDay = null;
     cancel();
     page = "home";
@@ -1311,6 +1386,7 @@ function exitDeveloperMode() {
 
 function syncDeveloperUI() {
   const active = Boolean(developer?.active);
+  document.body.classList?.toggle("developer-mode", active);
   document.body.classList?.toggle("developer-background-only", active && developerBackgroundOnly);
   let launcher = document.getElementById("developer-launcher");
   if (!active) {
@@ -1406,10 +1482,97 @@ function openDeveloperPanel() {
   overlay.querySelector("#developer-close").focus();
 }
 
-if (typeof location !== "undefined") {
-  const query = new URLSearchParams(location.search);
-  if (query.has("dev") || query.get("test") === "1") developer?.enter();
+/* Unfinished ratings survive a reload in this tab. This is not a saved check-in. */
+const RATING_DRAFT_KEY = "writequest-rating-draft-v1";
+function retainRatingDraft() {
+  if (developer?.active || !draftRatings) return;
+  try {
+    sessionStorage.setItem(RATING_DRAFT_KEY, JSON.stringify({day: draftDay, base: expectedRaw, ratings: draftRatings}));
+  } catch (_) { /* A draft cache is optional; the explicit save still reports failures. */ }
 }
+function clearRatingDraft() {
+  if (developer?.active) return;
+  try { sessionStorage.removeItem(RATING_DRAFT_KEY); } catch (_) {}
+}
+function recoverRatingDraft() {
+  if (developer?.active || storageBlocked) return;
+  try {
+    const draft = JSON.parse(sessionStorage.getItem(RATING_DRAFT_KEY));
+    if (!draft) return;
+    if (draft.day !== localDay() || draft.base !== expectedRaw) { clearRatingDraft(); return; }
+    const validated = validateSave({...blank(), checkins: {[draft.day]: draft.ratings}});
+    draftRatings = validated.checkins[draft.day];
+    draftDay = draft.day;
+    page = "checkin";
+    saveNotice = "Your unfinished ratings were recovered. Review them and tap Save Today’s Check-In.";
+  } catch (_) { clearRatingDraft(); }
+}
+
+/* Check HTML without cache; only a user action reloads the app. No service worker. */
+const APP_BUILD = "20261029-reliable-3";
+let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
+function renderUpdateNotice() {
+  if (!availableBuild || typeof document.createElement !== "function") return;
+  const notice = document.createElement("div");
+  notice.className = "notice app-update-notice";
+  notice.setAttribute("role", "status");
+  notice.innerHTML = '<span>A WriteQuest update is ready.</span><button class="secondary" id="apply-update">Update App</button>';
+  app.appendChild(notice);
+  connectButton("apply-update", applyUpdate);
+}
+async function checkForUpdates(manual = false) {
+  if (typeof fetch !== "function" || typeof location === "undefined" || updateCheckRunning) return;
+  if (!manual && Date.now() - lastUpdateCheck < 60000) return;
+  updateCheckRunning = true;
+  lastUpdateCheck = Date.now();
+  const status = document.getElementById("update-status");
+  if (status) status.textContent = "Checking for updates…";
+  try {
+    const response = await fetch("./index.html?update-check=" + Date.now(), {cache:"no-store", ...(typeof AbortSignal !== "undefined" && AbortSignal.timeout ? {signal:AbortSignal.timeout(10000)} : {})});
+    if (!response.ok) throw Error("Update check unavailable");
+    const html = await response.text();
+    const build = html.match(/<meta name="writequest-build" content="([a-zA-Z0-9.-]+)">/)?.[1];
+    if (!build) throw Error("Update information unavailable");
+    if (build !== APP_BUILD) {
+      const firstNotice = !availableBuild;
+      availableBuild = build;
+      if (firstNotice) renderUpdateNotice();
+      if (status) status.textContent = "An update is ready. Save any ratings, then tap Update App.";
+    } else if (status) status.textContent = "WriteQuest is up to date.";
+  } catch (_) {
+    if (status) status.textContent = "Could not check for updates. Check your connection and try again.";
+  } finally { updateCheckRunning = false; }
+}
+function applyUpdate() {
+  if (draftRatings) {
+    alert("Save your ratings before updating. Your unfinished ratings are still available in Daily Check-In.");
+    return;
+  }
+  if (developer?.active) { alert("Exit Test Mode before updating."); return; }
+  const url = new URL(location.href);
+  url.searchParams.set("v", availableBuild || APP_BUILD);
+  location.replace(url.href);
+}
+function checkOtherTabProgress() {
+  if (developer?.active || storageBlocked) return;
+  try {
+    if (localStorage.getItem(KEY) !== expectedRaw) {
+      saveNotice = "Progress changed in another tab. Export anything needed here, then reload before saving.";
+      render();
+    }
+  } catch (_) {
+    saveNotice = "Browser storage is unavailable. Keep this page open and export your progress.";
+    render();
+  }
+}
+window.addEventListener("storage", event => { if (event.key === KEY || event.key === null) checkOtherTabProgress(); });
+window.addEventListener("pageshow", () => { checkOtherTabProgress(); checkForUpdates(); });
+window.addEventListener("beforeunload", event => {
+  if (draftRatings && !developer?.active) { event.preventDefault(); event.returnValue = ""; }
+});
+
+// Developer Mode starts only through Settings, never from a saved URL.
+recoverRatingDraft();
 let renderedDay = localDay();
 
 function refreshDay() {
@@ -1424,7 +1587,7 @@ function refreshDay() {
 }
 window.addEventListener("focus", refreshDay);
 document.addEventListener("visibilitychange", () => {
-  if (!document.hidden) refreshDay();
+  if (!document.hidden) { refreshDay(); checkOtherTabProgress(); checkForUpdates(); }
 });
 setInterval(refreshDay, 30000);
 if (typeof setTimeout !== "undefined") setTimeout(() => {

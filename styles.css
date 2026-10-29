@@ -2492,3 +2492,43 @@ header.quest-header .header-rank-beginner {
 /* Home layout: keep Drafting below the top bar while retaining the central check-in. */
 .app:has(.skill-star) > .skill-star {margin-top:14px;}
 @media(max-width:430px){.app:has(.skill-star) > .skill-star {margin-top:12px;}}
+
+/* Keep the rest option readable while retaining five numeric ratings. */
+.checkin-card .rating .rating-rest {
+  flex: 2.2;
+  font-size: 10px;
+  line-height: 1.15;
+  padding: 4px;
+  min-width: 0;
+}
+.check-row .row > .small { text-align: right; font-size: 11px; }
+.app-update-notice { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.app-update-notice button { width: auto; margin: 0; }
+
+body:not(.developer-mode) #developer-launcher { display: none; }
+
+/* Quest rewards appear on the skill that receives the XP. */
+.skill { position: relative; }
+.daily-quest-xp-reward {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  padding: 4px 9px;
+  border-radius: 12px;
+  background: #142a3e;
+  color: #ffe291;
+  font: 700 15px system-ui, sans-serif;
+  white-space: nowrap;
+  z-index: 5;
+  animation: daily-quest-xp-rise 2.2s ease-out forwards;
+}
+@keyframes daily-quest-xp-rise {
+  0% { opacity: 0; transform: translate(-50%, 8px); }
+  15%, 65% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -45px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .daily-quest-xp-reward { animation: none; }
+}
