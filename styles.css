@@ -2685,3 +2685,17 @@ button, input, select, textarea, svg text {
 }
 .rating-guide li { margin: 6px 0; }
 .rating-guide strong { color: var(--gold); }
+
+
+/* Saved check-in XP: one clearly highlighted gauge at a time. */
+.checkin-rewards { max-height: 90dvh; overflow-y: auto; text-align: left; }
+.checkin-reward-row { padding: 10px 12px; margin: 8px 0; border: 1px solid transparent; border-radius: 12px; background: rgba(255,255,255,.035); }
+.checkin-reward-row .meter { margin-top: 7px; height: 12px; }
+.checkin-reward-gain { color: #f8d77d; opacity: .55; }
+.checkin-reward-row.is-awarding { border-color: #f8d77d; box-shadow: 0 0 14px rgba(248,215,125,.2); }
+.checkin-reward-row.is-awarding .checkin-reward-gain,
+.checkin-reward-row.is-awarded .checkin-reward-gain { opacity: 1; }
+.checkin-reward-row.is-awarding .fill { filter: brightness(1.3); }
+@media (prefers-reduced-motion: reduce) {
+  .checkin-reward-row.is-awarding { box-shadow: none; }
+}
