@@ -109,7 +109,7 @@ test('mobile update checks bypass cache and reject missing build markers',async(
  b.context.location={href:'https://example.com/WriteQuest/',replace:url=>requests.push(url)};
  b.context.URL=URL;
  b.context.document.getElementById=()=>status;
- b.context.fetch=async(url,options)=>{requests.push({url,options});return {ok:true,text:async()=>'<meta name="writequest-build" content="20261029-reliable-7">'}};
+ b.context.fetch=async(url,options)=>{requests.push({url,options});return {ok:true,text:async()=>'<meta name="writequest-build" content="'+b.run('APP_BUILD')+'">'}};
  await b.run('checkForUpdates(true)');
  assert.equal(status.textContent,'WriteQuest is up to date.');
  assert.equal(requests[0].options.cache,'no-store');
@@ -127,6 +127,7 @@ test('mobile update checks bypass cache and reject missing build markers',async(
 test('every loaded script and stylesheet uses the same release marker',()=>{
  const html=fs.readFileSync(__dirname+'/index.html','utf8');
  const build=html.match(/name="writequest-build" content="([^"]+)"/)[1];
+ assert.equal(boot().run('APP_BUILD'),build,'update checker must use the published release marker');
  const assets=[...html.matchAll(/(?:src|href)="((?:js\/[^"?]+\.js|app\.js|styles\.css)\?v=([^"]+))"/g)];
  assert.equal(assets.length,11);
  for(const match of assets)assert.equal(match[2],build,match[1]);
