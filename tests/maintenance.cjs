@@ -353,3 +353,20 @@ test('Achievements highlights the latest unlock while Home omits it, without cle
   run('draftRatings={drafting:0}; saveCheckin();');
   assert.doesNotMatch(run('achievements()'), /achievement-highlight/);
 });
+
+
+test('Journal includes seven Sunday-first writing trail markers with active and future states', () => {
+ const {run}=appContext();
+ run("state.checkins[localDay()] = {drafting: 1};");
+ const html=run('journey()');
+ assert.match(html, /Journal/);
+ assert.match(html, /1<\/strong> writing day this week/);
+ assert.equal((html.match(/role="listitem"/g)||[]).length,7);
+ assert.match(html,/aria-current="date"/);
+ assert.match(html,/Writing practised/);
+ assert.match(html,/Sun<\/span>/);
+ assert.match(html,/Sat<\/span>/);
+ assert.doesNotMatch(html,/7 days checked in/);
+ run("state.checkins[localDay()] = {drafting: 0};");
+ assert.match(run('journey()'),/0<\/strong> writing days this week/);
+});
