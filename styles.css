@@ -2569,3 +2569,16 @@ body:not(.developer-mode) #developer-launcher { display: none; }
   .app:has(.skill-star) .star-checkin-count { font-size: 7px; }
   .app:has(.skill-star) .star-checkin-pending { gap: 4px; }
 }
+
+/* Landscape crops follow each room's writing area; portrait framing stays unchanged. */
+@media (min-aspect-ratio: 1/1) {
+  body[data-rank-background="beginner"]::before { background-position: center 40%; }
+  body[data-rank-background="bronze"]::before { background-position: center 52%; }
+  body[data-rank-background="silver"]::before { background-position: center 64%; }
+  body[data-rank-background="gold"]::before { background-position: center 58%; }
+  body[data-rank-background="platinum"]::before { background-position: center 60%; }
+  body[data-rank-background="emerald"]::before { background-position: center 60%; }
+  body[data-rank-background="diamond"]::before { background-position: center 62%; }
+  body[data-rank-background="master"]::before { background-position: center 48%; }
+  body[data-rank-background="grandmaster"]::before { background-position: center 68%; }
+}
