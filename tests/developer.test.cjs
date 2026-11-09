@@ -64,3 +64,10 @@ test('backup import, export, restoration and reset are guarded during previews',
  await b.run('importBackup({target:{value:""}})');
  assert.equal(b.alerts.length,4);assert.equal(b.writes(),0);assert.equal(b.map.get(key),b.raw);
 });
+
+test('manual Save, both Load sources and the Load menu never touch normal progress in Test Mode',()=>{
+ const b=boot();b.run('enterDeveloperMode()');
+ const before=new Map(b.map);
+ b.run('saveLocal();loadLocal();loadAutosave();openLoadMenu()');
+ assert.equal(b.alerts.length,4);assert.equal(b.writes(),0);assert.deepEqual(b.map,before);
+});

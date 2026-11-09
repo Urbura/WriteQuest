@@ -70,6 +70,8 @@ const blank = () => ({
   challenges: {}
 });
 const BACKUP_KEY = KEY + "-backup";
+// A manual checkpoint is separate from both autosave and automatic recovery.
+const MANUAL_SAVE_KEY = KEY + "-manual";
 const DAILY_CHALLENGES = [
   {
     "id": "drafting-1",
@@ -415,7 +417,7 @@ function loadProgress() {
         return validateSave(JSON.parse(expectedRaw));
       } catch (error) {
         storageBlocked = true;
-        saveNotice = "The main save is damaged and has been preserved. Use Save to keep a copy before loading or recovering progress.";
+        saveNotice = "The main save is damaged and has been preserved. Open Settings to keep a manual copy, then Load or use Recovery Options.";
         const backup = localStorage.getItem(BACKUP_KEY);
         if (backup !== null) {
           try {
@@ -438,7 +440,7 @@ function loadProgress() {
     return blank();
   } catch (error) {
     storageBlocked = true;
-    saveNotice = "Browser storage is unavailable. Automatic saving is paused; use Save before closing this page.";
+    saveNotice = "Browser storage is unavailable. Keep this page open and use Recovery Options → Export File before closing.";
     return blank();
   }
 }
@@ -469,9 +471,9 @@ function save(next, {
     state = clean;
     return;
   }
-  if (storageBlocked && !recover) throw Error("Saving is paused to protect existing data. Open Settings to save a file, then load a file or use Recovery Options.");
+  if (storageBlocked && !recover) throw Error("Saving is paused to protect existing data. Open Settings to Load a manual save or use Recovery Options.");
   const current = localStorage.getItem(KEY);
-  if (current !== expectedRaw) throw Error("Another tab changed your progress. Use Save to keep this tab’s progress, then reload before saving.");
+  if (current !== expectedRaw) throw Error("Another tab changed your progress. Use Recovery Options → Export File to keep this tab’s progress, then reload before saving.");
   if (current !== null) {
     let valid = false;
     try {
@@ -520,6 +522,141 @@ function localDay(now = new Date()) {
   return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
 }
 
+
+function readManualSave() {
+  const raw = localStorage.getItem(MANUAL_SAVE_KEY);
+  if (raw === null) return null;
+  const payload = JSON.parse(raw);
+  if (!payload || payload.app !== "WriteQuest" || payload.version !== 1 ||
+      typeof payload.savedAt !== "string" || !Number.isFinite(Date.parse(payload.savedAt))) {
+    throw Error("The manual save could not be read. Use Recovery Options to restore another copy.");
+  }
+  return { savedAt: payload.savedAt, data: validateSave(payload.data) };
+}
+
+function manualSaveStatus() {
+  try {
+    const saved = readManualSave();
+    return saved
+      ? { available: true, text: "Saved on this device: " + new Date(saved.savedAt).toLocaleString() }
+      : { available: false, text: "No manual save yet. Select Save to create one." };
+  } catch (error) {
+    return { available: false, text: "Manual save unavailable. Use Recovery Options or save a new copy." };
+  }
+}
+
+function saveLocal() {
+  if (developer?.active) {
+    alert("Exit Test Mode before saving your normal progress.");
+    return;
+  }
+  try {
+    const data = validateSave(state);
+    if (localStorage.getItem(KEY) !== expectedRaw) {
+      throw Error("Another tab changed your progress. Reload before creating a manual save, or use Export File to keep this tab’s progress.");
+    }
+    const previous = localStorage.getItem(MANUAL_SAVE_KEY);
+    if (previous !== null && !window.confirm("Replace your manual save with your current progress?")) return;
+    const raw = JSON.stringify({ app: "WriteQuest", version: 1, savedAt: new Date().toISOString(), data });
+    localStorage.setItem(MANUAL_SAVE_KEY, raw);
+    if (localStorage.getItem(MANUAL_SAVE_KEY) !== raw) {
+      throw Error("The browser could not verify the save. Keep this page open and try again.");
+    }
+    render();
+    alert("Progress saved in WriteQuest on this device.");
+  } catch (error) {
+    alert("Manual save was not created. " + error.message);
+  }
+}
+
+function loadLocal() {
+  if (developer?.active) {
+    alert("Exit Test Mode before loading your normal progress.");
+    return;
+  }
+  try {
+    const saved = readManualSave();
+    if (!saved) throw Error("No manual save is available yet. Select Save to create one.");
+    const when = new Date(saved.savedAt).toLocaleString();
+    if (!window.confirm("Load your manual save from " + when + " and replace your current progress?")) return;
+    // Existing save checks protect newer progress in another tab and retain a recovery copy.
+    save(saved.data, { recover: true });
+    draftRatings = null;
+    clearRatingDraft();
+    draftDay = null;
+    render();
+    alert("Manual save loaded successfully.");
+  } catch (error) {
+    alert("Manual save was not loaded. " + error.message);
+  }
+}
+
+
+function readAutosave() {
+  const raw = localStorage.getItem(KEY);
+  return raw === null ? null : { raw, data: validateSave(JSON.parse(raw)) };
+}
+
+function loadAutosave() {
+  if (developer?.active) {
+    alert("Exit Test Mode before loading your normal progress.");
+    return;
+  }
+  try {
+    const saved = readAutosave();
+    if (!saved) throw Error("No autosave is available yet. Complete a check-in to create one.");
+    if (!window.confirm("Load the last autosave on this device? Any unfinished ratings will be discarded.")) return;
+    if (localStorage.getItem(KEY) !== saved.raw) {
+      throw Error("The autosave changed in another tab. Open Load again to select the latest copy.");
+    }
+    // Explicitly loading the current autosave refreshes this tab without rewriting it.
+    state = saved.data;
+    expectedRaw = saved.raw;
+    storageBlocked = false;
+    saveNotice = "";
+    draftRatings = null;
+    clearRatingDraft();
+    draftDay = null;
+    render();
+    alert("Last autosave loaded successfully.");
+  } catch (error) {
+    alert("Autosave was not loaded. " + error.message);
+  }
+}
+
+function openLoadMenu() {
+  if (developer?.active) {
+    alert("Exit Test Mode before loading your normal progress.");
+    return;
+  }
+  const manual = manualSaveStatus();
+  let autosaveAvailable = false;
+  try { autosaveAvailable = Boolean(readAutosave()); } catch (error) { /* Recovery Options remain available. */ }
+  const overlay = document.createElement("div");
+  overlay.className = "save-overlay";
+  overlay.innerHTML = '<section class="save-dialog" role="dialog" aria-modal="true" aria-labelledby="load-menu-heading">' +
+    '<h2 id="load-menu-heading">Load Progress</h2><p>Choose which copy to load.</p>' +
+    '<button type="button" class="secondary" id="load-autosave"' + (autosaveAvailable ? '' : ' disabled') + '>Last Autosave</button>' +
+    '<p class="small">' + (autosaveAvailable ? 'The latest progress saved automatically on this device.' : 'No valid autosave is available yet.') + '</p>' +
+    '<button type="button" class="secondary" id="load-manual"' + (manual.available ? '' : ' disabled') + '>Manual Save</button>' +
+    '<p class="small">' + manual.text + '</p>' +
+    '<button type="button" class="secondary" id="cancel-load">Cancel</button></section>';
+  document.body.appendChild(overlay);
+  globalThis.WriteQuestDialogs?.contain(overlay);
+  const close = () => {
+    globalThis.WriteQuestDialogs?.release(overlay);
+    overlay.remove();
+  };
+  overlay.querySelector("#load-autosave").addEventListener("click", () => { close(); loadAutosave(); });
+  overlay.querySelector("#load-manual").addEventListener("click", () => { close(); loadLocal(); });
+  overlay.querySelector("#cancel-load").addEventListener("click", close);
+  overlay.addEventListener("keydown", event => {
+    if (event.key === "Escape") { event.preventDefault(); close(); }
+  });
+  overlay.addEventListener("click", event => { if (event.target === overlay) close(); });
+  overlay.querySelector("button:not(:disabled)")?.focus();
+}
+
 function exportBackup() {
   if (developer?.active) {
     alert("Exit Test Mode to save your normal progress to a file.");
@@ -555,7 +692,7 @@ async function importBackup(event) {
     const payload = JSON.parse(await file.text());
     if (payload.app !== "WriteQuest" || payload.version !== 1) throw Error("This is not a supported WriteQuest save file.");
     const next = validateSave(payload.data);
-    if (!window.confirm("Load this save file and replace your current progress? Use Save first if you want to keep your current progress.")) return;
+    if (!window.confirm("Import this file and replace your current progress? Use Save first if you want to keep a manual copy.")) return;
     save(next, {
       recover: true
     });
@@ -563,9 +700,9 @@ async function importBackup(event) {
     clearRatingDraft();
     draftDay = null;
     render();
-    alert("Save file loaded successfully.");
+    alert("Save file imported successfully.");
   } catch (error) {
-    alert("Save file was not loaded. " + error.message);
+    alert("Save file was not imported. " + error.message);
   } finally {
     event.target.value = "";
   }
@@ -988,7 +1125,8 @@ function rankProgression() {
 }
 
 function settings() {
-  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Save / Load</h2><p class="notice">Your progress saves automatically on this device. Save to a file to keep a copy or continue on another device. Save files are not cloud synced.</p><button class="primary" id="export-backup">Save</button><p class="small muted">Download a save file containing your current progress.</p><button class="secondary" id="choose-backup" type="button">Load</button><input id="import-backup" type="file" accept="application/json,.json" hidden><p class="small muted">Choose a WriteQuest save file. Loading replaces your current progress after confirmation. Existing backup files work too.</p><details class="backup-options"><summary class="secondary">Recovery Options</summary><div class="backup-options-actions"><p class="small muted">Restore the automatic copy from before your most recent save on this device.</p><button class="secondary" id="restore-previous">Restore Previous Save</button></div></details><h2>App updates</h2><p class="small muted">Version 2026.11.09 · Progress stays on this device when updating.</p><button class="secondary" id="check-updates">Check for Updates</button><p id="update-status" class="small" role="status"></p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Erase all saved skill XP and daily check-ins on this device. This cannot be undone.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
+  const manual = manualSaveStatus();
+  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Save / Load</h2><p class="notice">Your progress saves automatically. Save keeps a separate manual copy inside WriteQuest on this device. Load lets you choose the last autosave or your manual save.</p><button class="primary" id="save-local">Save</button><p id="manual-save-status" class="small muted" role="status">' + manual.text + '</p><button class="secondary" id="load-local" type="button">Load</button><p class="small muted">No download needed. This save stays in this browser or installed app on this device. Clearing its data removes local saves.</p><details class="backup-options"><summary class="secondary">Recovery Options</summary><div class="backup-options-actions"><p class="small muted">Restore the automatic copy from before your most recent save on this device.</p><button class="secondary" id="restore-previous">Restore Previous Save</button><p class="small muted">To keep a copy outside the app or move devices, export a file. Existing backup files can still be imported.</p><button class="secondary" id="export-backup">Export File</button><button class="secondary" id="choose-backup" type="button">Import File</button><input id="import-backup" type="file" accept="application/json,.json" hidden></div></details><h2>App updates</h2><p class="small muted">Version 2026.11.09 · Progress stays on this device when updating.</p><button class="secondary" id="check-updates">Check for Updates</button><p id="update-status" class="small" role="status"></p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Erase all saved skill XP and daily check-ins on this device. This cannot be undone.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
 }
 /* One attainable goal keeps Journey useful for focused writing days. */
 function nextMilestone(items) {
@@ -1221,6 +1359,8 @@ function updateDraftRating(skillId, rating) {
 function connectPageControls() {
   connectButton("check-updates", () => checkForUpdates(true));
   connectButton("apply-update", applyUpdate);
+  connectButton("save-local", saveLocal);
+  connectButton("load-local", openLoadMenu);
   connectButton("export-backup", exportBackup);
   const importInput = document.getElementById("import-backup");
   if (importInput) importInput.addEventListener("change", importBackup);
@@ -1419,7 +1559,7 @@ function syncDeveloperUI() {
   }
   launcher.textContent = "Test Mode · " + totalRank(getTotalLevel());
   launcher.setAttribute("aria-label", "Open WriteQuest test tools. Preview progress is not saved.");
-  for (const id of ["export-backup", "choose-backup", "import-backup", "restore-previous", "reset-progress"]) {
+  for (const id of ["save-local", "load-local", "export-backup", "choose-backup", "import-backup", "restore-previous", "reset-progress"]) {
     const button = document.getElementById(id);
     if (button) button.disabled = true;
   }
@@ -1574,11 +1714,11 @@ function checkOtherTabProgress() {
   if (developer?.active || storageBlocked) return;
   try {
     if (localStorage.getItem(KEY) !== expectedRaw) {
-      saveNotice = "Progress changed in another tab. Use Save to keep anything needed here, then reload before saving.";
+      saveNotice = "Progress changed in another tab. Use Recovery Options → Export File to keep anything needed here, then reload before saving.";
       render();
     }
   } catch (_) {
-    saveNotice = "Browser storage is unavailable. Keep this page open and use Save.";
+    saveNotice = "Browser storage is unavailable. Keep this page open and use Recovery Options → Export File.";
     render();
   }
 }

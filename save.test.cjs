@@ -202,3 +202,113 @@ test('No preserves remaining quest swaps, even after repeated accidental taps',(
   assert.equal(b.run('state.challenges[localDay()].id === "drafting-1"'),swaps===2);
  }
 });
+
+test('manual checkpoint survives autosaves and reloads, restoring all progress fields',()=>{
+ const profile={...sample,background:'beginner',achievementsSeen:['first'],recentAchievements:['first']};
+ const b=boot({[key]:JSON.stringify(profile)});
+ b.run('saveLocal()');
+ const checkpoint=b.map.get(key+'-manual'),payload=JSON.parse(checkpoint);
+ assert.equal(payload.app,'WriteQuest');assert.equal(payload.version,1);
+ assert(Number.isFinite(Date.parse(payload.savedAt)));
+ b.run('save({...state,xp:{...state.xp,drafting:19}})');
+ assert.equal(b.map.get(key+'-manual'),checkpoint,'autosaves must not overwrite the manual slot');
+ const current=b.map.get(key),reopened=boot(Object.fromEntries(b.map));
+ reopened.run('draftRatings={drafting:1};draftDay=localDay();loadLocal()');
+ assert.deepEqual(JSON.parse(reopened.map.get(key)),payload.data);
+ assert.equal(reopened.map.get(key+'-backup'),current,'load retains pre-load progress for recovery');
+ assert.equal(reopened.map.get(key+'-manual'),checkpoint);
+ assert.equal(reopened.run('draftRatings'),null);
+ assert.match(reopened.run('manualSaveStatus().text'),/Saved on this device/);
+ assert.match(reopened.alerts.at(-1),/loaded successfully/);
+});
+
+test('cancelling manual overwrite or loading preserves all stored copies',()=>{
+ const b=boot({[key]:JSON.stringify(sample)});b.run('saveLocal();save({...state,xp:{...state.xp,drafting:12}})');
+ const before=new Map(b.map);
+ b.context.window.confirm=()=>false;
+ b.run('saveLocal();loadLocal();loadAutosave()');
+ assert.deepEqual(b.map,before);
+ assert.equal(b.run('state.xp.drafting'),12);
+});
+
+test('missing and invalid manual saves never replace progress',()=>{
+ const raw=JSON.stringify(sample);
+ const invalid=['{broken',JSON.stringify({app:'Other',version:1,savedAt:new Date().toISOString(),data:sample}),
+  JSON.stringify({app:'WriteQuest',version:1,savedAt:'not a date',data:sample}),
+  JSON.stringify({app:'WriteQuest',version:1,savedAt:new Date().toISOString(),data:{...sample,xp:{...sample.xp,drafting:-1}}})];
+ for(const checkpoint of [null,...invalid]){
+  const entries={[key]:raw,[key+'-backup']:raw};
+  if(checkpoint!==null)entries[key+'-manual']=checkpoint;
+  const b=boot(entries),before=new Map(b.map);
+  b.run('loadLocal()');
+  assert.deepEqual(b.map,before);
+  assert.equal(b.run('state.xp.drafting'),5);
+  assert.equal(b.run('manualSaveStatus().available'),false);
+  assert.match(b.alerts.at(-1),/not loaded/);
+ }
+});
+
+test('failed and silent manual writes do not report success or change autosave',()=>{
+ const raw=JSON.stringify(sample),b=boot({[key]:raw});
+ b.fail();b.run('saveLocal()');
+ assert.equal(b.map.get(key),raw);assert.equal(b.map.has(key+'-manual'),false);
+ assert.match(b.alerts.at(-1),/not created/);
+ const c=boot({[key]:raw});c.context.localStorage.setItem=()=>{};c.run('saveLocal()');
+ assert.match(c.alerts.at(-1),/could not verify/);assert.equal(c.map.get(key),raw);
+});
+
+test('manual operations reject stale tabs while explicit autosave load refreshes safely',()=>{
+ const b=boot({[key]:JSON.stringify(sample)});b.run('saveLocal()');
+ const manual=b.map.get(key+'-manual'),newer=JSON.stringify({...sample,xp:{...sample.xp,drafting:21}});
+ b.map.set(key,newer);
+ b.run('saveLocal();loadLocal()');
+ assert.equal(b.map.get(key),newer);assert.equal(b.map.get(key+'-manual'),manual);
+ assert.equal(b.run('state.xp.drafting'),5);
+ b.run('loadAutosave()');
+ assert.equal(b.run('state.xp.drafting'),21);assert.equal(b.run('expectedRaw'),newer);
+ assert.equal(b.map.get(key),newer);assert.equal(b.map.get(key+'-manual'),manual);
+ b.run('save({...state,background:"beginner"})');
+ assert.equal(JSON.parse(b.map.get(key)).background,'beginner');
+});
+
+test('autosave load cancels cleanly and rejects missing, damaged, or changed copies',()=>{
+ for(const raw of [undefined,'broken']){
+  const b=boot(raw===undefined?{}:{[key]:raw}),before=new Map(b.map);
+  b.run('loadAutosave()');assert.deepEqual(b.map,before);assert.match(b.alerts.at(-1),/not loaded/);
+ }
+ const b=boot({[key]:JSON.stringify(sample)});
+ b.run('draftRatings={drafting:2};draftDay=localDay()');
+ b.context.window.confirm=()=>false;b.run('loadAutosave()');
+ assert.equal(b.run('draftRatings.drafting'),2);
+ b.context.window.confirm=()=>{b.map.set(key,JSON.stringify({...sample,xp:{...sample.xp,drafting:30}}));return true;};
+ b.run('loadAutosave()');
+ assert.equal(b.run('state.xp.drafting'),5);
+ assert.equal(JSON.parse(b.map.get(key)).xp.drafting,30);
+ assert.match(b.alerts.at(-1),/changed in another tab/);
+});
+
+test('manual save can preserve recovered progress and repair a damaged autosave',()=>{
+ const b=boot({[key]:'broken',[key+'-backup']:JSON.stringify(sample)});
+ b.run('saveLocal()');assert.equal(b.map.get(key),'broken');
+ assert.equal(b.run('manualSaveStatus().available'),true);
+ b.run('loadLocal()');assert.equal(b.run('storageBlocked'),false);
+ assert.equal(JSON.parse(b.map.get(key)).xp.drafting,5);
+});
+
+test('Load menu exposes both sources, keeps unavailable options disabled, and cancels without writes',()=>{
+ const b=boot({[key]:JSON.stringify(sample)}),controls=new Map();let removed=false,contained=0,released=0;
+ const overlay={className:'',innerHTML:'',addEventListener(){},remove(){removed=true;},
+  querySelector(selector){if(!controls.has(selector))controls.set(selector,{addEventListener(event,fn){this[event]=fn;},focus(){}});return controls.get(selector);}};
+ b.context.document.createElement=()=>overlay;b.context.document.body={appendChild(){}};
+ b.context.WriteQuestDialogs={contain(){contained++;},release(){released++;}};
+ const before=new Map(b.map);b.run('openLoadMenu()');
+ assert.match(overlay.innerHTML,/>Last Autosave</);assert.match(overlay.innerHTML,/id="load-manual" disabled/);
+ controls.get('#cancel-load').click();assert(removed);assert.equal(contained,1);assert.equal(released,1);
+ assert.deepEqual(b.map,before);
+ b.run('saveLocal();openLoadMenu()');
+ assert.doesNotMatch(overlay.innerHTML,/id="load-manual" disabled/);
+ b.run('save({...state,xp:{...state.xp,drafting:15}})');
+ controls.get('#load-manual').click();assert.equal(b.run('state.xp.drafting'),5);
+ const settings=b.run('settings()');
+ assert.match(settings,/id="save-local">Save</);assert.match(settings,/id="load-local" type="button">Load</);
+});

@@ -88,6 +88,14 @@ days, not calendar days.
 Changing the curve keeps stored XP and history, but changes the levels derived
 from that XP. The next check-in also replays history using the current bonuses.
 
+## Manual Save and Load
+
+Settings Save writes one explicit checkpoint to `writequest-starter-v1-manual`, with a timestamp and validated profile. It does not change the autosave or previous-save recovery copy. Replacing an existing checkpoint requires confirmation. Check-ins, daily quests, imports and resets update the autosave without overwriting this checkpoint.
+
+Load opens an accessible dialog with Last Autosave and Manual Save. Last Autosave reads the latest validated primary save without rewriting it and refreshes the tab's expected save version. Manual Save restores the checkpoint through the existing guarded save path, retaining pre-load progress as the automatic recovery copy. Both require confirmation and clear unfinished ratings only after a successful load. Missing or damaged copies are disabled in the dialog; all manual operations are blocked in Test Mode.
+
+Local copies remain in the same browser or installed app on the same device. Clearing browser/app data removes them. Recovery Options retains Restore Previous Save and file export/import, including existing exported files, for recovery and transferring progress to another device.
+
 ## Progress and Test Mode
 
 The saved profile contains XP, daily ratings, viewed achievement IDs and the
