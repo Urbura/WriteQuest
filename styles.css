@@ -1924,7 +1924,7 @@ header.quest-header .header-actions .settings-button:hover {
   border-radius: 12px;
 }
 
-.backup-options-actions input[hidden] {
+#import-backup[hidden] {
   display: none;
 }
 
