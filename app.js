@@ -779,7 +779,7 @@ function header() {
   const total = getTotalLevel(),
     current = totalRank(total),
     rankClass = current.toLowerCase();
-  const brand = '<button type="button" class="brand brand-logo" data-page="journey" aria-label="WriteQuest — open Journey" title="Journey"><img src="./assets/branding/writequest-logo-white-gold.png?v=20261026-logo-02" alt="WriteQuest" width="2172" height="724" decoding="async"></button>';
+  const brand = '<button type="button" class="brand brand-logo" data-page="journey" aria-label="WriteQuest — open Journal" title="Journal"><img src="./assets/branding/writequest-logo-white-gold.png?v=20261026-logo-02" alt="WriteQuest" width="2172" height="724" decoding="async"></button>';
   const badge = current === "Beginner" ? '<span class="header-rank-icon header-rank-beginner" aria-hidden="true">◇</span>' : '<img class="header-rank-icon" src="./assets/achievements/ranks/' + rankClass + '.svg?v=20261026-progression" alt="" aria-hidden="true" width="28" height="32" decoding="async">';
   return '<header class="quest-header">' + brand + '<button class="header-level total-level-button rank-border-' + rankClass + '" id="open-ranks" aria-label="' + current + ' rank. Total level ' + total + '. View rank progression" title="' + current + ' — view rank progression">' + badge + '<span class="header-level-label">Total Level <strong>' + total + '</strong></span></button>' + '<div class="header-actions"><button class="settings-button achievements-button" data-page="projects" aria-label="Achievements' + (unseenAchievements().length ? ', ' + unseenAchievements().length + ' new' : '') + '" title="Achievements"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M7 3h10v5c0 4-2 6-5 6S7 12 7 8ZM7 5H3v3c0 3 2 4 5 4m9-7h4v3c0 3-2 4-5 4M12 14v6m-5 1h10"/></svg>' + (unseenAchievements().length ? '<span class="header-new-dot"></span>' : '') + '</button><button class="settings-button" id="open-settings" aria-label="Open settings" title="Settings">' + GEAR_ICON + '</button></div></header>';
 }
@@ -1180,16 +1180,27 @@ function journeyMilestone() {
   return '<h2>Your next milestone</h2><p><strong>' + item.name + '</strong></p><p class="small muted">' + item.description + '</p><progress class="collection-progress" max="' + item.goal + '" value="' + item.value + '" aria-label="' + item.name + ': ' + item.value + ' of ' + item.goal + ' ' + label + '"></progress><p class="small">' + item.value + ' / ' + item.goal + ' ' + label + ' · ' + remaining + ' more ' + unit + ' to go</p><button class="secondary" data-page="projects">View Achievements</button>';
 }
 
+function weeklyWritingTrail(data) {
+  const today = localDay();
+  const labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const dates = data.week.map(d => new Date(d.day + 'T12:00:00Z').toLocaleDateString(undefined, {month: 'short', day: 'numeric', timeZone: 'UTC'}));
+  return '<div class="writing-trail"><div class="writing-trail-heading"><h2>This week</h2><span class="small muted">' + dates[0] + ' – ' + dates[6] + '</span></div><p class="writing-trail-summary"><strong>' + data.weekly + '</strong> writing ' + (data.weekly === 1 ? 'day' : 'days') + ' this week</p><div class="journey-week writing-trail-days" role="list" aria-label="Weekly writing activity, Sunday through Saturday">' + data.week.map((d, i) => {
+    const isToday = d.day === today;
+    const status = d.checked ? 'Writing practised' : d.future ? 'Upcoming' : isToday ? 'Ready for a small step' : 'Rest day';
+    return '<div role="listitem" class="journey-day trail-day ' + (d.checked ? 'journey-checked ' : '') + (d.future ? 'trail-future ' : '') + (isToday ? 'trail-today' : '') + '" aria-label="' + labels[i] + ', ' + d.day + ': ' + status + '"' + (isToday ? ' aria-current="date"' : '') + '><span class="trail-weekday">' + labels[i] + '</span><strong class="trail-marker" aria-hidden="true">' + (d.checked ? '✓' : '·') + '</strong><span class="trail-date" aria-hidden="true">' + Number(d.day.slice(-2)) + '</span></div>';
+  }).join('') + '</div><p class="small muted trail-caption">' + (data.weekly ? 'Every writing day is a step forward.' : 'One small writing step lights up your first day.') + '</p></div>';
+}
+
 function journey() {
   const data = globalThis.WriteQuestJourney.summary(state.checkins, localDay());
-  return header() + '<section class="card">' + contentTitle('Journey') + '' + (developer?.active ? '<p class="small muted">Test Mode preview</p>' : '') + '<h2>This week</h2><p>' + data.weekly + ' / 7 days checked in</p><div class="journey-week">' + data.week.map((d, i) => '<div class="journey-day ' + (d.checked ? 'journey-checked' : '') + '" aria-label="' + d.day + ': ' + (d.checked ? 'Checked in' : d.future ? 'Upcoming' : 'No check-in') + '"><span>' + ['S', 'M', 'T', 'W', 'T', 'F', 'S'][i] + '</span><strong aria-hidden="true">' + (d.checked ? '✓' : d.future ? '·' : '—') + '</strong></div>').join('') + '</div><div class="journey-stats"><div><strong>' + data.activeDays + '</strong><span>Active days</span></div><div><strong>' + data.current + '</strong><span>Current streak</span></div><div><strong>' + data.longest + '</strong><span>Longest streak</span></div></div><p class="muted">' + (data.started ? 'Your writing journey began ' + data.started + '.' : 'Your first positive check-in starts your journey. One skill is enough.') + '</p><p class="small muted">Any skill rated 1–5 counts toward your streak. Two missed days per Sunday–Saturday week are allowed. A third miss that week, or three in a row, resets the current streak. Rest days add no points. Today stays open until 3:30 a.m. local time.</p>' + journeyMilestone() + '<h2>About WriteQuest</h2><p class="muted">Track writing effort across Drafting, Editing, Creativity, Learning, and Research.</p></section>';
+  return header() + '<section class="card">' + contentTitle('Journal') + '' + (developer?.active ? '<p class="small muted">Test Mode preview</p>' : '') + weeklyWritingTrail(data) + '<div class="journey-stats"><div><strong>' + data.activeDays + '</strong><span>Active days</span></div><div><strong>' + data.current + '</strong><span>Current streak</span></div><div><strong>' + data.longest + '</strong><span>Longest streak</span></div></div><p class="muted">' + (data.started ? 'Your writing journey began ' + data.started + '.' : 'Your first positive check-in starts your journey. One skill is enough.') + '</p><p class="small muted">Any skill rated 1–5 counts toward your streak. Two missed days per Sunday–Saturday week are allowed. A third miss that week, or three in a row, resets the current streak. Rest days add no points. Today stays open until 3:30 a.m. local time.</p>' + journeyMilestone() + '<h2>About WriteQuest</h2><p class="muted">Track writing effort across Drafting, Editing, Creativity, Learning, and Research.</p></section>';
 }
 
 function openTutorial() {
   const steps = [
     ['Welcome to WriteQuest', 'Build your writing habits across Drafting, Editing, Creativity, Learning, and Research.'],
     ['Check in once a day', 'Tap the centre Check In button. Rate progress toward your own goal from 0–5, then save. A rating of 1–5 in one skill completes your writing day and counts toward your streak. Choose “Not Practiced Today” for other skills; you can edit today’s ratings. Two missed days per Sunday–Saturday week preserve your streak. A third missed day that week, or three missed days in a row, ends it. Your day resets at 3:30 a.m. local time.'],
-    ['Watch your progress grow', 'Earn XP, gain levels, and unlock cozy backgrounds. Achievements track your milestones; Journey shows your weekly activity. Use Save in Settings to keep a copy of your progress.']
+    ['Watch your progress grow', 'Earn XP, gain levels, and unlock cozy backgrounds. Achievements track your milestones; Journal shows your weekly activity. Use Save in Settings to keep a copy of your progress.']
   ];
   let step = 0;
   const overlay = document.createElement('div');
@@ -1703,7 +1714,7 @@ function recoverRatingDraft() {
 }
 
 /* Check HTML without cache; only a user action reloads the app. No service worker. */
-const APP_BUILD = "20261109-sequential-xp";
+const APP_BUILD = "20261109-writing-trail";
 let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
 function renderUpdateNotice() {
   if (!availableBuild || typeof document.createElement !== "function") return;
