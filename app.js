@@ -1177,7 +1177,10 @@ function journeyMilestone() {
     label = "skill levels";
     unit = remaining === 1 ? "skill level" : "skill levels";
   }
-  return '<h2>Your next milestone</h2><p><strong>' + item.name + '</strong></p><p class="small muted">' + item.description + '</p><progress class="collection-progress" max="' + item.goal + '" value="' + item.value + '" aria-label="' + item.name + ': ' + item.value + ' of ' + item.goal + ' ' + label + '"></progress><p class="small">' + item.value + ' / ' + item.goal + ' ' + label + ' · ' + remaining + ' more ' + unit + ' to go</p><button class="secondary" data-page="projects">View Achievements</button>';
+  const skill = SKILLS.find(s => item.id.startsWith(s.id + '-'));
+  const accent = skill ? skill.color : '#f4c76a';
+  return '<section class="milestone-preview" aria-labelledby="milestone-title" style="--milestone-accent:' + accent + '"><h2 id="milestone-title">Your next milestone</h2><div class="milestone-preview-heading"><div class="milestone-preview-badge">' + achievementBadge(item) + '</div><div class="milestone-preview-copy"><h3>' + item.name + '</h3><p class="small muted">' + item.description + '</p><span class="milestone-locked-label">Next unlock</span></div></div><p class="milestone-count"><strong>' + item.value + '</strong> of ' + item.goal + ' ' + label + '</p><progress class="collection-progress milestone-progress" max="' + item.goal + '" value="' + item.value + '" aria-label="' + item.name + ': ' + item.value + ' of ' + item.goal + ' ' + label + '"></progress><p class="milestone-remaining">' + remaining + ' more ' + unit + ' to unlock</p><button class="secondary" data-page="projects">View Achievements</button></section>';
+
 }
 
 function weeklyWritingTrail(data) {
@@ -1193,7 +1196,7 @@ function weeklyWritingTrail(data) {
 
 function journey() {
   const data = globalThis.WriteQuestJourney.summary(state.checkins, localDay());
-  return header() + '<section class="card">' + contentTitle('Journal') + '' + (developer?.active ? '<p class="small muted">Test Mode preview</p>' : '') + weeklyWritingTrail(data) + '<div class="journey-stats"><div><strong>' + data.activeDays + '</strong><span>Active days</span></div><div><strong>' + data.current + '</strong><span>Current streak</span></div><div><strong>' + data.longest + '</strong><span>Longest streak</span></div></div><p class="muted">' + (data.started ? 'Your writing journey began ' + data.started + '.' : 'Your first positive check-in starts your journey. One skill is enough.') + '</p><p class="small muted">Any skill rated 1–5 counts toward your streak. Two missed days per Sunday–Saturday week are allowed. A third miss that week, or three in a row, resets the current streak. Rest days add no points. Today stays open until 3:30 a.m. local time.</p>' + journeyMilestone() + '<h2>About WriteQuest</h2><p class="muted">Track writing effort across Drafting, Editing, Creativity, Learning, and Research.</p></section>';
+  return header() + '<section class="card">' + contentTitle('Journal') + '' + (developer?.active ? '<p class="small muted">Test Mode preview</p>' : '') + weeklyWritingTrail(data) + journeyMilestone() + '<div class="journey-stats"><div><strong>' + data.activeDays + '</strong><span>Active days</span></div><div><strong>' + data.current + '</strong><span>Current streak</span></div><div><strong>' + data.longest + '</strong><span>Longest streak</span></div></div><p class="muted">' + (data.started ? 'Your writing journey began ' + data.started + '.' : 'Your first positive check-in starts your journey. One skill is enough.') + '</p><p class="small muted">Any skill rated 1–5 counts toward your streak. Two missed days per Sunday–Saturday week are allowed. A third miss that week, or three in a row, resets the current streak. Rest days add no points. Today stays open until 3:30 a.m. local time.</p>' + '<h2>About WriteQuest</h2><p class="muted">Track writing effort across Drafting, Editing, Creativity, Learning, and Research.</p></section>';
 }
 
 function openTutorial() {
@@ -1714,7 +1717,7 @@ function recoverRatingDraft() {
 }
 
 /* Check HTML without cache; only a user action reloads the app. No service worker. */
-const APP_BUILD = "20261109-simple-saves";
+const APP_BUILD = "20261109-milestone-preview";
 let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
 function renderUpdateNotice() {
   if (!availableBuild || typeof document.createElement !== "function") return;
