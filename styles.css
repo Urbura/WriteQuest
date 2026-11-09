@@ -1081,7 +1081,7 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background-image: var(--rank-art);
-  background-position: center bottom;
+  background-position: center 40%;
   background-size: cover;
   background-color: #0b1428;
   background-repeat: no-repeat;
@@ -1938,7 +1938,7 @@ body[data-rank-background="diamond"]::before,
 body[data-rank-background="master"]::before,
 body[data-rank-background="grandmaster"]::before {
   background-size: cover;
-  background-position: center bottom;
+  background-position: center 40%;
 }
 
 /* Keep the focused-day count within the existing central button. */
