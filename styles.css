@@ -2622,3 +2622,47 @@ body:not(.developer-mode) #developer-launcher { display: none; }
   .load-slot-skills { gap: 2px; }
   .load-slot-name { font-size: 9px; }
 }
+
+/* Keep level information and XP progress readable against every rank background. */
+.skill-grid .skill .small {
+  color: #edf3ff;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+  text-shadow: 0 1px 2px #000b;
+}
+.skill-grid .home-progress {
+  flex: 0 0 8px;
+  width: 88%;
+  height: 8px;
+  background: #0b1830;
+  border: 1px solid #8199bd;
+}
+@media (max-width: 600px) {
+  .app:has(.skill-star) .skill-grid .skill .small {
+    font-size: clamp(11px, 1.8vh, 13px);
+  }
+}
+@media (max-width: 600px) and (max-height: 590px) {
+  .app:has(.skill-star) .skill-grid .skill .small { font-size: 10px; }
+  .skill-grid .home-progress { flex-basis: 7px; height: 7px; }
+}
+
+/* Swap shares the navy secondary-button treatment and gold focus state. */
+.daily-quest > button {
+  width: auto;
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid #607293;
+  border-radius: 12px;
+  background: #223958;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+.daily-quest > button:hover:not(:disabled) {
+  background: #2c486d;
+  border-color: var(--gold);
+}
+.daily-quest > button:disabled { opacity: .55; cursor: default; }
