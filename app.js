@@ -1457,6 +1457,7 @@ function saveCheckin() {
     return;
   }
   const earnedBefore = new Set(achievementList().filter(a => a.earned).map(a => a.id));
+  const xpBefore = { ...state.xp };
   const levelsBefore = Object.fromEntries(SKILLS.map(s => [s.id, stats(state.xp[s.id]).level]));
   const next = validateSave(state);
   next.checkins[day] = Object.assign({}, editingRatings());
@@ -1494,7 +1495,15 @@ function saveCheckin() {
   const newRank = totalRank(afterTotal);
   let unlockedRank = null;
   if (afterTotal > beforeTotal && newRank !== oldRank) unlockedRank = newRank;
-  showSaveDialog(leveled, unlockedRank, newAchievements);
+  const awards = SKILLS.map(skill => ({
+    id: skill.id, name: skill.name, color: skill.color,
+    delta: state.xp[skill.id] - xpBefore[skill.id],
+    before: stats(xpBefore[skill.id]), after: stats(state.xp[skill.id])
+  })).filter(award => award.delta !== 0);
+  const finish = () => showSaveDialog(leveled, unlockedRank, newAchievements);
+  if (awards.length && globalThis.QuestXPAnimation?.showCheckinAwards) {
+    globalThis.QuestXPAnimation.showCheckinAwards(awards, finish);
+  } else finish();
 }
 
 function confirmResetProgress() {
@@ -1694,7 +1703,7 @@ function recoverRatingDraft() {
 }
 
 /* Check HTML without cache; only a user action reloads the app. No service worker. */
-const APP_BUILD = "20261109-rating-guide";
+const APP_BUILD = "20261109-sequential-xp";
 let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
 function renderUpdateNotice() {
   if (!availableBuild || typeof document.createElement !== "function") return;
@@ -1784,3 +1793,4 @@ if (typeof setTimeout !== "undefined") setTimeout(() => {
   if (!seen) openTutorial();
 }, 0);
 render();
+
