@@ -2719,3 +2719,28 @@ button, input, select, textarea, svg text {
 @media (prefers-reduced-motion: reduce) {
   .trail-day.journey-checked, .journey-checked .trail-marker { box-shadow:none; }
 }
+
+/* The next attainable reward sits immediately after the weekly writing trail. */
+.milestone-preview { margin:20px 0; padding:18px; border:1px solid rgba(244,199,106,.55); border-radius:16px; background:linear-gradient(135deg,rgba(244,199,106,.08),rgba(13,22,42,.75)); }
+.milestone-preview h2 { margin:0 0 14px; font-size:1.05rem; color:#f8d77d; }
+.milestone-preview-heading { display:flex; align-items:center; gap:16px; }
+.milestone-preview-badge { flex:0 0 88px; width:88px; height:96px; display:grid; place-items:center; }
+.milestone-preview-badge>.achievement-badge { width:88px; height:88px; flex-basis:88px; }
+.milestone-preview-badge .achievement-badge-locked { filter:none; opacity:.85; }
+.milestone-preview-copy { min-width:0; }
+.milestone-preview-copy h3 { margin:0 0 5px; font-size:1.2rem; overflow-wrap:anywhere; }
+.milestone-preview-copy p { margin:0 0 6px; }
+.milestone-locked-label { color:var(--milestone-accent); font-size:.75rem; font-weight:700; }
+.milestone-count { margin:16px 0 8px; }
+.milestone-count strong { font-size:1.4rem; color:#fff0ce; }
+.milestone-preview .milestone-progress { display:block; width:100%; height:14px; border:0; border-radius:10px; overflow:hidden; appearance:none; background:#18243b; accent-color:var(--milestone-accent); }
+.milestone-progress::-webkit-progress-bar { background:#18243b; border-radius:10px; }
+.milestone-progress::-webkit-progress-value { background:var(--milestone-accent); border-radius:10px; }
+.milestone-progress::-moz-progress-bar { background:var(--milestone-accent); border-radius:10px; }
+.milestone-remaining { color:#fff0ce; font-size:.9rem; margin:10px 0 14px; }
+@media(max-width:350px) {
+ .milestone-preview { padding:12px; }
+ .milestone-preview-heading { gap:10px; }
+ .milestone-preview-badge { flex-basis:72px; width:72px; height:80px; }
+ .milestone-preview-badge>.achievement-badge { width:72px; height:72px; flex-basis:72px; }
+}
