@@ -383,6 +383,9 @@ function validateSave(input) {
   if (!input || typeof input !== "object" || Array.isArray(input) || !input.xp || typeof input.xp !== "object" || Array.isArray(input.xp) || !input.checkins || typeof input.checkins !== "object" || Array.isArray(input.checkins)) throw Error("Invalid WriteQuest save.");
   const clean = blank();
   if (BACKGROUND_KEYS.includes(input.background)) clean.background = input.background;
+  if (typeof input.autosavedAt === "string" && Number.isFinite(Date.parse(input.autosavedAt))) {
+    clean.autosavedAt = new Date(input.autosavedAt).toISOString();
+  }
   if (input.challenges && typeof input.challenges === "object" && !Array.isArray(input.challenges)) {
     for (const [day, entry] of Object.entries(input.challenges)) {
       if (!/^\d{4}-\d{2}-\d{2}$/.test(day) || !entry || typeof entry !== "object") continue;
@@ -482,6 +485,8 @@ function save(next, {
     } catch (error) {}
     if (valid) localStorage.setItem(BACKUP_KEY, current);
   }
+  // Persist the timestamp in the same verified write as the progress itself.
+  clean.autosavedAt = new Date().toISOString();
   const raw = JSON.stringify(clean);
   localStorage.setItem(KEY, raw);
   if (localStorage.getItem(KEY) !== raw) throw Error("The browser could not verify the save. Keep this page open and retry.");
@@ -597,7 +602,9 @@ function loadLocal(snapshot = null) {
 
 function readAutosave() {
   const raw = localStorage.getItem(KEY);
-  return raw === null ? null : { raw, data: validateSave(JSON.parse(raw)) };
+  if (raw === null) return null;
+  const data = validateSave(JSON.parse(raw));
+  return { raw, data, savedAt: data.autosavedAt || null };
 }
 
 function loadAutosave(snapshot = null) {
@@ -983,7 +990,7 @@ function detail() {
   const s = SKILLS.find(x => x.id === selected),
     p = stats(state.xp[s.id]),
     next = [10, 20, 30, 40].find(n => n > p.level);
-  return header() + '<section class="card skill-detail">' + contentBack() + '<div class="detail-top"><div class="detail-identity"><span class="detail-icon" aria-hidden="true">' + skillIcon(s) + '</span><h1>' + s.name + '</h1></div><div class="detail-standing"><span class="rank">' + rank(p.level) + '</span><strong>Level ' + p.level + '</strong></div></div><div class="detail-progress">' + progress(state.xp[s.id], s.color) + '</div><h2>What is ' + s.name + '?</h2><p>' + s.description + '</p><h2>Activities that count</h2><ul class="examples">' + s.examples.map(x => '<li>' + x + '</li>').join("") + '</ul><div class="notice"><strong>XP:</strong> Rate your daily effort 0–5. You can leave a skill at zero.</div><p class="small muted">' + (next ? 'Next bonus: Level ' + next + ' (+ ' + (next / 10) + ' XP on positive check-ins).' : 'All milestone XP bonuses unlocked!') + '</p></section><button class="primary" data-page="checkin">Go to Daily Check-In</button>'
+  return header() + '<section class="card skill-detail">' + contentBack() + '<div class="detail-top"><div class="detail-identity"><span class="detail-icon" aria-hidden="true">' + skillIcon(s) + '</span><h1>' + s.name + '</h1></div></div><div class="detail-progress">' + progress(state.xp[s.id], s.color) + '</div><h2>What is ' + s.name + '?</h2><p>' + s.description + '</p><h2>Activities that count</h2><ul class="examples">' + s.examples.map(x => '<li>' + x + '</li>').join("") + '</ul><div class="notice"><strong>XP:</strong> Rate your daily effort 0–5. You can leave a skill at zero.</div><p class="small muted">' + (next ? 'Next bonus: Level ' + next + ' (+ ' + (next / 10) + ' XP on positive check-ins).' : 'All milestone XP bonuses unlocked!') + '</p></section><button class="primary" data-page="checkin">Go to Daily Check-In</button>'
 }
 
 function todayRatings() {
@@ -1684,7 +1691,7 @@ function recoverRatingDraft() {
 }
 
 /* Check HTML without cache; only a user action reloads the app. No service worker. */
-const APP_BUILD = "20261109-font-consistency";
+const APP_BUILD = "20261109-autosave-time";
 let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
 function renderUpdateNotice() {
   if (!availableBuild || typeof document.createElement !== "function") return;

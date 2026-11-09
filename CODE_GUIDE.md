@@ -90,6 +90,8 @@ from that XP. The next check-in also replays history using the current bonuses.
 
 ## Manual Save and Load
 
+Successful normal saves store an optional ISO `autosavedAt` timestamp in the same verified progress write. Failed writes retain the previous time. Load previews show this time in the device’s local timezone; legacy saves keep their last-check-in label until their next successful save. Manual checkpoints keep their independent `savedAt` timestamp.
+
 Settings Save writes one explicit checkpoint to `writequest-starter-v1-manual`, with a timestamp and validated profile. It does not change the autosave or previous-save recovery copy. Replacing an existing checkpoint requires confirmation. Check-ins, daily quests, imports and resets update the autosave without overwriting this checkpoint.
 
 Load opens an accessible dialog with Last Autosave and Manual Save. Each slot previews its own rank, total level and five skill levels, plus the manual save timestamp or last check-in date. The selected snapshot is rechecked before loading so a changed slot cannot silently load different progress. Last Autosave reads the latest validated primary save without rewriting it and refreshes the tab's expected save version. Manual Save restores the checkpoint through the existing guarded save path, retaining pre-load progress as the automatic recovery copy. Both require confirmation and clear unfinished ratings only after a successful load. Missing or damaged copies are disabled in the dialog; all manual operations are blocked in Test Mode.

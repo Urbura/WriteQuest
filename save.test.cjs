@@ -4,6 +4,7 @@ const vm=require('node:vm');
 const fs=require('node:fs');
 const source=fs.readFileSync(__dirname+'/app.js','utf8').replace(/render\(\);\s*$/,'');
 const key='writequest-starter-v1';
+function progressOnly(profile){const {autosavedAt,...progress}=profile;return progress;}
 const sample={xp:{drafting:5,editing:0,creativity:0,learning:0,research:0},checkins:{'2026-10-22':{drafting:5}}};
 function boot(entries={}){
  const map=new Map(Object.entries(entries));let fail=false;const alerts=[];
@@ -47,7 +48,7 @@ test('exported backup round-trips XP, history, background and viewed achievement
  assert.deepEqual(payload.data.achievementsSeen,['first']);
  const other=boot();other.context.backupText=exported;
  await other.run("importBackup({target:{files:[{size:backupText.length,text:async()=>backupText}],value:'backup.json'}})");
- assert.deepEqual(JSON.parse(other.map.get(key)),payload.data);
+ assert.deepEqual(progressOnly(JSON.parse(other.map.get(key))),progressOnly(payload.data));
 });
 
 test('cancelled, oversized and malformed imports preserve both saved copies',async()=>{
@@ -215,7 +216,7 @@ test('manual checkpoint survives autosaves and reloads, restoring all progress f
  assert.equal(b.map.get(key+'-manual'),checkpoint,'autosaves must not overwrite the manual slot');
  const current=b.map.get(key),reopened=boot(Object.fromEntries(b.map));
  reopened.run('draftRatings={drafting:1};draftDay=localDay();loadLocal()');
- assert.deepEqual(JSON.parse(reopened.map.get(key)),payload.data);
+ assert.deepEqual(progressOnly(JSON.parse(reopened.map.get(key))),progressOnly(payload.data));
  assert.equal(reopened.map.get(key+'-backup'),current,'load retains pre-load progress for recovery');
  assert.equal(reopened.map.get(key+'-manual'),checkpoint);
  assert.equal(reopened.run('draftRatings'),null);
@@ -324,7 +325,7 @@ test('load previews show each saved copy’s own rank, total and five skill leve
  assert.equal((manual.match(/class="load-slot-skill"/g)||[]).length,5);
  assert.match(manual,/class="load-slot-date">Saved /);
  assert(autosave.includes('Total Level '+b.run('getTotalLevel()')+'<'));
- assert.match(autosave,/Last check-in/);assert.notEqual(manual,autosave);
+ assert.match(autosave,/class="load-slot-date">Saved /);assert.notEqual(manual,autosave);
  assert.match(b.run('loadSlotHTML("load-manual","Manual Save",null)'),/disabled/);
 });
 
@@ -341,4 +342,50 @@ test('loading a preview refuses a slot changed after the menu was opened',()=>{
  assert.match(b.alerts.at(-1),/autosave changed/);
  assert.deepEqual(b.map,before);
  assert.equal(b.run('state.xp.drafting'),5);
+});
+
+function setSaveClock(b,iso){
+ b.context.Date=class extends Date {
+  constructor(...args){super(...(args.length?args:[iso]));}
+  static now(){return Date.parse(iso);}
+ };
+}
+test('autosave timestamps track successful writes and stay separate from manual saves',()=>{
+ const b=boot({[key]:JSON.stringify(sample)});
+ assert.equal(b.run('readAutosave().savedAt'),null,'legacy saves must not receive an invented time');
+ assert.match(b.run('loadSlotHTML("auto","Last Autosave",readAutosave())'),/Last check-in/);
+ setSaveClock(b,'2026-11-09T17:00:00.000Z');
+ b.run('save(state)');
+ assert.equal(JSON.parse(b.map.get(key)).autosavedAt,'2026-11-09T17:00:00.000Z');
+ setSaveClock(b,'2026-11-09T17:05:00.000Z');b.run('saveLocal()');
+ const manual=b.map.get(key+'-manual');
+ assert.equal(b.run('readAutosave().savedAt'),'2026-11-09T17:00:00.000Z');
+ assert.equal(JSON.parse(manual).savedAt,'2026-11-09T17:05:00.000Z');
+ setSaveClock(b,'2026-11-09T17:10:00.000Z');b.run('save({...state,xp:{...state.xp,drafting:10}})');
+ assert.equal(b.run('readAutosave().savedAt'),'2026-11-09T17:10:00.000Z');
+ assert.equal(b.map.get(key+'-manual'),manual);
+ const reopened=boot(Object.fromEntries(b.map));
+ assert.equal(reopened.run('readAutosave().savedAt'),'2026-11-09T17:10:00.000Z');
+ const before=new Map(reopened.map);reopened.run('loadAutosave()');assert.deepEqual(reopened.map,before);
+ assert.match(reopened.run('loadSlotHTML("auto","Last Autosave",readAutosave())'),/class="load-slot-date">Saved /);
+ assert.doesNotMatch(reopened.run('loadSlotHTML("auto","Last Autosave",readAutosave())'),/Last check-in/);
+});
+test('failed writes never advance the recorded autosave time',()=>{
+ for(const silent of [false,true]){
+  const old='2026-11-09T17:00:00.000Z',raw=JSON.stringify({...sample,autosavedAt:old});
+  const b=boot({[key]:raw});setSaveClock(b,'2026-11-09T18:00:00.000Z');
+  if(silent)b.context.localStorage.setItem=()=>{};else b.fail();
+  assert.throws(()=>b.run('save({...state,xp:{...state.xp,drafting:9}})'));
+  assert.equal(b.map.get(key),raw);assert.equal(b.run('state.autosavedAt'),old);
+  assert.equal(b.run('readAutosave().savedAt'),old);
+ }
+});
+test('timestamp validation preserves compatible saves and ignores invalid optional metadata',()=>{
+ const b=boot();
+ for(const stamp of [null,123,'not a date','<script>bad</script>']){
+  b.context.timestampInput=stamp;
+  assert.equal(b.run('validateSave({...state,autosavedAt:timestampInput}).autosavedAt'),undefined);
+ }
+ b.context.timestampInput='2026-11-09T12:00:00-06:00';
+ assert.equal(b.run('validateSave({...state,autosavedAt:timestampInput}).autosavedAt'),'2026-11-09T18:00:00.000Z');
 });
