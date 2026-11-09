@@ -415,12 +415,12 @@ function loadProgress() {
         return validateSave(JSON.parse(expectedRaw));
       } catch (error) {
         storageBlocked = true;
-        saveNotice = "The main save is damaged and has been preserved. Export a backup before restoring or importing progress.";
+        saveNotice = "The main save is damaged and has been preserved. Use Save to File to keep a copy before loading or recovering progress.";
         const backup = localStorage.getItem(BACKUP_KEY);
         if (backup !== null) {
           try {
             const recovered = validateSave(JSON.parse(backup));
-            saveNotice = "Showing your previous valid save. Export it, then use Restore Previous Save to resume saving.";
+            saveNotice = "Showing your previous valid save. Use Save to File to keep it, then open Recovery Options and choose Restore Previous Save to resume saving.";
             return recovered;
           } catch (error) {
             /* Preserve both copies for recovery. */
@@ -438,7 +438,7 @@ function loadProgress() {
     return blank();
   } catch (error) {
     storageBlocked = true;
-    saveNotice = "Browser storage is unavailable. Saving is paused; export any progress before closing this page.";
+    saveNotice = "Browser storage is unavailable. Automatic saving is paused; use Save to File before closing this page.";
     return blank();
   }
 }
@@ -469,9 +469,9 @@ function save(next, {
     state = clean;
     return;
   }
-  if (storageBlocked && !recover) throw Error("Saving is paused to protect existing data. Open Settings to export and restore a backup.");
+  if (storageBlocked && !recover) throw Error("Saving is paused to protect existing data. Open Settings to save a file, then load a file or use Recovery Options.");
   const current = localStorage.getItem(KEY);
-  if (current !== expectedRaw) throw Error("Another tab changed your progress. Export this tab’s progress, then reload before saving.");
+  if (current !== expectedRaw) throw Error("Another tab changed your progress. Use Save to File to keep this tab’s progress, then reload before saving.");
   if (current !== null) {
     let valid = false;
     try {
@@ -522,7 +522,7 @@ function localDay(now = new Date()) {
 
 function exportBackup() {
   if (developer?.active) {
-    alert("Exit Test Mode to export your normal progress.");
+    alert("Exit Test Mode to save your normal progress to a file.");
     return;
   }
   const payload = {
@@ -536,7 +536,7 @@ function exportBackup() {
   }));
   const link = document.createElement("a");
   link.href = url;
-  link.download = "writequest-backup-" + localDay() + ".json";
+  link.download = "writequest-save-" + localDay() + ".json";
   document.body.appendChild(link);
   link.click();
   link.remove();
@@ -545,17 +545,17 @@ function exportBackup() {
 async function importBackup(event) {
   if (developer?.active) {
     event.target.value = "";
-    alert("Exit Test Mode before importing a backup.");
+    alert("Exit Test Mode before loading a save file.");
     return;
   }
   const file = event.target.files?.[0];
   if (!file) return;
   try {
-    if (file.size > 5 * 1024 * 1024) throw Error("Choose a WriteQuest backup smaller than 5 MB.");
+    if (file.size > 5 * 1024 * 1024) throw Error("Choose a WriteQuest save file smaller than 5 MB.");
     const payload = JSON.parse(await file.text());
-    if (payload.app !== "WriteQuest" || payload.version !== 1) throw Error("This is not a supported WriteQuest backup.");
+    if (payload.app !== "WriteQuest" || payload.version !== 1) throw Error("This is not a supported WriteQuest save file.");
     const next = validateSave(payload.data);
-    if (!window.confirm("Replace current progress with this backup? Export your current progress first if you want to keep it.")) return;
+    if (!window.confirm("Load this save file and replace your current progress? Use Save to File first if you want to keep your current progress.")) return;
     save(next, {
       recover: true
     });
@@ -563,9 +563,9 @@ async function importBackup(event) {
     clearRatingDraft();
     draftDay = null;
     render();
-    alert("Backup restored successfully.");
+    alert("Save file loaded successfully.");
   } catch (error) {
-    alert("Backup was not restored. " + error.message);
+    alert("Save file was not loaded. " + error.message);
   } finally {
     event.target.value = "";
   }
@@ -573,14 +573,14 @@ async function importBackup(event) {
 
 function restorePrevious() {
   if (developer?.active) {
-    alert("Exit Test Mode before restoring a backup.");
+    alert("Exit Test Mode before restoring a previous save.");
     return;
   }
   try {
     const raw = localStorage.getItem(BACKUP_KEY);
     if (!raw) throw Error("No previous save is available yet.");
     const next = validateSave(JSON.parse(raw));
-    if (!window.confirm("Restore the previous saved version? Export your current progress first if you want to keep it.")) return;
+    if (!window.confirm("Restore the previous saved version? Use Save to File first if you want to keep your current progress.")) return;
     save(next, {
       recover: true
     });
@@ -868,7 +868,7 @@ function checkin() {
     SKILLS.map(skill => checkinSkillRow(skill, ratings)).join(""),
     '</section>',
     '<button class="primary" id="save-checkin">Save Today’s Check-In</button>',
-    '<p class="small muted checkin-footer">Resets at 3:30 a.m. local time · <button class="text-button" data-page="settings">Back up progress</button></p>'
+    '<p class="small muted checkin-footer">Resets at 3:30 a.m. local time · <button class="text-button" data-page="settings">Save / Load</button></p>'
   ].join("");
 }
 
@@ -988,7 +988,7 @@ function rankProgression() {
 }
 
 function settings() {
-  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Your progress</h2><p class="notice">Progress is saved on this device, with a previous-save recovery copy. Download a backup before clearing browser data or changing devices. Backups are not cloud synced.</p><h2>Back up and restore</h2><p class="small muted">Export a file to keep a copy. To move devices, export here, transfer the file, then import it in WriteQuest on the other device.</p><button class="primary" id="export-backup">Export Backup</button><details class="backup-options"><summary class="secondary">Restore Backup</summary><div class="backup-options-actions"><button class="secondary" id="choose-backup" type="button">Import Backup File</button><input id="import-backup" type="file" accept="application/json,.json" hidden><button class="secondary" id="restore-previous">Restore Previous Save</button></div></details><h2>App updates</h2><p class="small muted">Version 2026.10.29.7 · Progress stays on this device when updating.</p><button class="secondary" id="check-updates">Check for Updates</button><p id="update-status" class="small" role="status"></p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Erase all saved skill XP and daily check-ins on this device. This cannot be undone.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
+  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Save / Load</h2><p class="notice">Your progress saves automatically on this device. Save to a file to keep a copy or continue on another device. Save files are not cloud synced.</p><button class="primary" id="export-backup">Save to File</button><p class="small muted">Download a save file containing your current progress.</p><button class="secondary" id="choose-backup" type="button">Load from File</button><input id="import-backup" type="file" accept="application/json,.json" hidden><p class="small muted">Choose a WriteQuest save file. Loading replaces your current progress after confirmation. Existing backup files work too.</p><details class="backup-options"><summary class="secondary">Recovery Options</summary><div class="backup-options-actions"><p class="small muted">Restore the automatic copy from before your most recent save on this device.</p><button class="secondary" id="restore-previous">Restore Previous Save</button></div></details><h2>App updates</h2><p class="small muted">Version 2026.11.09 · Progress stays on this device when updating.</p><button class="secondary" id="check-updates">Check for Updates</button><p id="update-status" class="small" role="status"></p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Erase all saved skill XP and daily check-ins on this device. This cannot be undone.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
 }
 /* One attainable goal keeps Journey useful for focused writing days. */
 function nextMilestone(items) {
@@ -1023,7 +1023,7 @@ function openTutorial() {
   const steps = [
     ['Welcome to WriteQuest', 'Build your writing habits across Drafting, Editing, Creativity, Learning, and Research.'],
     ['Check in once a day', 'Tap the centre Check In button. Rate progress toward your own goal from 0–5, then save. A rating of 1–5 in one skill completes your writing day and counts toward your streak. Choose “Not Practiced Today” for other skills; you can edit today’s ratings. Two missed days per Sunday–Saturday week preserve your streak. A third missed day that week, or three missed days in a row, ends it. Your day resets at 3:30 a.m. local time.'],
-    ['Watch your progress grow', 'Earn XP, gain levels, and unlock cozy backgrounds. Achievements track your milestones; Journey shows your weekly activity. Back up your progress in Settings.']
+    ['Watch your progress grow', 'Earn XP, gain levels, and unlock cozy backgrounds. Achievements track your milestones; Journey shows your weekly activity. Use Save to File in Settings to keep a copy of your progress.']
   ];
   let step = 0;
   const overlay = document.createElement('div');
@@ -1574,11 +1574,11 @@ function checkOtherTabProgress() {
   if (developer?.active || storageBlocked) return;
   try {
     if (localStorage.getItem(KEY) !== expectedRaw) {
-      saveNotice = "Progress changed in another tab. Export anything needed here, then reload before saving.";
+      saveNotice = "Progress changed in another tab. Use Save to File to keep anything needed here, then reload before saving.";
       render();
     }
   } catch (_) {
-    saveNotice = "Browser storage is unavailable. Keep this page open and export your progress.";
+    saveNotice = "Browser storage is unavailable. Keep this page open and use Save to File.";
     render();
   }
 }
