@@ -1,5 +1,6 @@
 /* WRITEQUEST STYLES: Change the colors below to customize the theme. */
 :root {
+  --app-font: Calibri, Carlito, Arial, sans-serif;
   --bg: #0b1428;
   --panel: #172741;
   --panel2: #203653;
@@ -20,7 +21,7 @@ body {
   isolation: isolate;
   background: var(--bg);
   color: var(--text);
-  font: 16px/1.5 system-ui, sans-serif;
+  font: 16px/1.5 var(--app-font);
   min-height: 100vh;
 }
 
@@ -92,7 +93,7 @@ header {
 }
 
 .brand {
-  font: 700 34px Georgia, serif;
+  font: 700 34px var(--app-font);
   color: var(--gold);
   letter-spacing: -1px;
 }
@@ -184,7 +185,7 @@ header {
 
 h1,
 h2 {
-  font-family: Georgia, serif;
+  font-family: var(--app-font);
   margin: 0 0 8px;
 }
 
@@ -423,7 +424,7 @@ h2 {
 }
 
 .rank-summary strong {
-  font: 700 24px Georgia, serif;
+  font: 700 24px var(--app-font);
   color: var(--gold);
 }
 
@@ -679,7 +680,7 @@ h2 {
   width: clamp(94px, 28vw, 124px);
   height: clamp(94px, 28vw, 124px);
   border-radius: 50%;
-  font: 700 12px system-ui, sans-serif;
+  font: 700 12px var(--app-font);
   cursor: pointer;
   box-shadow: 0 3px 16px #0008;
 }
@@ -990,7 +991,7 @@ h2 {
 }
 
 .skill-grid .skill strong {
-  font-family: Calibri, Carlito, Arial, sans-serif;
+  font-family: var(--app-font);
 }
 
 @media(max-width:600px) {
@@ -1105,7 +1106,7 @@ body::before {
   border: 2px solid #cdb5ff;
   border-radius: 999px;
   padding: 9px 13px;
-  font: 700 12px system-ui, sans-serif;
+  font: 700 12px var(--app-font);
   box-shadow: 0 3px 10px #0005;
 }
 
@@ -2519,7 +2520,7 @@ body:not(.developer-mode) #developer-launcher { display: none; }
   border-radius: 12px;
   background: #142a3e;
   color: #ffe291;
-  font: 700 15px system-ui, sans-serif;
+  font: 700 15px var(--app-font);
   white-space: nowrap;
   z-index: 5;
   animation: daily-quest-xp-rise 2.2s ease-out forwards;
@@ -2666,3 +2667,8 @@ body:not(.developer-mode) #developer-launcher { display: none; }
   border-color: var(--gold);
 }
 .daily-quest > button:disabled { opacity: .55; cursor: default; }
+
+/* Native form controls and inline badge lettering use the same interface font. */
+button, input, select, textarea, svg text {
+  font-family: var(--app-font);
+}
