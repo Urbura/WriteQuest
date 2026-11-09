@@ -51,3 +51,46 @@ test('a rerender cancels old animation frames and settles unchanged progress', (
   const t = setup(); t.animate(); assert.equal(t.queued(), 1); t.animate();
   assert.equal(t.queued(), 0); assert.equal(t.value(), .4);
 });
+
+
+function rewardView(reduced = false) {
+  const vm = require('node:vm'), fs = require('node:fs');
+  let time = 0, callback, completed = 0;
+  const nodes = [];
+  const make = tag => {
+    const classes = new Set();
+    const node = { tag, style: {}, children: [], attrs: {},
+      classList: { add: x => classes.add(x), remove: x => classes.delete(x), contains: x => classes.has(x) },
+      setAttribute(k,v) { this.attrs[k]=v; }, append(...items) { this.children.push(...items); },
+      appendChild(item) { this.children.push(item); }, addEventListener(k,fn) { this[k]=fn; }, focus() {}, remove() { this.removed=true; }
+    }; nodes.push(node); return node;
+  };
+  const context = { document: {createElement: make, body: make('body'), addEventListener() {}, removeEventListener() {}},
+    requestAnimationFrame: fn => {callback=fn; return 1;}, cancelAnimationFrame: () => {callback=null;},
+    performance: {now: () => time}, matchMedia: () => ({matches: reduced}) };
+  vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../js/xp-animation.js'),'utf8'), context);
+  const awards = ['Drafting','Revising'].map((name,i)=>({name, delta: i+2, color:'#abc',before:{level:1,remaining:1,need:5},after:{level:1,remaining:i+3,need:5}}));
+  context.QuestXPAnimation.showCheckinAwards(awards,()=>completed++);
+  return {nodes, rows: nodes.filter(n=>n.className==='checkin-reward-row'), button:nodes.find(n=>n.tag==='button'),
+    tick(t) {time=t; const fn=callback;callback=null;fn?.(t);}, completed:()=>completed};
+}
+test('check-in rewards animate one skill at a time, retain XP amounts and finish once',()=>{
+ const t=rewardView();
+ assert(t.rows[0].classList.contains('is-awarding'));
+ assert(!t.rows[1].classList.contains('is-awarding'));
+ assert.deepEqual(t.nodes.filter(n=>n.className==='checkin-reward-gain').map(n=>n.textContent),['+2 XP','+3 XP']);
+ t.tick(850);
+ assert(t.rows[0].classList.contains('is-awarded'));
+ assert(t.rows[1].classList.contains('is-awarding'));
+ t.tick(1700);assert.equal(t.button.textContent,'Continue');
+ t.button.click();t.button.click();assert.equal(t.completed(),1);
+});
+test('reduced-motion reward summary immediately displays final gauges',()=>{
+ const t=rewardView(true);assert.equal(t.button.textContent,'Continue');
+ assert(t.rows.every(n=>n.classList.contains('is-awarded')));
+ assert.deepEqual(t.nodes.filter(n=>n.className==='fill').map(n=>n.style.width),['60%','80%']);
+});
+test('skip settles every gauge before continuing without replaying rewards',()=>{
+ const t=rewardView();t.button.click();assert.equal(t.completed(),0);
+ assert.equal(t.button.textContent,'Continue');t.tick(900);t.button.click();assert.equal(t.completed(),1);
+});
