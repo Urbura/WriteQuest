@@ -2672,3 +2672,16 @@ body:not(.developer-mode) #developer-launcher { display: none; }
 button, input, select, textarea, svg text {
   font-family: var(--app-font);
 }
+
+/* One compact rating guide applies to all five writing skills. */
+.rating-guide {
+  list-style: none;
+  margin: 10px 0;
+  padding: 0;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: left;
+}
+.rating-guide li { margin: 6px 0; }
+.rating-guide strong { color: var(--gold); }

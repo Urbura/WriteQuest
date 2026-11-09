@@ -1025,7 +1025,10 @@ function checkin() {
     '<div class="checkin-heading">',
     contentBack(),
     '<h1>Daily Check-In</h1>',
-    '<p class="muted checkin-intro">Rate progress toward your own goal: 1–5. One skill is enough; choose “Not Practiced Today” for the others.</p>',
+    '<p class="muted checkin-intro">Rate progress toward your own goal:</p>',
+    '<ul class="rating-guide"><li><strong>1 — Small step:</strong> Made a little progress.</li><li><strong>3 — Solid progress:</strong> Completed a meaningful amount.</li><li><strong>5 — Goal met:</strong> Achieved what you aimed to do today.</li></ul>',
+    '<p class="muted checkin-intro">Use 2 or 4 when you fall between these.</p>',
+    '<p class="muted checkin-intro">One skill is enough; choose “Not Practiced Today” for the others.</p>',
     '</div><section class="card checkin-card">',
     SKILLS.map(skill => checkinSkillRow(skill, ratings)).join(""),
     '</section>',
@@ -1691,7 +1694,7 @@ function recoverRatingDraft() {
 }
 
 /* Check HTML without cache; only a user action reloads the app. No service worker. */
-const APP_BUILD = "20261109-autosave-time";
+const APP_BUILD = "20261109-rating-guide";
 let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
 function renderUpdateNotice() {
   if (!availableBuild || typeof document.createElement !== "function") return;
