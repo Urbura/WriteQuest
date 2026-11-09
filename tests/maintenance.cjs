@@ -370,3 +370,12 @@ test('Journal includes seven Sunday-first writing trail markers with active and 
  run("state.checkins[localDay()] = {drafting: 0};");
  assert.match(run('journey()'),/0<\/strong> writing days this week/);
 });
+
+test('Settings exposes simple Save and Load and explains reset preserves Manual Save', () => {
+ const {run}=appContext();
+ const html=run('settings()');
+ assert.match(html,/id="save-local"/);
+ assert.match(html,/id="load-local"/);
+ assert.doesNotMatch(html,/Recovery Options|Restore Previous Save|Export File|Import File|id="import-backup"/);
+ assert.match(html,/Your Manual Save is kept/);
+});
