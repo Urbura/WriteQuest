@@ -531,7 +531,7 @@ function readManualSave() {
       typeof payload.savedAt !== "string" || !Number.isFinite(Date.parse(payload.savedAt))) {
     throw Error("The manual save could not be read. Use Recovery Options to restore another copy.");
   }
-  return { savedAt: payload.savedAt, data: validateSave(payload.data) };
+  return { raw, savedAt: payload.savedAt, data: validateSave(payload.data) };
 }
 
 function manualSaveStatus() {
@@ -569,16 +569,19 @@ function saveLocal() {
   }
 }
 
-function loadLocal() {
+function loadLocal(snapshot = null) {
   if (developer?.active) {
     alert("Exit Test Mode before loading your normal progress.");
     return;
   }
   try {
-    const saved = readManualSave();
+    const saved = snapshot || readManualSave();
     if (!saved) throw Error("No manual save is available yet. Select Save to create one.");
     const when = new Date(saved.savedAt).toLocaleString();
     if (!window.confirm("Load your manual save from " + when + " and replace your current progress?")) return;
+    if (localStorage.getItem(MANUAL_SAVE_KEY) !== saved.raw) {
+      throw Error("The manual save changed in another tab. Open Load again to view the latest copy.");
+    }
     // Existing save checks protect newer progress in another tab and retain a recovery copy.
     save(saved.data, { recover: true });
     draftRatings = null;
@@ -597,13 +600,13 @@ function readAutosave() {
   return raw === null ? null : { raw, data: validateSave(JSON.parse(raw)) };
 }
 
-function loadAutosave() {
+function loadAutosave(snapshot = null) {
   if (developer?.active) {
     alert("Exit Test Mode before loading your normal progress.");
     return;
   }
   try {
-    const saved = readAutosave();
+    const saved = snapshot || readAutosave();
     if (!saved) throw Error("No autosave is available yet. Complete a check-in to create one.");
     if (!window.confirm("Load the last autosave on this device? Any unfinished ratings will be discarded.")) return;
     if (localStorage.getItem(KEY) !== saved.raw) {
@@ -624,22 +627,37 @@ function loadAutosave() {
   }
 }
 
+
+function loadSlotHTML(id, title, snapshot) {
+  if (!snapshot) return '<button type="button" class="load-slot" id="' + id + '" disabled><strong>' + title + '</strong><span class="load-slot-date">No save available</span></button>';
+  const total = SKILLS.reduce((sum, skill) => sum + stats(snapshot.data.xp[skill.id]).level, 0);
+  const lastDay = Object.keys(snapshot.data.checkins).sort().pop();
+  const date = snapshot.savedAt
+    ? "Saved " + new Date(snapshot.savedAt).toLocaleString([], { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit" })
+    : lastDay ? "Last check-in " + new Date(lastDay + "T12:00:00").toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" }) : "Latest on this device";
+  return '<button type="button" class="load-slot" id="' + id + '">' +
+    '<span class="load-slot-heading"><strong>' + title + '</strong><span class="load-slot-total">Total Level ' + total + '</span></span>' +
+    '<span class="load-slot-rank">' + totalRank(total) + '</span>' +
+    '<span class="load-slot-skills">' + SKILLS.map(skill =>
+      '<span class="load-slot-skill"><span class="load-slot-icon" aria-hidden="true">' + skillIcon(skill) + '</span>' +
+      '<span class="load-slot-name">' + skill.name + '</span><strong>Lv ' + stats(snapshot.data.xp[skill.id]).level + '</strong></span>'
+    ).join("") + '</span><span class="load-slot-date">' + date + '</span></button>';
+}
+
 function openLoadMenu() {
   if (developer?.active) {
     alert("Exit Test Mode before loading your normal progress.");
     return;
   }
-  const manual = manualSaveStatus();
-  let autosaveAvailable = false;
-  try { autosaveAvailable = Boolean(readAutosave()); } catch (error) { /* Recovery Options remain available. */ }
+  let manual = null, autosave = null;
+  try { manual = readManualSave(); } catch (error) { /* Keep damaged saves unavailable. */ }
+  try { autosave = readAutosave(); } catch (error) { /* Recovery Options remain available. */ }
   const overlay = document.createElement("div");
   overlay.className = "save-overlay";
-  overlay.innerHTML = '<section class="save-dialog" role="dialog" aria-modal="true" aria-labelledby="load-menu-heading">' +
-    '<h2 id="load-menu-heading">Load Progress</h2><p>Choose which copy to load.</p>' +
-    '<button type="button" class="secondary" id="load-autosave"' + (autosaveAvailable ? '' : ' disabled') + '>Last Autosave</button>' +
-    '<p class="small">' + (autosaveAvailable ? 'The latest progress saved automatically on this device.' : 'No valid autosave is available yet.') + '</p>' +
-    '<button type="button" class="secondary" id="load-manual"' + (manual.available ? '' : ' disabled') + '>Manual Save</button>' +
-    '<p class="small">' + manual.text + '</p>' +
+  overlay.innerHTML = '<section class="save-dialog load-dialog" role="dialog" aria-modal="true" aria-labelledby="load-menu-heading">' +
+    '<h2 id="load-menu-heading">Load Progress</h2><p>Choose a save to load.</p>' +
+    loadSlotHTML("load-autosave", "Last Autosave", autosave) +
+    loadSlotHTML("load-manual", "Manual Save", manual) +
     '<button type="button" class="secondary" id="cancel-load">Cancel</button></section>';
   document.body.appendChild(overlay);
   globalThis.WriteQuestDialogs?.contain(overlay);
@@ -647,8 +665,8 @@ function openLoadMenu() {
     globalThis.WriteQuestDialogs?.release(overlay);
     overlay.remove();
   };
-  overlay.querySelector("#load-autosave").addEventListener("click", () => { close(); loadAutosave(); });
-  overlay.querySelector("#load-manual").addEventListener("click", () => { close(); loadLocal(); });
+  overlay.querySelector("#load-autosave").addEventListener("click", () => { close(); loadAutosave(autosave); });
+  overlay.querySelector("#load-manual").addEventListener("click", () => { close(); loadLocal(manual); });
   overlay.querySelector("#cancel-load").addEventListener("click", close);
   overlay.addEventListener("keydown", event => {
     if (event.key === "Escape") { event.preventDefault(); close(); }
@@ -1666,7 +1684,7 @@ function recoverRatingDraft() {
 }
 
 /* Check HTML without cache; only a user action reloads the app. No service worker. */
-const APP_BUILD = "20261109-local-save";
+const APP_BUILD = "20261109-save-slots";
 let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
 function renderUpdateNotice() {
   if (!availableBuild || typeof document.createElement !== "function") return;

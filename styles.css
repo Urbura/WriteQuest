@@ -2582,3 +2582,43 @@ body:not(.developer-mode) #developer-launcher { display: none; }
   body[data-rank-background="master"]::before { background-position: center 48%; }
   body[data-rank-background="grandmaster"]::before { background-position: center 68%; }
 }
+
+/* Compact RPG save slots: each preview comes from the copy that will be loaded. */
+.load-dialog {
+  max-width: 420px;
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  padding: 20px 16px;
+}
+.load-dialog > p { margin: 0 0 14px; font-size: 13px; }
+.load-slot {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  margin: 10px 0;
+  padding: 13px 12px;
+  border: 2px solid #839bc0;
+  border-radius: 12px;
+  background: linear-gradient(145deg, #243d66, #142641);
+  box-shadow: inset 0 0 0 1px #ffffff12;
+  color: var(--text);
+  text-align: left;
+  line-height: 1.3;
+}
+.load-slot:hover:not(:disabled), .load-slot:focus-visible { border-color: var(--gold); }
+.load-slot:disabled { opacity: .5; cursor: default; }
+.load-slot-heading { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 4px 8px; font-size: 15px; }
+.load-slot-total { color: var(--gold); font-size: 12px; white-space: nowrap; }
+.load-slot-rank { display: block; margin: 3px 0 10px; color: var(--muted); font-size: 12px; }
+.load-slot-skills { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px; }
+.load-slot-skill { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; }
+.load-slot-icon { display: block; font-size: 24px; line-height: 1; }
+.load-slot-name { font-size: 10px; }
+.load-slot-skill > strong { font-size: 13px; white-space: nowrap; }
+.load-slot-date { display: block; margin-top: 10px; color: var(--muted); font-size: 11px; }
+@media (max-width: 350px) {
+  .load-dialog { padding: 16px 12px; }
+  .load-slot { padding: 11px 8px; }
+  .load-slot-skills { gap: 2px; }
+  .load-slot-name { font-size: 9px; }
+}

@@ -313,3 +313,32 @@ test('Load menu exposes both sources, keeps unavailable options disabled, and ca
  const settings=b.run('settings()');
  assert.match(settings,/id="save-local">Save</);assert.match(settings,/id="load-local" type="button">Load</);
 });
+
+test('load previews show each saved copy’s own rank, total and five skill levels',()=>{
+ const b=boot({[key]:JSON.stringify(sample)});
+ b.run('saveLocal();var previewManual=readManualSave();save({...state,xp:{...state.xp,drafting:100}});var previewAuto=readAutosave()');
+ const manual=b.run('loadSlotHTML("load-manual","Manual Save",previewManual)');
+ const autosave=b.run('loadSlotHTML("load-autosave","Last Autosave",previewAuto)');
+ assert.match(manual,/Total Level 6</);assert.match(manual,/>Beginner</);assert.match(manual,/>Lv 2</);
+ for(const name of ['Drafting','Editing','Creativity','Learning','Research'])assert(manual.includes('>'+name+'</'));
+ assert.equal((manual.match(/class="load-slot-skill"/g)||[]).length,5);
+ assert.match(manual,/class="load-slot-date">Saved /);
+ assert(autosave.includes('Total Level '+b.run('getTotalLevel()')+'<'));
+ assert.match(autosave,/Last check-in/);assert.notEqual(manual,autosave);
+ assert.match(b.run('loadSlotHTML("load-manual","Manual Save",null)'),/disabled/);
+});
+
+test('loading a preview refuses a slot changed after the menu was opened',()=>{
+ const b=boot({[key]:JSON.stringify(sample)});
+ b.run('saveLocal();var shownManual=readManualSave();var shownAuto=readAutosave()');
+ const changed=JSON.parse(b.map.get(key+'-manual'));changed.data.xp.drafting=50;
+ b.map.set(key+'-manual',JSON.stringify(changed));
+ const newer=JSON.stringify({...sample,xp:{...sample.xp,drafting:40}});b.map.set(key,newer);
+ const before=new Map(b.map);
+ b.run('loadLocal(shownManual)');
+ assert.match(b.alerts.at(-1),/manual save changed/);
+ b.run('loadAutosave(shownAuto)');
+ assert.match(b.alerts.at(-1),/autosave changed/);
+ assert.deepEqual(b.map,before);
+ assert.equal(b.run('state.xp.drafting'),5);
+});
