@@ -2699,3 +2699,23 @@ button, input, select, textarea, svg text {
 @media (prefers-reduced-motion: reduce) {
   .checkin-reward-row.is-awarding { box-shadow: none; }
 }
+
+/* A quiet Sunday–Saturday trail beneath the Journal title. */
+.writing-trail { padding: 14px 0 4px; }
+.writing-trail-heading { display:flex; align-items:baseline; justify-content:space-between; gap:8px; flex-wrap:wrap; }
+.writing-trail-heading h2 { margin:0; }
+.writing-trail-summary { margin:10px 0; }
+.writing-trail-summary strong { color:#f8d77d; font-size:1.35em; }
+.writing-trail-days { gap:clamp(3px,1vw,8px); }
+.trail-day { position:relative; padding:8px 0; gap:5px; min-width:0; border-color:rgba(160,179,208,.18); background:rgba(12,20,38,.3); }
+.trail-weekday { font-size:clamp(.62rem,2.5vw,.8rem); }
+.trail-marker { display:grid; place-items:center; width:28px; height:28px; margin:auto; border-radius:50%; background:rgba(160,179,208,.08); font-size:1.05rem; }
+.trail-date { font-size:.7rem; opacity:.75; }
+.trail-day.journey-checked { background:rgba(42,94,77,.35); border-color:rgba(134,239,172,.5); box-shadow:0 0 12px rgba(134,239,172,.1); }
+.journey-checked .trail-marker { color:#c9ffdf; background:rgba(134,239,172,.16); box-shadow:0 0 9px rgba(134,239,172,.18); }
+.trail-today { outline:1px solid #f8d77d; outline-offset:2px; }
+.trail-future { background:transparent; color:#8b98af; border-style:dashed; }
+.trail-caption { margin:8px 0 0; }
+@media (prefers-reduced-motion: reduce) {
+  .trail-day.journey-checked, .journey-checked .trail-marker { box-shadow:none; }
+}
