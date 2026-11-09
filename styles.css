@@ -676,8 +676,8 @@ h2 {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  width: clamp(86px, 26vw, 112px);
-  height: clamp(86px, 26vw, 112px);
+  width: clamp(94px, 28vw, 124px);
+  height: clamp(94px, 28vw, 124px);
   border-radius: 50%;
   font: 700 12px system-ui, sans-serif;
   cursor: pointer;
@@ -735,8 +735,8 @@ h2 {
   }
 
   .star-checkin {
-    width: 84px;
-    height: 84px;
+    width: 92px;
+    height: 92px;
     font-size: 11px;
   }
 
@@ -805,8 +805,8 @@ h2 {
 
   .app:has(.skill-star) .star-checkin {
     top: 51%;
-    width: clamp(80px, 22vw, 104px);
-    height: clamp(80px, 22vw, 104px);
+    width: clamp(88px, 24vw, 116px);
+    height: clamp(88px, 24vw, 116px);
   }
 
 }
@@ -830,8 +830,8 @@ h2 {
   }
 
   .app:has(.skill-star) .star-checkin {
-    width: 74px;
-    height: 74px;
+    width: 82px;
+    height: 82px;
     font-size: 10px;
   }
 
@@ -2552,7 +2552,7 @@ body:not(.developer-mode) #developer-launcher { display: none; }
 /* Inset the content so labels stay clear of the circular rim. */
 .app:has(.skill-star) .star-checkin {
   box-sizing: border-box;
-  padding: 8px;
+  padding: 10px;
   text-align: center;
 }
 .app:has(.skill-star) .star-checkin > span {
