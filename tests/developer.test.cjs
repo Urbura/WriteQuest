@@ -13,6 +13,7 @@ function boot(search=''){
   document:{getElementById:()=>({}),addEventListener(){}},window:{addEventListener(){},scrollTo(){}},
   setInterval(){},alert:m=>alerts.push(m)
  });
+ vm.runInContext(fs.readFileSync(path.join(root,'js/dates.js'),'utf8'),context);
  vm.runInContext(fs.readFileSync(path.join(root,'js/developer.js'),'utf8'),context);
  vm.runInContext(fs.readFileSync(path.join(root,'js/saves.js'),'utf8'),context);
  vm.runInContext(fs.readFileSync(path.join(root,'js/developer-ui.js'),'utf8'),context);

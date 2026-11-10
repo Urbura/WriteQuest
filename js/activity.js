@@ -2,16 +2,12 @@
 (function(root) {
   "use strict";
 
+  const dates = root.WriteQuestDates || (typeof require !== "undefined" ? require("./dates.js") : null);
+
   function positiveDays(checkins, today = null) {
     return Object.keys(checkins)
       .filter(day => (!today || day <= today) && Object.values(checkins[day]).some(rating => rating > 0))
       .sort();
-  }
-
-  // Calendar arithmetic uses UTC for date-only values, avoiding DST hour changes.
-  function shiftDay(day, offset) {
-    return new Date(Date.parse(day + "T00:00:00Z") + offset * 86400000)
-      .toISOString().slice(0, 10);
   }
 
   function streakSummary(days, today = null) {
@@ -29,9 +25,8 @@
     let consecutiveMisses = 0;
 
     // Reconstruct skipped days even when the app was never opened on those days.
-    for (let day = activeDays[0]; day <= lastDay; day = shiftDay(day, 1)) {
-      const weekday = new Date(day + "T00:00:00Z").getUTCDay();
-      const sunday = shiftDay(day, -weekday);
+    for (let day = activeDays[0]; day <= lastDay; day = dates.shiftDay(day, 1)) {
+      const sunday = dates.startOfWeek(day);
       if (sunday !== week) {
         week = sunday;
         missedThisWeek = 0;

@@ -413,12 +413,8 @@ function getTotalLevel() {
   return total;
 }
 
-/* Use local calendar arithmetic so daylight saving days retain a 3:30 a.m. reset. */
-function localDay(now = new Date()) {
-  const date = new Date(now);
-  if (date.getHours() * 60 + date.getMinutes() < 210) date.setDate(date.getDate() - 1);
-  return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-");
-}
+// Shared local writing-day boundary, including daylight saving changes.
+const localDay = globalThis.WriteQuestDates.localDay;
 
 
 function navigate(next) {
@@ -1249,7 +1245,7 @@ function recoverRatingDraft() {
 }
 
 /* Check HTML without cache; only a user action reloads the app. No service worker. */
-const APP_BUILD = "20261110-developer-ui";
+const APP_BUILD = "20261110-shared-dates";
 let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
 function renderUpdateNotice() {
   if (!availableBuild || typeof document.createElement !== "function") return;

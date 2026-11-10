@@ -1,15 +1,16 @@
 (function(root) {
+  "use strict";
+
+  const dates = root.WriteQuestDates || (typeof require !== "undefined" ? require("./dates.js") : null);
   function summary(checkins, today) {
     const activity = root.WriteQuestActivity || (typeof require !== "undefined" ? require("./activity.js") : null);
     const days = activity.positiveDays(checkins, today),
       set = new Set(days);
-    const shift = (d, n) => new Date(Date.parse(d + 'T00:00:00Z') + n * 86400000).toISOString().slice(0, 10);
-    const weekday = new Date(today + 'T00:00:00Z').getUTCDay(),
-      sunday = shift(today, -weekday);
+    const sunday = dates.startOfWeek(today);
     const week = Array.from({
       length: 7
     }, (_, i) => {
-      const day = shift(sunday, i);
+      const day = dates.shiftDay(sunday, i);
       return {
         day,
         checked: set.has(day),

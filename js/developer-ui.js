@@ -65,9 +65,8 @@ function previewAllAchievements() {
   if (!developer.setTotal(250)) return;
   const next = validateSave(state),
     today = localDay();
-  const stamp = Date.parse(today + "T00:00:00Z");
   for (let offset = 0; offset < 100; offset++) {
-    const day = new Date(stamp - offset * 86400000).toISOString().slice(0, 10);
+    const day = globalThis.WriteQuestDates.shiftDay(today, -offset);
     next.checkins[day] = Object.fromEntries(SKILLS.map(s => [s.id, 5]));
   }
   next.achievementsSeen = [];

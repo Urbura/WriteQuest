@@ -49,6 +49,7 @@ for behaviour; avoid mixing the two.
 | --- | --- |
 | `app.js` | Skill definitions, XP calculation, navigation and page rendering |
 | `js/saves.js` | Save validation, autosave, manual Save/Load, recovery, write verification, stale-tab protection, and Load slot previews |
+| `js/dates.js` | Shared date-only arithmetic, Sunday week starts, and the local 3:30 a.m. writing-day boundary |
 | `js/activity.js` | Positive writing days and longest-streak calculation shared by Journey and achievements |
 | `js/achievements.js` | Achievement names, requirements and unlock calculations |
 | `js/badges.js` | Achievement badge artwork and earned holographic styling hooks |
@@ -63,7 +64,7 @@ for behaviour; avoid mixing the two.
 
 ## Loading and dependencies
 
-`index.html` loads classic scripts with `defer`. Keep `activity.js` before
+`index.html` loads classic scripts with `defer`. Keep `dates.js` before `activity.js`, `journey.js`, and `developer-ui.js`. Keep `activity.js` before
 `journey.js` and `achievements.js`, load `developer-ui.js` and `saves.js` before `app.js`, and keep `app.js` last. Save functions read
 app data only when called after the data is initialized. Badge and celebration
 functions read app data when called, after initialization. Keep their global
