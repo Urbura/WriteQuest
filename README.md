@@ -34,7 +34,7 @@ WriteQuest uses plain HTML, CSS, and small JavaScript modules. You can edit them
 - Skill XP and levels, capped at 50
 - Correcting today's check-in recalculates XP rather than awarding it twice
 - Daily reset at 3:30 a.m. device local time
-- Validated JSON backup export/import in Settings
+- Browser-local Manual Save and Load with autosave and manual-save previews
 - Previous valid save retained for recovery, failed-write protection, and stale-tab conflict detection
 
 - Journey with a Sunday–Saturday calendar and flexible streaks
@@ -61,9 +61,9 @@ The settings gear is based on the [Lucide settings icon](https://lucide.dev/icon
 
 
 ## Save protection
-The existing `writequest-starter-v1` key is preserved. Validated saves retain the previous valid version under `writequest-starter-v1-backup`. Damaged saves are preserved and automatic writes pause until recovery. A failed write leaves the current state and draft ratings available to retry. Another tab changing the save blocks stale writes; reload after exporting anything needed.
+The existing `writequest-starter-v1` key is preserved. Validated saves retain the previous valid version under `writequest-starter-v1-backup`. Damaged saves are preserved and automatic writes pause until recovery. A failed write leaves the current state and draft ratings available to retry. Another tab changing the save blocks stale writes; use Load to review the latest autosave before saving again.
 
-Use Settings → Export Backup to download a JSON copy, and Import Backup to restore it on another device. Import requires confirmation and validation before replacing progress. Restore Previous Save rolls back one saved version. Local copies cannot survive clearing all site data; retain downloaded backups. There is no cloud sync.
+Settings → Save keeps a separate Manual Save on this device. Load offers Last Autosave and Manual Save. When a previous valid copy is recovered, use Save to preserve it and Load → Manual Save to resume saving. Reset Progress preserves the Manual Save. Clearing site data removes local copies. There is no cloud sync.
 
 A new writing day opens at 3:30 a.m. according to the device clock and time zone. Existing dated history is preserved. Travelling follows the new device time zone; the app uses one record per calendar date. Unsaved ratings spanning a reset require review before saving.
 

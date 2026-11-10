@@ -1555,7 +1555,7 @@ header.quest-header .header-level {
   }
 }
 
-/* Settings controls occupy separate rows, including the file-import label. */
+/* Settings controls occupy separate rows. */
 .settings-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1582,18 +1582,6 @@ header.quest-header .header-level {
   overflow-wrap: anywhere;
 }
 
-.settings-card>label.secondary {
-  cursor: pointer;
-}
-
-.settings-card>input[type=file] {
-  display: block;
-  max-width: 100%;
-  width: 100%;
-  font: inherit;
-  font-size: 13px;
-}
-
 .settings-card #toggle-sounds,
 .settings-card #open-tutorial {
   margin-bottom: 0;
@@ -1604,33 +1592,6 @@ header.quest-header>.back {
   white-space: nowrap;
   padding: 8px;
   font-size: 14px;
-}
-
-/* High-contrast native backup file chooser. */
-.settings-card>input[type=file] {
-  color: #fff;
-}
-
-.settings-card>input[type=file]::file-selector-button {
-  color: #fff;
-  background: #223958;
-  border: 1px solid #607293;
-  border-radius: 8px;
-  padding: 8px 12px;
-  margin-right: 10px;
-  font: inherit;
-  cursor: pointer;
-}
-
-.settings-card>input[type=file]::-webkit-file-upload-button {
-  color: #fff;
-  background: #223958;
-  border: 1px solid #607293;
-  border-radius: 8px;
-  padding: 8px 12px;
-  margin-right: 10px;
-  font: inherit;
-  cursor: pointer;
 }
 
 .achievement-badge>img {
@@ -1895,38 +1856,6 @@ header.quest-header .header-actions .settings-button:hover {
 .rank-list-icon-locked {
   filter: grayscale(1);
   opacity: .5;
-}
-
-.backup-options>summary {
-  display: block;
-  text-align: center;
-  cursor: pointer;
-  list-style: none;
-}
-
-.backup-options>summary::-webkit-details-marker {
-  display: none;
-}
-
-.backup-options>summary::after {
-  content: " ▾";
-}
-
-.backup-options[open]>summary::after {
-  content: " ▴";
-}
-
-.backup-options-actions {
-  display: grid;
-  gap: 10px;
-  margin-top: 10px;
-  padding: 12px;
-  border: 1px solid #516382;
-  border-radius: 12px;
-}
-
-#import-backup[hidden] {
-  display: none;
 }
 
 /* The wider Silver composition fills the screen at a stable scale. */

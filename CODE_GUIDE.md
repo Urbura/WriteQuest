@@ -96,7 +96,7 @@ Settings Save writes one explicit checkpoint to `writequest-starter-v1-manual`, 
 
 Load opens an accessible dialog with Last Autosave and Manual Save. Each slot previews its own rank, total level and five skill levels, plus the manual save timestamp or last check-in date. The selected snapshot is rechecked before loading so a changed slot cannot silently load different progress. Last Autosave reads the latest validated primary save without rewriting it and refreshes the tab's expected save version. Manual Save restores the checkpoint through the existing guarded save path, retaining pre-load progress as the automatic recovery copy. Both require confirmation and clear unfinished ratings only after a successful load. Missing or damaged copies are disabled in the dialog; all manual operations are blocked in Test Mode.
 
-Local copies remain in the same browser or installed app on the same device. Clearing browser/app data removes them. Recovery Options retains Restore Previous Save and file export/import, including existing exported files, for recovery and transferring progress to another device.
+Local copies remain in the same browser or installed app on the same device. Clearing browser/app data removes them. The previous valid save remains an internal recovery copy. If it is recovered on startup, use Save and then Load → Manual Save to resume saving. File export/import and Restore Previous Save controls and handlers have been removed.
 
 ## Progress and Test Mode
 

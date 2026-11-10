@@ -58,11 +58,10 @@ test('exit loads the latest normal save, including updates from another tab',()=
  assert.equal(b.run('developer.active'),false);assert.equal(b.run('state.xp.drafting'),30);
  assert.equal(b.run('Object.keys(state.checkins).length'),1);assert.equal(b.writes(),0);
 });
-test('backup import, export, restoration and reset are guarded during previews',async()=>{
+test('reset is guarded during previews',()=>{
  const b=boot('?dev');b.run('enterDeveloperMode()');
- b.run('exportBackup();restorePrevious();confirmResetProgress()');
- await b.run('importBackup({target:{value:""}})');
- assert.equal(b.alerts.length,4);assert.equal(b.writes(),0);assert.equal(b.map.get(key),b.raw);
+ b.run('confirmResetProgress()');
+ assert.equal(b.alerts.length,1);assert.equal(b.writes(),0);assert.equal(b.map.get(key),b.raw);
 });
 
 test('manual Save, both Load sources and the Load menu never touch normal progress in Test Mode',()=>{

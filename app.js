@@ -437,7 +437,7 @@ function loadProgress() {
     const previous = localStorage.getItem(BACKUP_KEY);
     if (previous !== null) {
       storageBlocked = true;
-      saveNotice = "The main save is missing. Showing your previous save; open Settings to restore it before saving.";
+      saveNotice = "The main save is missing. Showing your previous save; use Save to keep it, then Load your Manual Save to resume saving.";
       return validateSave(JSON.parse(previous));
     }
     return blank();
@@ -680,79 +680,6 @@ function openLoadMenu() {
   });
   overlay.addEventListener("click", event => { if (event.target === overlay) close(); });
   overlay.querySelector("button:not(:disabled)")?.focus();
-}
-
-function exportBackup() {
-  if (developer?.active) {
-    alert("Exit Test Mode to save your normal progress to a file.");
-    return;
-  }
-  const payload = {
-    app: "WriteQuest",
-    version: 1,
-    exportedAt: new Date().toISOString(),
-    data: state
-  };
-  const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], {
-    type: "application/json"
-  }));
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = "writequest-save-" + localDay() + ".json";
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-}
-async function importBackup(event) {
-  if (developer?.active) {
-    event.target.value = "";
-    alert("Exit Test Mode before loading a save file.");
-    return;
-  }
-  const file = event.target.files?.[0];
-  if (!file) return;
-  try {
-    if (file.size > 5 * 1024 * 1024) throw Error("Choose a WriteQuest save file smaller than 5 MB.");
-    const payload = JSON.parse(await file.text());
-    if (payload.app !== "WriteQuest" || payload.version !== 1) throw Error("This is not a supported WriteQuest save file.");
-    const next = validateSave(payload.data);
-    if (!window.confirm("Import this file and replace your current progress? Use Save first if you want to keep a manual copy.")) return;
-    save(next, {
-      recover: true
-    });
-    draftRatings = null;
-    clearRatingDraft();
-    draftDay = null;
-    render();
-    alert("Save file imported successfully.");
-  } catch (error) {
-    alert("Save file was not imported. " + error.message);
-  } finally {
-    event.target.value = "";
-  }
-}
-
-function restorePrevious() {
-  if (developer?.active) {
-    alert("Exit Test Mode before restoring a previous save.");
-    return;
-  }
-  try {
-    const raw = localStorage.getItem(BACKUP_KEY);
-    if (!raw) throw Error("No previous save is available yet.");
-    const next = validateSave(JSON.parse(raw));
-    if (!window.confirm("Restore the previous saved version? Use Save first if you want to keep your current progress.")) return;
-    save(next, {
-      recover: true
-    });
-    draftRatings = null;
-    clearRatingDraft();
-    draftDay = null;
-    render();
-  } catch (error) {
-    alert("Could not restore progress. " + error.message);
-  }
 }
 
 function navigate(next) {
@@ -1154,7 +1081,7 @@ function rankProgression() {
 
 function settings() {
   const manual = manualSaveStatus();
-  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Save / Load</h2><p class="notice">Your progress saves automatically. Save keeps a separate manual copy inside WriteQuest on this device. Load lets you choose the last autosave or your manual save.</p><button class="primary" id="save-local">Save</button><p id="manual-save-status" class="small muted" role="status">' + manual.text + '</p><button class="secondary" id="load-local" type="button">Load</button><p class="small muted">No download needed. This save stays in this browser or installed app on this device. Clearing its data removes local saves.</p><h2>App updates</h2><p class="small muted">Version 2026.11.09 · Progress stays on this device when updating.</p><button class="secondary" id="check-updates">Check for Updates</button><p id="update-status" class="small" role="status"></p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Reset your active XP, achievements, and check-in history. Your Manual Save is kept and can be restored with Load.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
+  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Save / Load</h2><p class="notice">Your progress saves automatically. Save keeps a separate manual copy inside WriteQuest on this device. Load lets you choose the last autosave or your manual save.</p><button class="primary" id="save-local">Save</button><p id="manual-save-status" class="small muted" role="status">' + manual.text + '</p><button class="secondary" id="load-local" type="button">Load</button><p class="small muted">No download needed. This save stays in this browser or installed app on this device. Clearing its data removes local saves.</p><h2>App updates</h2><p class="small muted">Version 2026.11.10 · Progress stays on this device when updating.</p><button class="secondary" id="check-updates">Check for Updates</button><p id="update-status" class="small" role="status"></p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Reset your active XP, achievements, and check-in history. Your Manual Save is kept and can be restored with Load.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
 }
 /* One attainable goal keeps Journey useful for focused writing days. */
 function nextMilestone(items) {
@@ -1403,11 +1330,6 @@ function connectPageControls() {
   connectButton("apply-update", applyUpdate);
   connectButton("save-local", saveLocal);
   connectButton("load-local", openLoadMenu);
-  connectButton("export-backup", exportBackup);
-  const importInput = document.getElementById("import-backup");
-  if (importInput) importInput.addEventListener("change", importBackup);
-  connectButton("choose-backup", () => document.getElementById("import-backup").click());
-  connectButton("restore-previous", restorePrevious);
   connectButton("back", back);
   connectButton("open-settings", () => navigate("settings"));
   connectButton("open-ranks", () => navigate("ranks"));
@@ -1610,7 +1532,7 @@ function syncDeveloperUI() {
   }
   launcher.textContent = "Test Mode · " + totalRank(getTotalLevel());
   launcher.setAttribute("aria-label", "Open WriteQuest test tools. Preview progress is not saved.");
-  for (const id of ["save-local", "load-local", "export-backup", "choose-backup", "import-backup", "restore-previous", "reset-progress"]) {
+  for (const id of ["save-local", "load-local", "reset-progress"]) {
     const button = document.getElementById(id);
     if (button) button.disabled = true;
   }
@@ -1717,7 +1639,7 @@ function recoverRatingDraft() {
 }
 
 /* Check HTML without cache; only a user action reloads the app. No service worker. */
-const APP_BUILD = "20261109-milestone-preview";
+const APP_BUILD = "20261110-code-cleanup";
 let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
 function renderUpdateNotice() {
   if (!availableBuild || typeof document.createElement !== "function") return;
