@@ -1170,11 +1170,22 @@ function saveCheckin() {
   const awards = SKILLS.map(skill => ({
     id: skill.id, name: skill.name, color: skill.color,
     delta: state.xp[skill.id] - xpBefore[skill.id],
-    before: stats(xpBefore[skill.id]), after: stats(state.xp[skill.id])
+    before: stats(xpBefore[skill.id]), after: stats(state.xp[skill.id]),
+    levels: leveled.filter(item => item.name === skill.name).map(item => ({
+      level: item.level, remaining: 0, need: item.level === 50 ? 0 : xpToNextLevel(item.level)
+    }))
   })).filter(award => award.delta !== 0);
-  const finish = () => showSaveDialog(leveled, unlockedRank, newAchievements);
+  const celebrated = new Set();
+  const finish = () => showSaveDialog(
+    leveled.filter(item => !celebrated.has(item.name + ":" + item.level)), unlockedRank, newAchievements
+  );
   if (awards.length && globalThis.QuestXPAnimation?.showCheckinAwards) {
-    globalThis.QuestXPAnimation.showCheckinAwards(awards, finish);
+    globalThis.QuestXPAnimation.showCheckinAwards(awards, finish, {
+      onLevelUp: (award, level, resume) => {
+        celebrated.add(award.name + ":" + level);
+        showNextCelebration([{name: award.name, level}], resume);
+      }
+    });
   } else finish();
 }
 
@@ -1246,7 +1257,7 @@ function recoverRatingDraft() {
 }
 
 /* Check HTML without cache; only a user action reloads the app. No service worker. */
-const APP_BUILD = "20261110-quest-swap-right";
+const APP_BUILD = "20261110-level-up-timing";
 let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
 function renderUpdateNotice() {
   if (!availableBuild || typeof document.createElement !== "function") return;

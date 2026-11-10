@@ -59,7 +59,7 @@ for behaviour; avoid mixing the two.
 | `js/developer-ui.js` | Developer Mode panel, launcher, rank presets, background preview and achievement preview actions |
 | `js/journey.js` | Weekly calendar and activity summary |
 | `js/sounds.js` | Audio feedback |
-| `js/xp-animation.js` | XP bar animation |
+| `js/xp-animation.js` | Sequential XP bar animation; pauses at each filled level for its popup before resuming |
 | `styles.css` | Layout, responsive rules, badge effects and reduced-motion alternatives |
 
 ## Loading and dependencies

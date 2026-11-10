@@ -51,7 +51,7 @@
   });
   // A saved check-in gets a readable, sequential reward presentation. The save
   // has already succeeded; dismissing this view never changes the awarded XP.
-  if (root.document) root.QuestXPAnimation.showCheckinAwards = function (awards, done) {
+  if (root.document) root.QuestXPAnimation.showCheckinAwards = function (awards, done, { onLevelUp } = {}) {
     const overlay = root.document.createElement('div');
     overlay.className = 'save-overlay';
     const dialog = root.document.createElement('div');
@@ -104,7 +104,7 @@
     dialog.append(status, button);
     overlay.appendChild(dialog);
     root.document.body.appendChild(overlay);
-    let frame, closed = false, finished = false;
+    let frame, closed = false, finished = false, paused = false;
     const reduce = () => root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
     function settle() {
       if (frame) root.cancelAnimationFrame(frame);
@@ -126,8 +126,8 @@
       overlay.remove();
       done();
     }
-    function onKey(event) { if (event.key === 'Escape') { event.preventDefault(); close(); } }
-    button.addEventListener('click', () => { if (finished) close(); else settle(); });
+    function onKey(event) { if (event.key === 'Escape' && !paused) { event.preventDefault(); close(); } }
+    button.addEventListener('click', () => { if (paused) return; if (finished) close(); else settle(); });
     root.document.addEventListener('keydown', onKey);
     root.WriteQuestDialogs?.contain(overlay);
     button.focus();
@@ -137,27 +137,56 @@
       const r = rows[index], a = r.award;
       r.row.classList.add('is-awarding');
       status.textContent = a.name + ': ' + (a.delta > 0 ? '+' : '') + a.delta + ' XP';
-      const start = root.performance.now(), duration = 850;
-      const from = r.fraction(a.before), to = r.fraction(a.after);
-      function step(time) {
+      const crossings = a.levels || Array.from({length: Math.max(0, a.after.level - a.before.level)},
+        (_, i) => ({level: a.before.level + i + 1, remaining: 0, need: a.after.need}));
+      const segments = [];
+      let progress = a.before;
+      for (const level of crossings) {
+        segments.push({from: r.fraction(progress), to: 1, progress, level: level.level});
+        progress = level;
+      }
+      if (a.after.level !== 50 || !crossings.length) {
+        segments.push({from: r.fraction(progress), to: r.fraction(a.after), progress: a.after});
+      }
+      const duration = 850 / segments.length;
+      function runSegment(index) {
         if (closed || finished) return;
-        if (reduce()) { settle(); return; }
-        const t = Math.min(1, (time - start) / duration);
-        const ease = x => 1 - Math.pow(1 - x, 3);
-        // Reach the old level's end before showing progress in the new level.
-        const value = a.after.level > a.before.level
-          ? t < .5 ? from + (1 - from) * ease(t * 2) : to * ease((t - .5) * 2)
-          : from + (to - from) * ease(t);
-        r.set(value, t < .5 ? a.before : a.after);
-        if (t < 1) frame = root.requestAnimationFrame(step);
-        else {
-          r.set(to, a.after);
+        if (index === segments.length) {
+          r.set(r.fraction(a.after), a.after);
           r.row.classList.remove('is-awarding');
           r.row.classList.add('is-awarded');
-          next(index + 1);
+          next(rows.indexOf(r) + 1);
+          return;
         }
+        const segment = segments[index], start = root.performance.now();
+        function step(time) {
+          if (closed || finished || paused) return;
+          if (reduce()) { settle(); return; }
+          const t = Math.min(1, Math.max(0, (time - start) / duration));
+          const ease = 1 - Math.pow(1 - t, 3);
+          r.set(segment.from + (segment.to - segment.from) * ease, segment.progress);
+          if (t < 1) { frame = root.requestAnimationFrame(step); return; }
+          if (segment.level && onLevelUp) {
+            // Hold the filled gauge while its celebration is open. Resume only
+            // after dismissal, so later skill awards cannot run behind the popup.
+            r.set(1, {...segment.progress, remaining: segment.progress.need});
+            paused = true;
+            overlay.inert = true;
+            let resumed = false;
+            onLevelUp(a, segment.level, () => {
+              if (resumed || closed) return;
+              resumed = true;
+              paused = false;
+              overlay.inert = false;
+              button.focus();
+              runSegment(index + 1);
+            });
+          } else runSegment(index + 1);
+        }
+        r.set(segment.from, segment.progress);
+        frame = root.requestAnimationFrame(step);
       }
-      frame = root.requestAnimationFrame(step);
+      runSegment(0);
     }
     next(0);
   };

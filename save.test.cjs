@@ -357,3 +357,22 @@ test('timestamp validation preserves compatible saves and ignores invalid option
  b.context.timestampInput='2026-11-09T12:00:00-06:00';
  assert.equal(b.run('validateSave({...state,autosavedAt:timestampInput}).autosavedAt'),'2026-11-09T18:00:00.000Z');
 });
+
+test('level celebrations during XP animation are excluded from the final celebration queue',()=>{
+ const profile={...sample,xp:{...sample.xp,drafting:4},checkins:{'2026-01-01':{drafting:4}}};
+ const b=boot({[key]:JSON.stringify(profile)});
+ b.run(`globalThis.QuestXPAnimation={showCheckinAwards(awards,finish,options){globalThis.awards=awards;globalThis.finishAwards=finish;globalThis.awardOptions=options;}};
+ showNextCelebration=(queue,resume)=>{globalThis.immediateLevels=queue;resume();};
+ showSaveDialog=(levels)=>{globalThis.finalLevels=levels;};
+ draftDay=localDay();draftRatings={drafting:1};saveCheckin();`);
+ assert.equal(b.run('state.xp.drafting'),5);
+ assert.equal(b.run('awards[0].levels[0].level'),2);
+ b.run('awardOptions.onLevelUp(awards[0],2,()=>{});finishAwards()');
+ assert.equal(b.run('immediateLevels[0].level'),2);
+ assert.equal(b.run('finalLevels.length'),0);
+ // Skipping the fill animation still retains the level-up in the final queue.
+ b.run('draftRatings={drafting:1,editing:5};saveCheckin();finishAwards()');
+ assert.equal(b.run('finalLevels.length'),1);
+ assert.equal(b.run('finalLevels[0].level'),2);
+ assert.equal(b.run('finalLevels[0].name'),'Editing');
+});

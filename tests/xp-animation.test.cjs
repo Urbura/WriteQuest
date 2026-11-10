@@ -53,9 +53,10 @@ test('a rerender cancels old animation frames and settles unchanged progress', (
 });
 
 
-function rewardView(reduced = false) {
+function rewardView(reduced = false, customAwards = null) {
   const vm = require('node:vm'), fs = require('node:fs');
   let time = 0, callback, completed = 0;
+  const celebrations = [];
   const nodes = [];
   const make = tag => {
     const classes = new Set();
@@ -69,9 +70,11 @@ function rewardView(reduced = false) {
     requestAnimationFrame: fn => {callback=fn; return 1;}, cancelAnimationFrame: () => {callback=null;},
     performance: {now: () => time}, matchMedia: () => ({matches: reduced}) };
   vm.runInNewContext(fs.readFileSync(require('node:path').join(__dirname,'../js/xp-animation.js'),'utf8'), context);
-  const awards = ['Drafting','Revising'].map((name,i)=>({name, delta: i+2, color:'#abc',before:{level:1,remaining:1,need:5},after:{level:1,remaining:i+3,need:5}}));
-  context.QuestXPAnimation.showCheckinAwards(awards,()=>completed++);
-  return {nodes, rows: nodes.filter(n=>n.className==='checkin-reward-row'), button:nodes.find(n=>n.tag==='button'),
+  const awards = customAwards || ['Drafting','Revising'].map((name,i)=>({name, delta: i+2, color:'#abc',before:{level:1,remaining:1,need:5},after:{level:1,remaining:i+3,need:5}}));
+  context.QuestXPAnimation.showCheckinAwards(awards,()=>completed++, {
+    onLevelUp: (award, level, resume) => celebrations.push({award, level, resume})
+  });
+  return {nodes, celebrations, rows: nodes.filter(n=>n.className==='checkin-reward-row'), button:nodes.find(n=>n.tag==='button'),
     tick(t) {time=t; const fn=callback;callback=null;fn?.(t);}, completed:()=>completed};
 }
 test('check-in rewards animate one skill at a time, retain XP amounts and finish once',()=>{
@@ -93,4 +96,36 @@ test('reduced-motion reward summary immediately displays final gauges',()=>{
 test('skip settles every gauge before continuing without replaying rewards',()=>{
  const t=rewardView();t.button.click();assert.equal(t.completed(),0);
  assert.equal(t.button.textContent,'Continue');t.tick(900);t.button.click();assert.equal(t.completed(),1);
+});
+
+test('a filled gauge celebrates immediately and pauses remaining XP until dismissal', () => {
+  const t = rewardView(false, [
+    {name:'Drafting',delta:2,before:{level:1,remaining:4,need:5},after:{level:2,remaining:1,need:5},levels:[{level:2,remaining:0,need:5}]},
+    {name:'Editing',delta:1,before:{level:1,remaining:0,need:5},after:{level:1,remaining:1,need:5}}
+  ]);
+  t.tick(424); assert.equal(t.celebrations.length, 0);
+  t.tick(425); assert.equal(t.celebrations.length, 1);
+  assert.equal(t.celebrations[0].level, 2);
+  assert.equal(t.nodes.filter(n=>n.className==='fill')[0].style.width,'100%');
+  assert(!t.rows[1].classList.contains('is-awarding'));
+  t.tick(5000); assert(!t.rows[1].classList.contains('is-awarding'));
+  t.button.click(); assert.equal(t.button.textContent,'Skip animation');
+  t.celebrations[0].resume(); t.celebrations[0].resume();
+  t.tick(5425); assert(t.rows[1].classList.contains('is-awarding'));
+  t.tick(6275); t.button.click();
+  assert.equal(t.celebrations.length,1); assert.equal(t.completed(),1);
+});
+
+test('multiple gained levels fill and celebrate separately, including Level 50', () => {
+  const t = rewardView(false, [{name:'Drafting',delta:18,
+    before:{level:48,remaining:14,need:20},after:{level:50,remaining:0,need:0},
+    levels:[{level:49,remaining:0,need:21},{level:50,remaining:0,need:0}]}]);
+  t.tick(425); assert.equal(t.celebrations[0].level,49);
+  t.celebrations[0].resume();
+  assert.equal(t.nodes.find(n=>n.className==='fill').style.width,'0%');
+  t.tick(850); assert.equal(t.celebrations[1].level,50);
+  assert.equal(t.nodes.find(n=>n.className==='fill').style.width,'100%');
+  t.celebrations[1].resume();
+  assert.equal(t.button.textContent,'Continue');
+  assert.equal(t.nodes.find(n=>n.className==='fill').style.width,'100%');
 });

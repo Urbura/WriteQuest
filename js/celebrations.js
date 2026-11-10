@@ -63,7 +63,7 @@ function addLegendFireworks(overlay) {
   overlay.appendChild(effect);
 }
 
-function showNextCelebration(queue) {
+function showNextCelebration(queue, onComplete = null) {
   const skill = queue.shift();
   globalThis.WriteQuestSounds?.play(skill?.achievement ? "achievement" : skill?.backgroundRank ? "rank" : skill ? "level" : "checkin");
   const overlay = document.createElement("div");
@@ -119,7 +119,8 @@ function showNextCelebration(queue) {
     globalThis.WriteQuestDialogs.release(overlay);
     overlay.remove();
     document.removeEventListener("keydown", onKey);
-    if (queue.length) showNextCelebration(queue);
+    if (queue.length) showNextCelebration(queue, onComplete);
+    else if (onComplete) onComplete();
     else {
       navigate("home");
       app.querySelector(".star-checkin")?.focus();
