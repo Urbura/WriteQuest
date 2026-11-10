@@ -5,7 +5,7 @@ WriteQuest uses plain JavaScript, HTML and CSS. There is no build step.
 ## Start here
 
 You do not need to understand every file to make a small change. Start with
-`app.js`, which reads from top to bottom as skill settings, progress and saves,
+`app.js`, which reads from top to bottom as skill settings, progress,
 page layouts, button actions, daily saving, and Test Mode.
 
 | If you want to change… | Look for… |
@@ -46,7 +46,8 @@ for behaviour; avoid mixing the two.
 
 | File | Responsibility |
 | --- | --- |
-| `app.js` | Skill definitions, XP calculation, save validation and recovery, navigation, page rendering and Test Mode controls |
+| `app.js` | Skill definitions, XP calculation, navigation, page rendering and Test Mode controls |
+| `js/saves.js` | Save validation, autosave, manual Save/Load, recovery, write verification, stale-tab protection, and Load slot previews |
 | `js/activity.js` | Positive writing days and longest-streak calculation shared by Journey and achievements |
 | `js/achievements.js` | Achievement names, requirements and unlock calculations |
 | `js/badges.js` | Achievement badge artwork and earned holographic styling hooks |
@@ -61,7 +62,8 @@ for behaviour; avoid mixing the two.
 ## Loading and dependencies
 
 `index.html` loads classic scripts with `defer`. Keep `activity.js` before
-`journey.js` and `achievements.js`, and keep `app.js` last. Badge and celebration
+`journey.js` and `achievements.js`, load `saves.js` before `app.js`, and keep `app.js` last. Save functions read
+app data only when called after the data is initialized. Badge and celebration
 functions read app data when called, after initialization. Keep their global
 function names unique. This preserves static hosting without a bundler.
 

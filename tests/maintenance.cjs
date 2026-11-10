@@ -24,7 +24,7 @@ function appContext() {
     setInterval() {}, setTimeout() {}, alert(message) { throw Error(message); }
   };
   vm.createContext(context);
-  for (const file of ['js/activity.js', 'js/dialogs.js', 'js/badges.js', 'js/celebrations.js', 'js/journey.js', 'js/achievements.js', 'js/developer.js', 'app.js']) {
+  for (const file of ['js/activity.js', 'js/dialogs.js', 'js/badges.js', 'js/celebrations.js', 'js/journey.js', 'js/achievements.js', 'js/developer.js', 'js/saves.js', 'app.js']) {
     vm.runInContext(read(file), context, { filename: file });
   }
   return { context, storage, run: source => vm.runInContext(source, context) };

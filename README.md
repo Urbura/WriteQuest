@@ -19,7 +19,7 @@ Use your browser’s **Add to Home Screen** option to save WriteQuest with the i
 WriteQuest uses plain HTML, CSS, and small JavaScript modules. You can edit them directly on GitHub without installing anything.
 
 1. Open `styles.css` to adjust colours, spacing, and mobile layout.
-2. Open `app.js` to edit skill descriptions, XP progression, or application behavior.
+2. Open `app.js` to edit skill descriptions, XP progression, or application behavior. Save validation and Save/Load controls live in `js/saves.js`.
 3. Open `index.html` only when changing how styles and scripts load.
 4. Click the pencil icon (**Edit this file**) and make a small change.
 5. Click **Commit changes**. GitHub Pages updates automatically.

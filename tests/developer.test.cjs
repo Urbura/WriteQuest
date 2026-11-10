@@ -14,6 +14,7 @@ function boot(search=''){
   setInterval(){},alert:m=>alerts.push(m)
  });
  vm.runInContext(fs.readFileSync(path.join(root,'js/developer.js'),'utf8'),context);
+ vm.runInContext(fs.readFileSync(path.join(root,'js/saves.js'),'utf8'),context);
  vm.runInContext(fs.readFileSync(path.join(root,'app.js'),'utf8').replace(/render\(\);\s*$/,''),context);
  vm.runInContext('render=()=>{};openDeveloperPanel=()=>{};showSaveDialog=()=>{};',context);
  return {run:s=>vm.runInContext(s,context),map,raw,alerts,writes:()=>writes};

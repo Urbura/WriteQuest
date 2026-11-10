@@ -11,6 +11,7 @@ function app(){
  vm.runInContext(fs.readFileSync(path.join(root,"js/achievements.js"),"utf8"),context);
  vm.runInContext(fs.readFileSync(path.join(root,'js/journey.js'),'utf8'),context);
  vm.runInContext(fs.readFileSync(path.join(root,"js/badges.js"),"utf8"),context);
+ vm.runInContext(fs.readFileSync(path.join(root,'js/saves.js'),'utf8'),context);
  vm.runInContext(source,context);
  vm.runInContext('render=()=>{};var unlockedBackground=null;showSaveDialog=(levels,rank)=>{unlockedBackground=rank;};',context);
  return {run:code=>vm.runInContext(code,context),body,styles};
