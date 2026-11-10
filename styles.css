@@ -2336,9 +2336,9 @@ header.quest-header .header-rank-beginner {
 /* FitQuest-style Daily Quest: a single compact checkbox row. */
 .daily-quest {width:100%;max-width:440px;box-sizing:border-box;margin:8px auto 0;padding:12px 14px;border:1px solid #3c5574;border-radius:16px;background:var(--panel);text-align:left;display:flex;flex-direction:column;gap:8px;}
 .daily-quest-heading {display:flex;justify-content:space-between;align-items:center;gap:8px;}
-.daily-quest-heading > span {display:flex;flex-direction:column;gap:2px;min-width:0;}
-.daily-quest-heading strong {font-size:15px;}
-.daily-quest-heading small {color:var(--muted);font-size:12px;}
+.daily-quest-heading > span {display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 8px;min-width:0;}
+.daily-quest-heading strong {font-size:15px;white-space:nowrap;}
+.daily-quest-heading small {color:var(--muted);font-size:12px;white-space:nowrap;}
 .daily-quest-task {min-width:0;display:flex;align-items:flex-start;gap:10px;line-height:1.35;cursor:pointer;}
 .daily-quest-task input {width:21px;height:21px;flex:none;margin:2px 0 0;accent-color:#7bbd8a;}
 .daily-quest-task > span {display:flex;flex-direction:column;gap:2px;min-width:0;overflow-wrap:anywhere;}
@@ -2523,6 +2523,13 @@ body:not(.developer-mode) #developer-launcher { display: none; }
   border-color: var(--gold);
 }
 .daily-quest-heading > button:disabled { opacity: .55; cursor: default; }
+@media (max-width: 350px) {
+  .daily-quest-heading { gap: 6px; }
+  .daily-quest-heading > span { column-gap: 6px; }
+  .daily-quest-heading strong { font-size: 14px; }
+  .daily-quest-heading small { font-size: 11px; }
+  .daily-quest-heading > button { padding-inline: 8px; }
+}
 
 /* Native form controls and inline badge lettering use the same interface font. */
 button, input, select, textarea, svg text {
