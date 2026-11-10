@@ -540,9 +540,10 @@ function dailyChallengeHTML() {
   const entry=ensureDailyChallenge(), challenge=DAILY_CHALLENGES.find(c=>c.id===entry.id);
   const skill=SKILLS.find(s=>s.id===challenge.skill);
   return '<section class="daily-quest daily-challenge-card" aria-label="Daily Quest">'+
-    '<div class="daily-quest-heading"><strong>Daily Quest</strong><small>+2 XP · '+skill.name+'</small></div>'+
-    '<label class="daily-quest-task"><input type="checkbox" id="daily-quest-check" '+(entry.completed?'checked ':'')+'><span><strong>'+challenge.title+'</strong><span>'+challenge.description+'</span></span></label>'+
+    '<div class="daily-quest-heading"><span><strong>Daily Quest</strong><small>+2 XP · '+skill.name+'</small></span>'+
     (entry.everCompleted?'':'<button type="button" id="swap-challenge" '+(entry.swaps>=2?'disabled':'')+'>Swap · '+(2-entry.swaps)+' left</button>')+
+    '</div>'+
+    '<label class="daily-quest-task"><input type="checkbox" id="daily-quest-check" '+(entry.completed?'checked ':'')+'><span><strong>'+challenge.title+'</strong><span>'+challenge.description+'</span></span></label>'+
     '</section>';
 }
 function requestDailyQuestSubmission(completed) {
@@ -1245,7 +1246,7 @@ function recoverRatingDraft() {
 }
 
 /* Check HTML without cache; only a user action reloads the app. No service worker. */
-const APP_BUILD = "20261110-shared-dates";
+const APP_BUILD = "20261110-quest-swap-right";
 let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
 function renderUpdateNotice() {
   if (!availableBuild || typeof document.createElement !== "function") return;

@@ -2336,14 +2336,15 @@ header.quest-header .header-rank-beginner {
 /* FitQuest-style Daily Quest: a single compact checkbox row. */
 .daily-quest {width:100%;max-width:440px;box-sizing:border-box;margin:8px auto 0;padding:12px 14px;border:1px solid #3c5574;border-radius:16px;background:var(--panel);text-align:left;display:flex;flex-direction:column;gap:8px;}
 .daily-quest-heading {display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.daily-quest-heading > span {display:flex;flex-direction:column;gap:2px;min-width:0;}
 .daily-quest-heading strong {font-size:15px;}
 .daily-quest-heading small {color:var(--muted);font-size:12px;}
-.daily-quest-task {display:flex;align-items:flex-start;gap:10px;line-height:1.35;cursor:pointer;}
+.daily-quest-task {min-width:0;display:flex;align-items:flex-start;gap:10px;line-height:1.35;cursor:pointer;}
 .daily-quest-task input {width:21px;height:21px;flex:none;margin:2px 0 0;accent-color:#7bbd8a;}
-.daily-quest-task > span {display:flex;flex-direction:column;gap:2px;min-width:0;}
+.daily-quest-task > span {display:flex;flex-direction:column;gap:2px;min-width:0;overflow-wrap:anywhere;}
 .daily-quest-task > span > strong {font-size:14px;}
 .daily-quest-task > span > span {font-size:13px;color:var(--muted);}
-.daily-quest > button {align-self:flex-start;}
+.daily-quest-heading > button {flex:none;white-space:nowrap;}
 
 /* Home layout: keep Drafting below the top bar while retaining the central check-in. */
 .app:has(.skill-star) > .skill-star {margin-top:14px;}
@@ -2505,7 +2506,7 @@ body:not(.developer-mode) #developer-launcher { display: none; }
 }
 
 /* Swap shares the navy secondary-button treatment and gold focus state. */
-.daily-quest > button {
+.daily-quest-heading > button {
   width: auto;
   min-height: 44px;
   padding: 8px 14px;
@@ -2517,11 +2518,11 @@ body:not(.developer-mode) #developer-launcher { display: none; }
   font-weight: 700;
   line-height: 1.2;
 }
-.daily-quest > button:hover:not(:disabled) {
+.daily-quest-heading > button:hover:not(:disabled) {
   background: #2c486d;
   border-color: var(--gold);
 }
-.daily-quest > button:disabled { opacity: .55; cursor: default; }
+.daily-quest-heading > button:disabled { opacity: .55; cursor: default; }
 
 /* Native form controls and inline badge lettering use the same interface font. */
 button, input, select, textarea, svg text {
