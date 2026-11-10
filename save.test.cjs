@@ -11,6 +11,7 @@ function boot(entries={}){
  const storage={getItem:k=>map.get(k)??null,setItem(k,v){if(fail)throw Error('Storage full');map.set(k,v);}};
  const context=vm.createContext({localStorage:storage,document:{getElementById:()=>({}),addEventListener(){}},window:{addEventListener(){},confirm:()=>true},setInterval(){},setTimeout(){},Intl,Date,alert:m=>alerts.push(m)});
  vm.runInContext(fs.readFileSync(__dirname+'/js/saves.js','utf8'),context);
+ vm.runInContext(fs.readFileSync(__dirname+'/js/developer-ui.js','utf8'),context);
  vm.runInContext(source,context);vm.runInContext('render=()=>{};showSaveDialog=()=>{};',context);
  return {context,map,alerts,run:s=>vm.runInContext(s,context),fail:()=>fail=true};
 }
@@ -96,7 +97,7 @@ test('every loaded script and stylesheet uses the same release marker',()=>{
  const build=html.match(/name="writequest-build" content="([^"]+)"/)[1];
  assert.equal(boot().run('APP_BUILD'),build,'update checker must use the published release marker');
  const assets=[...html.matchAll(/(?:src|href)="((?:js\/[^"?]+\.js|app\.js|styles\.css)\?v=([^"]+))"/g)];
- assert.equal(assets.length,12);
+ assert.equal(assets.length,13);
  for(const match of assets)assert.equal(match[2],build,match[1]);
 });
 
