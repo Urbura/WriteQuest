@@ -32,6 +32,10 @@ function validateSave(input) {
   }
   if (Array.isArray(input.achievementsSeen)) clean.achievementsSeen = [...new Set(input.achievementsSeen.filter(id => typeof id === "string" && id.length < 80))];
   if (Array.isArray(input.recentAchievements)) clean.recentAchievements = [...new Set(input.recentAchievements.filter(id => typeof id === "string" && /^[a-z0-9-]{1,79}$/.test(id)))].slice(0, 40);
+  if (Array.isArray(input.earnedAchievements)) clean.earnedAchievements = [...new Set(input.earnedAchievements.filter(id => typeof id === "string" && /^[a-z0-9-]{1,79}$/.test(id)))];
+  if (input.achievementRewards && typeof input.achievementRewards === "object" && !Array.isArray(input.achievementRewards)) {
+    clean.achievementRewards = Object.fromEntries(Object.entries(input.achievementRewards).filter(([id, skillId]) => /^[a-z0-9-]{1,79}$/.test(id) && SKILLS.some(skill => skill.id === skillId)));
+  }
   for (const skill of SKILLS) {
     const n = input.xp[skill.id];
     if (!Number.isSafeInteger(n) || n < 0) throw Error("Invalid skill XP.");
@@ -89,6 +93,9 @@ function save(next, {
   recover = false
 } = {}) {
   const clean = validateSave(next);
+  const earned = achievementList(clean).filter(item => item.earned).map(item => item.id);
+  // Keep unlocks available after same-day rating edits, but let explicit loads/reset restore their own snapshot.
+  if (earned.length || clean.earnedAchievements?.length) clean.earnedAchievements = [...new Set([...(clean.earnedAchievements || []), ...earned])];
   if (developer?.active) {
     state = clean;
     return;

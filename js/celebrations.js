@@ -110,6 +110,15 @@ function showNextCelebration(queue, onComplete = null) {
     overlay.querySelector("#saved-done").textContent = queue.length ? "Continue →" : "Done";
     if (developer?.active) overlay.querySelector(".small").textContent = "Test Mode preview · normal progress unchanged.";
   }
+  if (skill?.achievement && !state.achievementRewards?.[skill.achievement.id]) {
+    const claim = document.createElement("button");
+    claim.type = "button";
+    claim.className = "primary";
+    claim.textContent = "Choose your +3 XP";
+    claim.addEventListener("click", () => openAchievementReward(skill.achievement.id, advance));
+    overlay.querySelector("#saved-done").before(claim);
+    overlay.querySelector("#saved-done").textContent = "Choose later";
+  }
   document.body.appendChild(overlay);
   globalThis.WriteQuestDialogs.contain(overlay);
   let advanced = false;

@@ -376,3 +376,58 @@ test('level celebrations during XP animation are excluded from the final celebra
  assert.equal(b.run('finalLevels[0].level'),2);
  assert.equal(b.run('finalLevels[0].name'),'Editing');
 });
+
+function rewardBoot(entries={}) {
+ const b=boot(entries);
+ for(const name of ['activity','achievements'])vm.runInContext(fs.readFileSync(__dirname+'/js/'+name+'.js','utf8'),b.context);
+ return b;
+}
+test('legacy achievements award three XP once and survive reload, replay, and manual load',()=>{
+ const b=rewardBoot({[key]:JSON.stringify(sample)});
+ assert.equal(b.run('pendingAchievementRewards().some(a=>a.id==="first")'),true);
+ assert.equal(b.run('claimAchievementReward("first","learning").after.remaining'),3);
+ assert.equal(b.run('state.xp.learning'),3);
+ assert.equal(b.run('claimAchievementReward("first","research")'),null);
+ b.run('saveLocal();draftDay=localDay();draftRatings={editing:3};saveCheckin()');
+ assert.equal(b.run('state.xp.learning'),3);
+ const c=rewardBoot(Object.fromEntries(b.map));
+ assert.equal(c.run('state.achievementRewards.first'),'learning');
+ assert.equal(c.run('claimAchievementReward("first","learning")'),null);
+ c.run('loadLocal()');assert.equal(c.run('state.xp.learning'),3);
+ assert.equal(c.run('claimAchievementReward("first","learning")'),null);
+});
+test('locked achievements, invalid skills and maxed skills cannot claim rewards',()=>{
+ const b=rewardBoot({[key]:JSON.stringify(sample)});
+ for(const expression of ['claimAchievementReward("legend","learning")','claimAchievementReward("first","invalid")'])assert.equal(b.run(expression),null);
+ b.run('state.xp.learning=552');assert.equal(b.run('claimAchievementReward("first","learning")'),null);
+ assert.equal(b.run('state.achievementRewards'),undefined);
+});
+test('failed and stale reward saves preserve the unclaimed reward and XP',()=>{
+ for(const stale of [false,true]){
+  const b=rewardBoot({[key]:JSON.stringify(sample)});
+  if(stale)b.map.set(key,JSON.stringify({...sample,background:'beginner'}));else b.fail();
+  assert.equal(b.run('claimAchievementReward("first","learning")'),null);
+  assert.equal(b.run('state.xp.learning'),0);
+  assert.equal(b.run('pendingAchievementRewards().some(a=>a.id==="first")'),true);
+  assert.match(b.alerts.at(-1),/Reward was not saved/);
+ }
+});
+test('reward level-ups expose newly unlocked achievements without auto-claiming them',()=>{
+ const b=rewardBoot({[key]:JSON.stringify(sample)});
+ b.run('state.xp.learning=45;var result=claimAchievementReward("first","learning")');
+ assert.equal(b.run('result.before.level'),8);assert.equal(b.run('result.after.level'),9);
+ b.run('state.xp.learning=55;state.achievementRewards={};var second=claimAchievementReward("first","learning")');
+ assert.equal(b.run('second.after.level'),10);
+ assert.equal(b.run('pendingAchievementRewards().some(a=>a.id==="any-10")'),true);
+});
+test('reward chooser supports Later, maxed choices, successful claim and repeated taps',()=>{
+ const b=rewardBoot({[key]:JSON.stringify(sample)}),controls=new Map();let overlay,closed=0;
+ const control=(id)=>{if(!controls.has(id))controls.set(id,{dataset:{rewardSkill:id},addEventListener(event,fn){this[event]=fn},focus(){}});return controls.get(id);};
+ b.context.document.body={appendChild(item){overlay=item}};
+ b.context.document.createElement=()=>({innerHTML:'',addEventListener(){},remove(){closed++},querySelector:id=>control(id),querySelectorAll:()=>['drafting','editing','creativity','learning','research'].map(control)});
+ b.run('state.xp.research=552;openAchievementReward("first")');
+ assert.match(overlay.innerHTML,/data-reward-skill="research" disabled/);
+ const before=b.map.get(key);controls.get('#reward-later').click();assert.equal(b.map.get(key),before);assert.equal(closed,1);
+ b.run('openAchievementReward("first")');controls.get('learning').click();controls.get('learning').click();
+ assert.equal(b.run('state.xp.learning'),3);assert.equal(closed,2);
+});

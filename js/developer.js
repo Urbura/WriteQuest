@@ -21,6 +21,7 @@
       baseline = {
         ...next.xp
       };
+      for (const skillId of Object.values(next.achievementRewards || {})) baseline[skillId] = Math.max(0, baseline[skillId] - 3);
       return next;
     }
 

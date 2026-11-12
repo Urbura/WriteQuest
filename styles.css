@@ -2606,3 +2606,8 @@ button, input, select, textarea, svg text {
  .milestone-preview-badge { flex-basis:72px; width:72px; height:80px; }
  .milestone-preview-badge>.achievement-badge { width:72px; height:72px; flex-basis:72px; }
 }
+
+/* Skill reward choices remain reachable on short mobile screens. */
+.achievement-reward-dialog { max-height: calc(100dvh - 40px); overflow-y: auto; }
+.reward-skill-list { display: grid; gap: 8px; }
+.reward-skill-list button { margin: 0; min-height: 44px; width: 100%; }

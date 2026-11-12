@@ -624,7 +624,7 @@ function changeDailyChallenge(swap, completed) {
     entry.completed=completed;
     if(completed)entry.everCompleted=true;
   }
-  next.xp=calculateCheckinXP(next.checkins,developer?.active?developer.baseXP():blank().xp,next.challenges);
+  next.xp=calculateCheckinXP(next.checkins,developer?.active?developer.baseXP():blank().xp,next.challenges, next.achievementRewards);
   try {
     save(next);
   } catch (error) {
@@ -772,6 +772,9 @@ function chooseBackground(key) {
     return;
   }
   render();
+  for (const button of document.querySelectorAll("[data-claim-achievement]")) {
+    button.addEventListener("click", () => openAchievementReward(button.dataset.claimAchievement));
+  }
   document.getElementById("background-select")?.focus({
     preventScroll: true
   });
@@ -817,7 +820,7 @@ function rankProgression() {
 
 function settings() {
   const manual = manualSaveStatus();
-  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Save / Load</h2><p class="notice">Your progress saves automatically. Save keeps a separate manual copy inside WriteQuest on this device. Load lets you choose the last autosave or your manual save.</p><button class="primary" id="save-local">Save</button><p id="manual-save-status" class="small muted" role="status">' + manual.text + '</p><button class="secondary" id="load-local" type="button">Load</button><p class="small muted">No download needed. This save stays in this browser or installed app on this device. Clearing its data removes local saves.</p><h2>App updates</h2><p class="small muted">Version 2026.11.10 · Progress stays on this device when updating.</p><button class="secondary" id="check-updates">Check for Updates</button><p id="update-status" class="small" role="status"></p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Reset your active XP, achievements, and check-in history. Your Manual Save is kept and can be restored with Load.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
+  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Save / Load</h2><p class="notice">Your progress saves automatically. Save keeps a separate manual copy inside WriteQuest on this device. Load lets you choose the last autosave or your manual save.</p><button class="primary" id="save-local">Save</button><p id="manual-save-status" class="small muted" role="status">' + manual.text + '</p><button class="secondary" id="load-local" type="button">Load</button><p class="small muted">No download needed. This save stays in this browser or installed app on this device. Clearing its data removes local saves.</p><h2>App updates</h2><p class="small muted">Version 2026.11.12 · Progress stays on this device when updating.</p><button class="secondary" id="check-updates">Check for Updates</button><p id="update-status" class="small" role="status"></p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Reset your active XP, achievements, and check-in history. Your Manual Save is kept and can be restored with Load.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
 }
 /* One attainable goal keeps Journey useful for focused writing days. */
 function nextMilestone(items) {
@@ -918,7 +921,7 @@ function achievementList(profile = state) {
     level: xp => stats(xp).level,
     ranks: TOTAL_RANKS,
     today: localDay()
-  }) || []
+  }).map(item => ({...item, earned: item.earned || (profile.earnedAchievements || []).includes(item.id)})) || []
 }
 
 // Latest recorded unlock first; older saves can still display an earned badge.
@@ -997,15 +1000,72 @@ function clearAchievementNotifications() {
   celebrateAchievement();
 }
 
+// Each achievement owns one reward; legacy unlocks are eligible too.
+function pendingAchievementRewards() {
+  return achievementList().filter(item => item.earned && !state.achievementRewards?.[item.id]);
+}
+
+function claimAchievementReward(id, skillId) {
+  const item = achievementList().find(item => item.id === id && item.earned);
+  const skill = SKILLS.find(skill => skill.id === skillId);
+  if (!item || !skill || state.achievementRewards?.[id] || stats(state.xp[skillId]).level === 50) return null;
+  const before = stats(state.xp[skillId]), oldRank = totalRank(getTotalLevel());
+  const earnedBefore = new Set(achievementList().filter(item => item.earned).map(item => item.id));
+  const next = validateSave(state);
+  next.achievementRewards = {...next.achievementRewards, [id]: skillId};
+  next.xp[skillId] += 3;
+  const unlocked = achievementList(next).filter(item => item.earned && !earnedBefore.has(item.id));
+  if (unlocked.length) next.recentAchievements = [...unlocked.map(item => item.id).reverse(), ...(next.recentAchievements || [])].slice(0, 40);
+  try { save(next); } catch (error) {
+    alert("Reward was not saved. " + error.message);
+    return null;
+  }
+  const after = stats(state.xp[skillId]);
+  return {skill, before, after, unlocked, backgroundRank: totalRank(getTotalLevel()) !== oldRank ? totalRank(getTotalLevel()) : null};
+}
+
+function openAchievementReward(id, onComplete = null) {
+  const item = achievementList().find(item => item.id === id && item.earned);
+  if (!item || state.achievementRewards?.[id]) return;
+  const overlay = document.createElement("div");
+  overlay.className = "save-overlay";
+  overlay.innerHTML = '<section class="save-dialog achievement-reward-dialog" role="dialog" aria-modal="true" aria-labelledby="reward-heading"><h2 id="reward-heading">Choose your +3 XP</h2><p>' + item.name + '</p><div class="reward-skill-list">' + SKILLS.map(skill => '<button type="button" class="secondary" data-reward-skill="' + skill.id + '"' + (stats(state.xp[skill.id]).level === 50 ? ' disabled' : '') + '>' + skill.name + (stats(state.xp[skill.id]).level === 50 ? ' · MAX' : ' · +3 XP') + '</button>').join('') + '</div><p class="small">One reward per achievement. You can choose later in Achievements.</p><button type="button" class="secondary" id="reward-later">Later</button></section>';
+  document.body.appendChild(overlay);
+  globalThis.WriteQuestDialogs?.contain(overlay);
+  const close = () => { globalThis.WriteQuestDialogs?.release(overlay); overlay.remove(); };
+  const later = () => { close(); onComplete?.(); };
+  overlay.querySelector('#reward-later').addEventListener('click', later);
+  overlay.addEventListener('keydown', event => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); later(); } });
+  for (const button of overlay.querySelectorAll('[data-reward-skill]')) button.addEventListener('click', () => {
+    const reward = claimAchievementReward(id, button.dataset.rewardSkill);
+    if (!reward) return;
+    close(); render();
+    const levels = [];
+    for (let level = reward.before.level + 1; level <= reward.after.level; level++) levels.push({name: reward.skill.name, level});
+    const queue = [...levels, ...(reward.backgroundRank ? [{backgroundRank: reward.backgroundRank}] : []), ...reward.unlocked.map(achievement => ({achievement}))];
+    const finish = () => {
+      if (queue.length) showNextCelebration(queue, onComplete || (() => {}));
+      else onComplete?.();
+    };
+    if (globalThis.QuestXPAnimation?.showCheckinAwards) globalThis.QuestXPAnimation.showCheckinAwards([{
+      id: reward.skill.id, name: reward.skill.name, color: reward.skill.color, delta: 3,
+      before: reward.before, after: reward.after,
+      levels: levels.map(item => ({level: item.level, remaining: 0, need: item.level === 50 ? 0 : xpToNextLevel(item.level)}))
+    }], finish);
+    else finish();
+  });
+  overlay.querySelector('button:not(:disabled)')?.focus();
+}
+
 function achievements() {
   const items = achievementList(),
     unseen = new Set(unseenAchievements().map(a => a.id)),
     earned = items.filter(a => a.earned).length;
   const medals = Object.values(state.checkins).filter(r => SKILLS.every(s => r[s.id] === 5)).length;
-  return header() + '<section class="card achievements-card">' + contentTitle('Achievements', '<button type="button" class="secondary achievement-clear-button" id="clear-achievement-notifications" aria-label="Clear all achievement notifications (' + unseen.size + ')" title="Clear all notifications"' + (unseen.size ? '' : ' disabled') + '>Clear all</button>') + recentAchievementCard() + '<p class="muted">' + earned + ' / ' + items.length + ' unlocked' + (developer?.active ? ' · Test Mode preview' : '') + '</p><progress class="collection-progress" max="' + items.length + '" value="' + earned + '" aria-label="Collection completion"></progress><p class="small">Optional Well-Rounded Days: <strong>' + medals + '</strong></p><p class="small muted">Tap an unlocked achievement to clear its New marker.</p>' + (!unseen.size ? '<p class="small muted" id="achievement-notifications-status" tabindex="-1" role="status">All notifications cleared.</p>' : '') + ['Consistency', 'Levels', 'Skills', 'Legend'].map(category => {
+  return header() + '<section class="card achievements-card">' + contentTitle('Achievements', '<button type="button" class="secondary achievement-clear-button" id="clear-achievement-notifications" aria-label="Clear all achievement notifications (' + unseen.size + ')" title="Clear all notifications"' + (unseen.size ? '' : ' disabled') + '>Clear all</button>') + recentAchievementCard() + (pendingAchievementRewards().length ? '<div class="notice"><strong>' + pendingAchievementRewards().length + ' unclaimed +3 XP rewards</strong><button class="secondary" data-claim-achievement="' + pendingAchievementRewards()[0].id + '">Choose a skill</button></div>' : '') + '<p class="muted">' + earned + ' / ' + items.length + ' unlocked' + (developer?.active ? ' · Test Mode preview' : '') + '</p><progress class="collection-progress" max="' + items.length + '" value="' + earned + '" aria-label="Collection completion"></progress><p class="small">Optional Well-Rounded Days: <strong>' + medals + '</strong></p><p class="small muted">Tap an unlocked achievement to clear its New marker.</p>' + (!unseen.size ? '<p class="small muted" id="achievement-notifications-status" tabindex="-1" role="status">All notifications cleared.</p>' : '') + ['Consistency', 'Levels', 'Skills', 'Legend'].map(category => {
     const group = items.filter(a => a.category === category),
       fresh = group.filter(a => unseen.has(a.id)).length;
-    return '<details class="achievement-group"><summary>' + category + (fresh ? ' <span class="achievement-new">' + fresh + ' new</span>' : '') + ' <span class="small muted">' + group.filter(a => a.earned).length + ' / ' + group.length + '</span></summary>' + group.map(a => '<article id="achievement-' + a.id + '" tabindex="-1" class="achievement-row ' + (a.earned ? 'achievement-earned' : '') + '">' + achievementBadge(a) + '<div>' + (a.earned ? '<button class="achievement-view" data-view-achievement="' + a.id + '">' + a.name + '</button>' : '<strong>' + a.name + '</strong>') + (unseen.has(a.id) ? ' <span class="achievement-new">New</span>' : '') + '<p class="small muted">' + a.description + '</p><progress max="' + a.goal + '" value="' + a.value + '" aria-label="' + a.name + ' progress"></progress><span class="small">' + a.value + ' / ' + a.goal + (a.earned ? ' · Unlocked' : '') + '</span></div></article>').join('') + '</details>';
+    return '<details class="achievement-group"><summary>' + category + (fresh ? ' <span class="achievement-new">' + fresh + ' new</span>' : '') + ' <span class="small muted">' + group.filter(a => a.earned).length + ' / ' + group.length + '</span></summary>' + group.map(a => '<article id="achievement-' + a.id + '" tabindex="-1" class="achievement-row ' + (a.earned ? 'achievement-earned' : '') + '">' + achievementBadge(a) + '<div>' + (a.earned ? '<button class="achievement-view" data-view-achievement="' + a.id + '">' + a.name + '</button>' : '<strong>' + a.name + '</strong>') + (unseen.has(a.id) ? ' <span class="achievement-new">New</span>' : '') + '<p class="small muted">' + a.description + '</p><progress max="' + a.goal + '" value="' + a.value + '" aria-label="' + a.name + ' progress"></progress><span class="small">' + a.value + ' / ' + a.goal + (a.earned ? ' · Unlocked' : '') + '</span>' + (a.earned ? (state.achievementRewards?.[a.id] ? '<p class="small">+3 XP claimed · ' + SKILLS.find(skill => skill.id === state.achievementRewards[a.id]).name + '</p>' : '<button class="secondary" data-claim-achievement="' + a.id + '">Claim +3 XP</button>') : '<p class="small">Reward: +3 XP to a chosen skill</p>') + '</div></article>').join('') + '</details>';
   }).join('') + '</section>';
 }
 
@@ -1092,11 +1152,14 @@ function connectPageControls() {
   for (const button of document.querySelectorAll("[data-view-achievement]")) {
     button.addEventListener("click", () => viewAchievement(button.dataset.viewAchievement));
   }
+  for (const button of document.querySelectorAll("[data-claim-achievement]")) {
+    button.addEventListener("click", () => openAchievementReward(button.dataset.claimAchievement));
+  }
   document.getElementById("background-select")?.addEventListener("change", event => chooseBackground(event.target.value));
 }
 
 // Replay days in date order so each rating receives the bonus for that day's level.
-function calculateCheckinXP(checkins, startingXP, challenges = {}) {
+function calculateCheckinXP(checkins, startingXP, challenges = {}, achievementRewards = {}) {
   const xp = {
     ...startingXP
   };
@@ -1112,6 +1175,10 @@ function calculateCheckinXP(checkins, startingXP, challenges = {}) {
   }
   for(const entry of Object.values(challenges)) {
     if(entry.completed){const challenge=DAILY_CHALLENGES.find(c=>c.id===entry.id);if(challenge)xp[challenge.skill]+=2;}
+  }
+  // Rewards are separate from ratings, so editing a day never removes or repeats them.
+  for (const skillId of Object.values(achievementRewards)) {
+    if (SKILLS.some(skill => skill.id === skillId)) xp[skillId] += 3;
   }
   return xp;
 }
@@ -1132,9 +1199,10 @@ function saveCheckin() {
   const xpBefore = { ...state.xp };
   const levelsBefore = Object.fromEntries(SKILLS.map(s => [s.id, stats(state.xp[s.id]).level]));
   const next = validateSave(state);
+  next.earnedAchievements = [...earnedBefore];
   next.checkins[day] = Object.assign({}, editingRatings());
   const startingXP = developer?.active ? developer.baseXP() : blank().xp;
-  next.xp = calculateCheckinXP(next.checkins, startingXP, next.challenges);
+  next.xp = calculateCheckinXP(next.checkins, startingXP, next.challenges, next.achievementRewards);
   const newAchievements = achievementList(next).filter(item => item.earned && !earnedBefore.has(item.id));
   if (newAchievements.length) next.recentAchievements = [...new Set([
     ...newAchievements.map(item => item.id).reverse(), ...(next.recentAchievements || [])
@@ -1257,7 +1325,7 @@ function recoverRatingDraft() {
 }
 
 /* Check HTML without cache; only a user action reloads the app. No service worker. */
-const APP_BUILD = "20261110-quest-heading-inline";
+const APP_BUILD = "20261112-achievement-rewards";
 let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
 function renderUpdateNotice() {
   if (!availableBuild || typeof document.createElement !== "function") return;
