@@ -461,6 +461,13 @@ h2 {
   font-size: 26px;
 }
 
+.level-up-dialog .save-dialog-symbol .skill-asset {
+  display: block;
+  width: 64px;
+  height: 64px;
+  margin: 0 auto;
+}
+
 .firework-bursts {
   position: absolute;
   inset: 0;
@@ -2611,3 +2618,4 @@ button, input, select, textarea, svg text {
 .achievement-reward-dialog { max-height: calc(100dvh - 40px); overflow-y: auto; }
 .reward-skill-list { display: grid; gap: 8px; }
 .reward-skill-list button { margin: 0; min-height: 44px; width: 100%; }
+
