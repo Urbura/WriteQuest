@@ -16,6 +16,7 @@ page layouts, button actions, and daily saving. Developer Mode controls live in
 | The extra XP earned at skill milestones | `checkinBonus(level)` |
 | One skill card on Home | `homeSkillCard(skill, index)` |
 | The centre check-in button | `homeCheckinButton(day)` |
+| Home's weekly activity and next milestone | `homeWeeklySummary()`; reuses Journal's summary and `nextMilestone()` |
 | One row of daily rating buttons | `checkinSkillRow(skill, ratings)` |
 | Rank unlock levels | `TOTAL_RANKS` |
 | Background names | `BACKGROUND_REWARDS` |
@@ -107,7 +108,10 @@ Local copies remain in the same browser or installed app on the same device. Cle
 
 The saved profile contains XP, daily ratings, viewed achievement IDs and the
 background preference, and a newest-first list of recent achievement IDs. The Achievements page displays the most recent ID that is still earned after corrections. A check-in records new unlocks in the same save as its XP; repeated saves do not reorder them. Older profiles display an earned badge without claiming an unlock date. Older profiles default to following the current rank.
-Achievements are calculated from that profile. Keep existing skill and
+Achievements combine current progress with saved earned unlocks. Rating corrections
+replace check-in XP and activity counts while keeping earned badges and their
+one-time +3 XP rewards available. Explicit loads and resets restore their own
+achievement snapshot. Keep existing skill and
 achievement IDs stable when changing their visible names or artwork.
 
 Normal check-ins recalculate XP from history, so editing a day replaces its
@@ -140,4 +144,5 @@ all achievements and Grandmaster in Test Mode, then confirm reduced-motion
 behaviour. Keep media-query order intact when consolidating CSS: moving a rule
 can change which mobile styles win. Update asset version strings in `index.html`
 when publishing changed scripts or styles.
+
 

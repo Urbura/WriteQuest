@@ -53,7 +53,7 @@ test('Test Mode restore resets both baseline and preview history; normal save st
   assert.equal(run('state.checkins[localDay()].drafting'), 5);
 });
 
-test('same-day edits replace XP and all-zero days do not count as active', () => {
+test('same-day edits replace XP and activity while earned achievements stay available', () => {
   const { run } = appContext();
   run(`showSaveDialog = () => {}; draftRatings = {drafting: 5}; saveCheckin(); draftRatings = {drafting: 2}; saveCheckin();`);
   assert.equal(run('state.xp.drafting'), 2);
@@ -61,7 +61,8 @@ test('same-day edits replace XP and all-zero days do not count as active', () =>
   assert.equal(run('state.xp.drafting'), 0);
   assert.equal(run('writingDay().complete'), false);
   assert.equal(run('WriteQuestJourney.summary(state.checkins,localDay()).activeDays'), 0);
-  assert.equal(run('achievementList().find(a=>a.id==="first").earned'), false);
+  assert.equal(run('achievementList().find(a=>a.id==="first").earned'), true);
+  assert.equal(run('pendingAchievementRewards().some(a=>a.id==="first")'), true);
 });
 
 test('save validation rejects invalid XP, dates and ratings', () => {
@@ -291,14 +292,17 @@ test('Achievements shows no badge before an unlock, then keeps the latest unlock
   assert.deepEqual(copy(run('state.recentAchievements')), recent);
 });
 
-test('correcting ratings never showcases a now-locked achievement', () => {
+test('correcting ratings preserves the latest earned achievement through reload', () => {
   const { run } = appContext();
   run('showSaveDialog=()=>{}; draftRatings=Object.fromEntries(SKILLS.map(s=>[s.id,5])); saveCheckin();');
   run('draftRatings={drafting:1}; saveCheckin();');
-  assert.equal(run('recentAchievement().item.id'), 'first');
+  assert.equal(run('recentAchievement().item.id'), 'five-for-five');
   run('draftRatings={drafting:0}; saveCheckin();');
-  assert.equal(run('recentAchievement()'), null);
-  assert.equal(run('recentAchievementCard()'), '');
+  run('state=loadProgress();');
+  assert.equal(run('recentAchievement().item.id'), 'five-for-five');
+  assert.match(run('recentAchievementCard()'), /Well-Rounded Day/);
+  assert.equal(run('achievementList().find(a=>a.id==="five-for-five").value'), 0);
+  assert.equal(run('achievementList().find(a=>a.id==="five-for-five").earned'), true);
 });
 
 test('legacy profiles show an earned badge without claiming to know its unlock date', () => {
@@ -351,7 +355,8 @@ test('Achievements highlights the latest unlock while Home omits it, without cle
   assert.equal(run('unseenAchievements().some(a=>a.id===recentAchievement().item.id)'), true);
   assert.deepEqual(storage, before);
   run('draftRatings={drafting:0}; saveCheckin();');
-  assert.doesNotMatch(run('achievements()'), /achievement-highlight/);
+  assert.match(run('achievements()'), /achievement-highlight/);
+  assert.equal(run('WriteQuestJourney.summary(state.checkins,localDay()).activeDays'), 0);
 });
 
 
@@ -379,3 +384,4 @@ test('Settings exposes simple Save and Load and explains reset preserves Manual 
  assert.doesNotMatch(html,/Recovery Options|Restore Previous Save|Export File|Import File|id="import-backup"/);
  assert.match(html,/Your Manual Save is kept/);
 });
+

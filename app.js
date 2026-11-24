@@ -465,7 +465,7 @@ function homeProgress(skill) {
   const value = maxed ? 1 : p.remaining,
     need = maxed ? 1 : p.need;
   const label = maxed ? skill.name + ': maximum level reached' : skill.name + ': ' + p.remaining + ' / ' + p.need + ' XP to Level ' + (p.level + 1);
-  return '<span class="home-progress" role="progressbar" aria-label="' + label + '" aria-valuemin="0" aria-valuemax="' + need + '" aria-valuenow="' + value + '" title="' + label + '"><span class="home-progress-fill" data-quest-xp="' + skill.id + '" data-xp-level="' + p.level + '" data-xp-fraction="' + (value / need) + '" style="width:' + (100 * value / need) + '%;background:' + skill.color + '"></span></span>';
+  return '<span class="home-progress-row"><span class="home-progress" role="progressbar" aria-label="' + label + '" aria-valuemin="0" aria-valuemax="' + need + '" aria-valuenow="' + value + '" title="' + label + '"><span class="home-progress-fill" data-quest-xp="' + skill.id + '" data-xp-level="' + p.level + '" data-xp-fraction="' + (value / need) + '" style="width:' + (100 * value / need) + '%;background:' + skill.color + '"></span></span><span class="home-progress-label" aria-hidden="true">' + (maxed ? 'MAX' : p.remaining + '/' + p.need + ' XP') + '</span></span>';
 }
 
 function writingDay(ratings = todayRatings()) {
@@ -488,7 +488,7 @@ function homeSkillCard(skill, index) {
     `<button class="skill skill-rank-${rankClass}${masteryClass}" style="--mastery-color:${skill.color};--mastery-delay:${animationDelay}s" data-skill="${skill.id}">`,
     `<span class="symbol" aria-hidden="true">${skillIcon(skill)}</span>`,
     `<strong>${skill.name}</strong>`,
-    `<span class="small">Level ${level} · ${rankName}</span>`,
+    `<span class="small">Level ${level}<span class="home-skill-rank"> · ${rankName}</span></span>`,
     homeProgress(skill),
     '</button>'
   ].join("");
@@ -507,6 +507,23 @@ function homeCheckinButton(day) {
     day.complete ? `<span class="star-checkin-count">${day.count} of 5 skills</span>` : '<span class="star-checkin-dot" aria-hidden="true"></span>',
     '</button>'
   ].join("");
+}
+
+// Reuse Journal's saved activity and milestone calculations on Home.
+function homeWeeklySummary() {
+  const today = localDay();
+  const data = globalThis.WriteQuestJourney.summary(state.checkins, today);
+  const labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const item = nextMilestone(achievementList());
+  const count = data.weekly + ' writing ' + (data.weekly === 1 ? 'day' : 'days') + ' this week';
+  const next = item ? 'Next milestone: ' + item.name + ', ' + item.value + ' of ' + item.goal + '.' : 'View your writing journey.';
+  return '<button type="button" class="home-weekly" data-page="journey" aria-label="Open Journal. ' + count + '. ' + next + '">' +
+    '<span class="home-weekly-heading"><span><strong>' + data.weekly + '</strong> writing ' + (data.weekly === 1 ? 'day' : 'days') + ' this week</span><span class="home-weekly-link">Journal</span></span>' +
+    '<span class="home-weekly-days" aria-hidden="true">' + data.week.map((day, index) => {
+      const status = day.checked ? 'Writing practised' : day.future ? 'Upcoming' : day.day === today ? 'Ready for a small step' : 'Rest day';
+      return '<span class="home-weekly-day' + (day.checked ? ' home-weekly-checked' : '') + (day.day === today ? ' home-weekly-today' : '') + (day.future ? ' home-weekly-future' : '') + '" title="' + labels[index] + ', ' + day.day + ': ' + status + '"><span>' + labels[index] + '</span><span class="home-weekly-mark">' + (day.checked ? '✓' : '·') + '</span></span>';
+    }).join('') + '</span>' +
+    '<span class="home-weekly-next">' + (item ? '<span>Next: <strong>' + item.name + '</strong></span><span>' + item.value + '/' + item.goal + '</span>' : '<span>View your writing journey</span>') + '</span></button>';
 }
 
 
@@ -640,6 +657,7 @@ function changeDailyChallenge(swap, completed) {
 function home() {
   return [
     header(),
+    homeWeeklySummary(),
     '<div class="skill-star"><div class="skill-grid">',
     SKILLS.map(homeSkillCard).join(""),
     '</div>',
@@ -820,7 +838,7 @@ function rankProgression() {
 
 function settings() {
   const manual = manualSaveStatus();
-  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Save / Load</h2><p class="notice">Your progress saves automatically. Save keeps a separate manual copy inside WriteQuest on this device. Load lets you choose the last autosave or your manual save.</p><button class="primary" id="save-local">Save</button><p id="manual-save-status" class="small muted" role="status">' + manual.text + '</p><button class="secondary" id="load-local" type="button">Load</button><p class="small muted">No download needed. This save stays in this browser or installed app on this device. Clearing its data removes local saves.</p><h2>App updates</h2><p class="small muted">Version 2026.11.16 · Progress stays on this device when updating.</p><button class="secondary" id="check-updates">Check for Updates</button><p id="update-status" class="small" role="status"></p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Reset your active XP, achievements, and check-in history. Your Manual Save is kept and can be restored with Load.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
+  return header() + '<section class="card settings-card">' + contentTitle(GEAR_ICON + '<span>Settings</span>') + '<h2>Save / Load</h2><p class="notice">Your progress saves automatically. Save keeps a separate manual copy inside WriteQuest on this device. Load lets you choose the last autosave or your manual save.</p><button class="primary" id="save-local">Save</button><p id="manual-save-status" class="small muted" role="status">' + manual.text + '</p><button class="secondary" id="load-local" type="button">Load</button><p class="small muted">No download needed. This save stays in this browser or installed app on this device. Clearing its data removes local saves.</p><h2>App updates</h2><p class="small muted">Version 2026.11.24 · Progress stays on this device when updating.</p><button class="secondary" id="check-updates">Check for Updates</button><p id="update-status" class="small" role="status"></p><h2>Daily reset</h2><p class="muted">3:30 a.m. your device’s local time, including daylight saving changes. A reset opens a new check-in day; your XP and history stay saved.</p><h2>Sounds & help</h2><button class="secondary" id="toggle-sounds" aria-pressed="' + (globalThis.WriteQuestSounds?.isEnabled() !== false) + '">Sounds: ' + (globalThis.WriteQuestSounds?.isEnabled() === false ? 'Off' : 'On') + '</button><button class="secondary" id="open-tutorial">View Tutorial</button><h2>Developer Mode</h2><p class="small muted">Preview every rank and background using a separate temporary profile.</p><button class="secondary" id="open-developer">Open Test Mode</button><h2>Reset progress</h2><p class="small muted">Reset your active XP, achievements, and check-in history. Your Manual Save is kept and can be restored with Load.</p><button class="reset-button" id="reset-progress">Reset Progress</button></section>'
 }
 /* One attainable goal keeps Journey useful for focused writing days. */
 function nextMilestone(items) {
@@ -1325,7 +1343,7 @@ function recoverRatingDraft() {
 }
 
 /* Check HTML without cache; only a user action reloads the app. No service worker. */
-const APP_BUILD = "20261116-level-up-icons";
+const APP_BUILD = "20261124-home-progress";
 let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
 function renderUpdateNotice() {
   if (!availableBuild || typeof document.createElement !== "function") return;
@@ -1415,5 +1433,6 @@ if (typeof setTimeout !== "undefined") setTimeout(() => {
   if (!seen) openTutorial();
 }, 0);
 render();
+
 
 

@@ -27,7 +27,8 @@ WriteQuest uses plain HTML, CSS, and small JavaScript modules. You can edit them
 **Tip:** Search `app.js` for `WRITEQUEST DATA` to find the five skills. Keep existing localStorage keys unchanged so previous check-ins remain readable.
 
 ### What works now
-- Home page with five writing skills
+- Home page with five writing skills, visible XP values, and a compact Sunday–Saturday weekly summary
+- Tap the weekly summary to open Journal; the next milestone is also shown on Home
 - Tap any skill for its definition, examples, level, rank, XP bar, and next bonus
 - Tap the WriteQuest logo to open Journey, achievements/settings shortcuts, and Home buttons
 - Daily 0–5 ratings saved locally on the device
@@ -49,6 +50,8 @@ WriteQuest uses plain HTML, CSS, and small JavaScript modules. You can edit them
 - Cloud synchronization
 
 One positive skill completes a writing day. Well-Rounded Day achievements are optional (all five skills at 5/5 on 1, 5, or 25 separate days), with no additional completion XP. Specialist means skill Level 25; Mastery means Level 50.
+
+Earned achievements and their one-time +3 XP rewards remain available after rating corrections. Corrected ratings still replace check-in XP and activity counts. Explicit loads and Reset Progress restore their own achievement state.
 
 ## Important limitations of this starter
 This is a working **prototype**, not the completed WriteQuest app. The check-in day changes at 3:30 a.m. in the device’s local time zone, including daylight saving changes. Data is saved only in the current browser/device; clearing browser data can erase progress. Projects are not implemented yet. At 3/5, skill Level 50 takes 108 active check-ins (about five months at five check-ins per week); at 5/5 it takes 76.
@@ -98,3 +101,4 @@ Test Mode badge is visible only while the temporary developer session is active.
 Submitting a Daily Quest asks for Yes/No confirmation. Only a successful save
 animates the associated skill bar and shows +2 XP on that skill card. Cancelling
 leaves the task unchecked and awards no XP. Reduced motion keeps a static reward.
+

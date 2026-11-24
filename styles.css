@@ -919,6 +919,7 @@ h2 {
 
   .app:has(.skill-star) .skill-grid .skill {
     padding: 2px;
+    gap: 1px;
   }
 }
 
@@ -981,12 +982,28 @@ header .brand.brand-logo {
   object-position: left center;
 }
 
-/* Thin XP bars add visible progress without increasing dashboard height. */
+/* XP values sit beside the bars without adding another row to a skill tile. */
+.skill-grid .home-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 88%;
+  margin: 5px 0 1px;
+  flex: 0 0 auto;
+}
+
+.home-progress-label {
+  flex: 0 0 auto;
+  color: #edf3ff;
+  font-size: 12px;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
 .skill-grid .home-progress {
   display: block;
-
-  margin: 5px 0 1px;
-
+  margin: 0;
   border-radius: 999px;
   overflow: hidden;
 }
@@ -1002,7 +1019,7 @@ header .brand.brand-logo {
     font-size: clamp(30px, 6.5vh, 52px);
   }
 
-  .skill-grid .home-progress {
+  .skill-grid .home-progress-row {
     margin-top: 3px;
   }
 }
@@ -1012,7 +1029,7 @@ header .brand.brand-logo {
     font-size: 22px;
   }
 
-  .skill-grid .home-progress {
+  .skill-grid .home-progress-row {
     margin: 2px 0 0;
   }
 }
@@ -2353,7 +2370,67 @@ header.quest-header .header-rank-beginner {
 .daily-quest-task > span > span {font-size:13px;color:var(--muted);}
 .daily-quest-heading > button {flex:none;white-space:nowrap;}
 
-/* Home layout: keep Drafting below the top bar while retaining the central check-in. */
+/* A compact Journal entry keeps the weekly trail and next goal visible on Home. */
+.home-weekly {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 440px;
+  margin: 8px auto 0;
+  padding: 9px 12px;
+  border: 1px solid #516382;
+  border-radius: 14px;
+  background: rgba(11, 20, 40, .94);
+  color: var(--text);
+  text-align: left;
+  line-height: 1.2;
+}
+.home-weekly:hover { background: #172b47; border-color: var(--gold); }
+.home-weekly-heading, .home-weekly-next {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  font-size: 14px;
+}
+.home-weekly-heading strong, .home-weekly-link { color: var(--gold); }
+.home-weekly-link { flex: 0 0 auto; font-weight: 700; }
+.home-weekly-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.home-weekly-day {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  color: var(--muted);
+  font-size: 12px;
+}
+.home-weekly-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 15px;
+  width: 15px;
+  height: 15px;
+  border: 1px solid #607293;
+  border-radius: 50%;
+  font-size: 11px;
+  line-height: 1;
+}
+.home-weekly-checked .home-weekly-mark { background: #245b49; border-color: #7bc9a0; color: #e1ffed; }
+.home-weekly-today .home-weekly-mark { outline: 1px solid var(--gold); outline-offset: 2px; }
+.home-weekly-future { color: #92a4bf; }
+.home-weekly-next { color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; }
+.home-weekly-next strong { color: var(--text); }
+.home-weekly-next > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+.home-weekly-next > span:last-child { flex: 0 0 auto; }
+@media (max-width: 350px) {
+  .home-weekly { padding-inline: 8px; }
+  .home-weekly-day { gap: 2px; }
+}
+
+/* Home layout: keep Drafting below the summary while retaining the central check-in. */
 .app:has(.skill-star) > .skill-star {margin-top:14px;}
 @media(max-width:430px){.app:has(.skill-star) > .skill-star {margin-top:12px;}}
 
@@ -2496,8 +2573,8 @@ body:not(.developer-mode) #developer-launcher { display: none; }
   text-shadow: 0 1px 2px #000b;
 }
 .skill-grid .home-progress {
-  flex: 0 0 8px;
-  width: 88%;
+  flex: 1 1 0;
+  min-width: 0;
   height: 8px;
   background: #0b1830;
   border: 1px solid #8199bd;
@@ -2509,7 +2586,11 @@ body:not(.developer-mode) #developer-launcher { display: none; }
 }
 @media (max-width: 600px) and (max-height: 590px) {
   .app:has(.skill-star) .skill-grid .skill .small { font-size: 10px; }
-  .skill-grid .home-progress { flex-basis: 7px; height: 7px; }
+  .skill-grid .home-progress { height: 7px; }
+}
+@media (max-width: 350px) and (max-height: 590px) {
+  /* Rank colours and the header badge keep compact cards focused on level and XP. */
+  .skill-grid .home-skill-rank { display: none; }
 }
 
 /* Swap shares the navy secondary-button treatment and gold focus state. */
@@ -2618,4 +2699,5 @@ button, input, select, textarea, svg text {
 .achievement-reward-dialog { max-height: calc(100dvh - 40px); overflow-y: auto; }
 .reward-skill-list { display: grid; gap: 8px; }
 .reward-skill-list button { margin: 0; min-height: 44px; width: 100%; }
+
 
