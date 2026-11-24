@@ -1343,7 +1343,7 @@ function recoverRatingDraft() {
 }
 
 /* Check HTML without cache; only a user action reloads the app. No service worker. */
-const APP_BUILD = "20261124-home-progress";
+const APP_BUILD = "20261124-dialog-copy";
 let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
 function renderUpdateNotice() {
   if (!availableBuild || typeof document.createElement !== "function") return;

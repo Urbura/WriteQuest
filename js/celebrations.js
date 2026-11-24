@@ -68,7 +68,7 @@ function showNextCelebration(queue, onComplete = null) {
   globalThis.WriteQuestSounds?.play(skill?.achievement ? "achievement" : skill?.backgroundRank ? "rank" : skill ? "level" : "checkin");
   const overlay = document.createElement("div");
   overlay.className = "save-overlay";
-  overlay.innerHTML = '<div class="save-dialog" role="dialog" aria-modal="true" aria-labelledby="saved-heading"><div class="save-dialog-symbol" style="font-size:34px" aria-hidden="true">✦</div><h2 id="saved-heading">' + (writingDay().complete ? 'Writing day complete' : 'Check-in saved') + '</h2><p>' + (writingDay().complete ? 'You made time for your writing.' : 'Your ratings are saved. A positive rating in any one skill completes your writing day.') + '</p><button class="primary" id="saved-done">Done</button><p class="small">Select the button to continue.</p></div>';
+  overlay.innerHTML = '<div class="save-dialog" role="dialog" aria-modal="true" aria-labelledby="saved-heading"><div class="save-dialog-symbol" style="font-size:34px" aria-hidden="true">✦</div><h2 id="saved-heading">' + (writingDay().complete ? 'Writing day complete' : 'Check-in saved') + '</h2><p>' + (writingDay().complete ? 'You made time for your writing.' : 'Your ratings are saved. A positive rating in any one skill completes your writing day.') + '</p><button class="primary" id="saved-done">Done</button></div>';
   if (!skill && writingDay().complete) {
     const focus = document.createElement('p');
     focus.className = 'small';
@@ -110,7 +110,12 @@ function showNextCelebration(queue, onComplete = null) {
   }
   if (skill) {
     overlay.querySelector("#saved-done").textContent = queue.length ? "Continue →" : "Done";
-    if (developer?.active) overlay.querySelector(".small").textContent = "Test Mode preview · normal progress unchanged.";
+    if (developer?.active) {
+      const note = document.createElement("p");
+      note.className = "small";
+      note.textContent = "Test Mode preview · normal progress unchanged.";
+      overlay.querySelector(".save-dialog").appendChild(note);
+    }
   }
   if (skill?.achievement && !state.achievementRewards?.[skill.achievement.id]) {
     const claim = document.createElement("button");
@@ -147,4 +152,5 @@ function showNextCelebration(queue, onComplete = null) {
   document.addEventListener("keydown", onKey);
   overlay.querySelector("#saved-done").focus()
 }
+
 
