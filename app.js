@@ -516,14 +516,15 @@ function homeWeeklySummary() {
   const labels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   const item = nextMilestone(achievementList());
   const count = data.weekly + ' writing ' + (data.weekly === 1 ? 'day' : 'days') + ' this week';
-  const next = item ? 'Next milestone: ' + item.name + ', ' + item.value + ' of ' + item.goal + '.' : 'View your writing journey.';
+  const next = item ? 'Next Achievement: ' + item.name + ', ' + item.value + ' of ' + item.goal + '.' : 'View your writing journey.';
   return '<button type="button" class="home-weekly" data-page="journey" aria-label="Open Journal. ' + count + '. ' + next + '">' +
     '<span class="home-weekly-heading"><span><strong>' + data.weekly + '</strong> writing ' + (data.weekly === 1 ? 'day' : 'days') + ' this week</span><span class="home-weekly-link">Journal</span></span>' +
     '<span class="home-weekly-days" aria-hidden="true">' + data.week.map((day, index) => {
       const status = day.checked ? 'Writing practised' : day.future ? 'Upcoming' : day.day === today ? 'Ready for a small step' : 'Rest day';
       return '<span class="home-weekly-day' + (day.checked ? ' home-weekly-checked' : '') + (day.day === today ? ' home-weekly-today' : '') + (day.future ? ' home-weekly-future' : '') + '" title="' + labels[index] + ', ' + day.day + ': ' + status + '"><span>' + labels[index] + '</span><span class="home-weekly-mark">' + (day.checked ? '✓' : '·') + '</span></span>';
     }).join('') + '</span>' +
-    '<span class="home-weekly-next">' + (item ? '<span>Next: <strong>' + item.name + '</strong></span><span>' + item.value + '/' + item.goal + '</span>' : '<span>View your writing journey</span>') + '</span></button>';
+    '<span class="home-weekly-next">' + (item ? '<span><span class="home-weekly-next-label">Next Achievement:</span> <strong>' + item.name + '</strong></span><span>' + item.value + '/' + item.goal + '</span>' : '<span>View your writing journey</span>') + '</span>' +
+    (item ? '<progress class="home-weekly-progress" max="' + item.goal + '" value="' + item.value + '" aria-label="Next Achievement: ' + item.name + '"></progress>' : '') + '</button>';
 }
 
 
@@ -1343,7 +1344,7 @@ function recoverRatingDraft() {
 }
 
 /* Check HTML without cache; only a user action reloads the app. No service worker. */
-const APP_BUILD = "20261124-dialog-copy";
+const APP_BUILD = "20261124-achievement-progress";
 let availableBuild = "", updateCheckRunning = false, lastUpdateCheck = 0;
 function renderUpdateNotice() {
   if (!availableBuild || typeof document.createElement !== "function") return;
